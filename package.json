@@ -1,0 +1,43 @@
+{
+  "name": "already",
+  "description": "Promise extensions; finally, map, filter, etc",
+  "license": "MIT",
+  "version": "0.0.1",
+  "author": "Gustaf Räntilä <g.rantila@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/grantila/already.git"
+  },
+  "types": "./dist/index.d.ts",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "scripts/build.sh",
+    "test": "node_modules/.bin/mocha"
+  },
+  "pre-commit": [
+    "build",
+    "test"
+  ],
+  "keywords": [
+    "promise",
+    "extensions",
+    "utilities",
+    "finally",
+    "map",
+    "filter",
+    "props",
+    "tap",
+    "defer",
+    "deferred"
+  ],
+  "devDependencies": {
+    "@types/mocha": "^2.2.42",
+    "chai": "^3.5",
+    "mocha": "^3",
+    "pre-commit": "^1.1",
+    "typescript": "^2.5.2"
+  },
+  "dependencies": {
+    "throat": "^4.1.0"
+  }
+}

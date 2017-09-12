@@ -1,0 +1,13 @@
+{
+	"compilerOptions": {
+		"declaration": true,
+		"lib": [ "es2015", "es2017", "dom" ],
+		"moduleResolution": "node",
+		"pretty": true,
+		"sourceMap": true,
+		"allowSyntheticDefaultImports": true
+	},
+	"include": [
+		"lib"
+	]
+}

@@ -1,0 +1,206 @@
+'use strict';
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [0, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+var throat = require("throat");
+exports.default = {
+    delay: delay,
+    delayChain: delayChain,
+    finallyDelay: finallyDelay,
+    finally: Finally,
+    Finally: Finally,
+    tap: tap,
+    props: props,
+    filter: filter,
+    map: map,
+    defer: defer,
+};
+function delay(milliseconds, t) {
+    return new Promise(function (resolve, reject) {
+        setTimeout(function () { return resolve(t); }, milliseconds);
+    });
+}
+exports.delay = delay;
+function delayChain(milliseconds) {
+    return tap(function () { return delay(milliseconds); });
+}
+exports.delayChain = delayChain;
+function finallyDelay(milliseconds) {
+    return Finally(function () { return delay(milliseconds); });
+}
+exports.finallyDelay = finallyDelay;
+function Finally(fn) {
+    function _then(t) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, fn()];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/, t];
+                }
+            });
+        });
+    }
+    function _catch(err) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, fn()];
+                    case 1:
+                        _a.sent();
+                        throw err;
+                }
+            });
+        });
+    }
+    return [_then, _catch];
+}
+exports.Finally = Finally;
+function tap(fn) {
+    return function (t) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, fn(t)];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/, t];
+                }
+            });
+        });
+    };
+}
+exports.tap = tap;
+function props(obj) {
+    var ret = {};
+    var awaiters = [];
+    var _loop_1 = function (prop) {
+        awaiters.push(Promise.resolve(obj[prop])
+            .then(function (val) { ret[prop] = val; }));
+    };
+    for (var _i = 0, _a = Object.keys(obj); _i < _a.length; _i++) {
+        var prop = _a[_i];
+        _loop_1(prop);
+    }
+    return Promise.all(awaiters).then(function () { return ret; });
+}
+exports.props = props;
+var defaultFilterMapOptions = { concurrency: Infinity };
+function filter(arr, opts, filterFn) {
+    if (Array.isArray(arr)) {
+        if (typeof opts === 'function') {
+            filterFn = opts;
+            opts = defaultFilterMapOptions;
+        }
+        return filter(opts, filterFn)(arr);
+    }
+    if (typeof arr === 'function') {
+        filterFn = arr;
+        opts = defaultFilterMapOptions;
+    }
+    else {
+        filterFn = opts;
+        opts = arr;
+    }
+    var wrappedFilterFn = function (val, index, arr) {
+        return Promise.resolve(filterFn(val, index, arr))
+            .then(function (ok) { return ({ ok: ok, val: val }); });
+    };
+    return function (t) {
+        return map(opts, wrappedFilterFn)(t)
+            .then(function (values) {
+            return values
+                .filter(function (_a) {
+                var ok = _a.ok;
+                return ok;
+            })
+                .map(function (_a) {
+                var val = _a.val;
+                return val;
+            });
+        });
+    };
+}
+exports.filter = filter;
+function map(arr, opts, mapFn) {
+    if (Array.isArray(arr)) {
+        if (typeof opts === 'function') {
+            mapFn = opts;
+            opts = defaultFilterMapOptions;
+        }
+        return map(opts, mapFn)(arr);
+    }
+    if (typeof arr === 'function') {
+        mapFn = arr;
+        opts = defaultFilterMapOptions;
+    }
+    else {
+        mapFn = opts;
+        opts = arr;
+    }
+    var _a = opts.concurrency, concurrency = _a === void 0 ? Infinity : _a;
+    var promiseMapFn = function (t, index, arr) {
+        return Promise.resolve(mapFn(t, index, arr));
+    };
+    var throated = throat(concurrency);
+    return function (t) {
+        return Promise.resolve(t)
+            .then(function (values) {
+            return values.map(function (val, index, arr) {
+                return throated(function () { return Promise.resolve(val); })
+                    .then(function (val) {
+                    return throated(function () { return promiseMapFn(val, index, arr); });
+                });
+            });
+        })
+            .then(function (values) { return Promise.all(values); });
+    };
+}
+exports.map = map;
+/**
+ * Creates a defer object used to pass around a promise and its resolver
+ */
+function defer() {
+    var deferred = {};
+    deferred.promise = new Promise(function (resolve, reject) {
+        deferred.resolve = resolve;
+        deferred.reject = reject;
+    });
+    return deferred;
+}
+exports.defer = defer;
+//# sourceMappingURL=index.js.map
