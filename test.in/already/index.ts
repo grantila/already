@@ -12,6 +12,7 @@ import {
 	filter,
 	map,
 	defer,
+	Try,
 } from '../../es5';
 
 
@@ -325,5 +326,50 @@ describe( 'defer', ( ) =>
 			if ( err.message !== fooError )
 				throw err;
 		} );
+	} );
+} );
+
+describe( 'try', ( ) =>
+{
+	it( 'should work without return value', async ( ) =>
+	{
+		const ret = await (
+			Try( ( ) => { } )
+			.then( val => val )
+		);
+
+		expect( ret ).to.be.a( "undefined" );
+	} );
+
+	it( 'should work with return value', async ( ) =>
+	{
+		const ret = await (
+			Try( ( ) => "foo" )
+			.then( val => val )
+		);
+
+		expect( ret ).to.be.a( "string" );
+		expect( ret ).to.equal( "foo" );
+	} );
+
+	it( 'should work with a throwing function', async ( ) =>
+	{
+		function fn( ): string
+		{
+			throw new Error( fooError );
+		}
+		try
+		{
+			const ret = await (
+				Try( fn )
+				.then( val => val )
+			);
+			expect( false ).to.equal( true ); // We shouldn't be here
+		}
+		catch ( err )
+		{
+			if ( err.message !== fooError )
+				throw err;
+		}
 	} );
 } );

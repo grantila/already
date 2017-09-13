@@ -11,6 +11,7 @@ export default {
     filter,
     map,
     defer,
+    Try,
 };
 export function delay(milliseconds, t) {
     return new Promise((resolve, reject) => {
@@ -110,5 +111,8 @@ export function defer() {
         deferred.reject = reject;
     });
     return deferred;
+}
+export async function Try(cb) {
+    return cb();
 }
 //# sourceMappingURL=index.js.map

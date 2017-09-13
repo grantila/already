@@ -18,6 +18,7 @@ This library is written in TypeScript but is exposed as ES7 (if imported as `alr
   * [filter](#filter)
   * [map](#map)
   * [defer](#defer)
+  * [Try](#try)
 
 
 ## delay
@@ -173,6 +174,20 @@ deferred.resolve; // The resolve function.
 deferred.reject;  // The reject function.
 
 deferred.resolve( "foo" ); // deferred.promise is now resolved to "foo"
+```
+
+
+## Try
+
+The `Try` takes a callback function as argument and calls it. It guarantees to return a promise containing the value returned from the callback. If the function throws an exception, this will be caught and used to reject the promise with. `Try` can therefore never throw itself.
+
+`Try` is often easily replaced with an `async function` in ES7 or newer versions of TypeScript.
+
+```ts
+import { Try } from 'already'
+
+Try( ( ) => "foo" )
+.then( val => console.log( val ) ); // Prints "foo"
 ```
 
 

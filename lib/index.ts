@@ -13,8 +13,8 @@ export default {
 	filter,
 	map,
 	defer,
+	Try,
 }
-
 
 export function delay( milliseconds: number ): Promise< void >;
 export function delay< T >( milliseconds: number, t: T ): Promise< T >;
@@ -255,3 +255,8 @@ export function defer< T >( ): Deferred< T >
 	return deferred;
 }
 
+
+export async function Try< T >( cb: ( ) => T ): Promise< T >
+{
+	return cb( );
+}

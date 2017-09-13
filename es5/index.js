@@ -47,6 +47,7 @@ exports.default = {
     filter: filter,
     map: map,
     defer: defer,
+    Try: Try,
 };
 function delay(milliseconds, t) {
     return new Promise(function (resolve, reject) {
@@ -203,4 +204,12 @@ function defer() {
     return deferred;
 }
 exports.defer = defer;
+function Try(cb) {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            return [2 /*return*/, cb()];
+        });
+    });
+}
+exports.Try = Try;
 //# sourceMappingURL=index.js.map

@@ -22,6 +22,7 @@ declare const _default: {
         <T, U>(arr: (T | PromiseLike<T>)[], opts: Partial<ConcurrencyOptions>, mapFn: MapFn<T, U>): Promise<U[]>;
     };
     defer: <T>() => Deferred<T>;
+    Try: <T>(cb: () => T) => Promise<T>;
 };
 export default _default;
 export declare function delay(milliseconds: number): Promise<void>;
@@ -55,3 +56,4 @@ export interface Deferred<T> {
  * Creates a defer object used to pass around a promise and its resolver
  */
 export declare function defer<T>(): Deferred<T>;
+export declare function Try<T>(cb: () => T): Promise<T>;
