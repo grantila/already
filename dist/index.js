@@ -12,6 +12,7 @@ export default {
     map,
     defer,
     Try,
+    specific,
 };
 export function delay(milliseconds, t) {
     return new Promise((resolve, reject) => {
@@ -114,5 +115,38 @@ export function defer() {
 }
 export async function Try(cb) {
     return cb();
+}
+// This logic is taken from Bluebird
+function catchFilter(filters, err) {
+    return (Array.isArray(filters) ? filters : [filters])
+        .some((filter) => {
+        if (filter == null)
+            return false;
+        if (filter === Error ||
+            filter.prototype instanceof Error) {
+            if (err instanceof filter)
+                return true;
+        }
+        else if (typeof filter === "function") {
+            const filterFn = filter;
+            // It is "ok" for this to throw. It'll be thrown back to the catch
+            // handler, and the promise chain will contain this error.
+            return filterFn(err);
+        }
+        else if (typeof filter === "object") {
+            const obj = filter;
+            for (const key of Object.keys(obj))
+                if (obj[key] != err[key])
+                    return false;
+            return true;
+        }
+    });
+}
+export function specific(filters, handler) {
+    return function (err) {
+        if (!catchFilter(filters, err))
+            throw err;
+        return handler(err);
+    };
 }
 //# sourceMappingURL=index.js.map

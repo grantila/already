@@ -23,6 +23,7 @@ declare const _default: {
     };
     defer: <T>() => Deferred<T>;
     Try: <T>(cb: () => T) => Promise<T>;
+    specific: <T>(filters: ErrorConstructor | ErrorFilterObject | ErrorFilterFunction | CatchFilter[], handler: (err: Error) => T) => (err: Error) => T | Promise<T>;
 };
 export default _default;
 export declare function delay(milliseconds: number): Promise<void>;
@@ -57,3 +58,9 @@ export interface Deferred<T> {
  */
 export declare function defer<T>(): Deferred<T>;
 export declare function Try<T>(cb: () => T): Promise<T>;
+export declare type ErrorFilterFunction = (err: Error) => boolean;
+export declare type ErrorFilterObject = {
+    [key: string]: any;
+};
+export declare type CatchFilter = ErrorConstructor | ErrorFilterFunction | ErrorFilterObject;
+export declare function specific<T>(filters: CatchFilter | Array<CatchFilter>, handler: (err: Error) => T): (err: Error) => (T | Promise<T>);

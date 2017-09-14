@@ -14,6 +14,7 @@ export default {
 	map,
 	defer,
 	Try,
+	specific,
 }
 
 export function delay( milliseconds: number ): Promise< void >;
@@ -259,4 +260,66 @@ export function defer< T >( ): Deferred< T >
 export async function Try< T >( cb: ( ) => T ): Promise< T >
 {
 	return cb( );
+}
+
+
+export type ErrorFilterFunction = ( err: Error ) => boolean;
+export type ErrorFilterObject = { [ key: string ]: any };
+
+export type CatchFilter =
+	ErrorConstructor |
+	ErrorFilterFunction |
+	ErrorFilterObject;
+
+// This logic is taken from Bluebird
+function catchFilter( filters: CatchFilter | Array< CatchFilter >, err: Error )
+: boolean
+{
+	return ( Array.isArray( filters ) ? filters : [ filters ] )
+	.some( ( filter: CatchFilter ) =>
+	{
+		if ( filter == null )
+			return false;
+
+		if (
+			filter === Error ||
+			( < ErrorConstructor >filter ).prototype instanceof Error )
+		{
+			if ( err instanceof < ErrorConstructor >filter )
+				return true;
+		}
+		else if ( typeof filter === "function" )
+		{
+			const filterFn = < ErrorFilterFunction >filter;
+
+			// It is "ok" for this to throw. It'll be thrown back to the catch
+			// handler, and the promise chain will contain this error.
+			return filterFn( err );
+		}
+		else if ( typeof filter === "object" )
+		{
+			const obj = < ErrorFilterObject >filter;
+
+			for ( const key of Object.keys( obj ) )
+				if ( obj[ key ] != err[ key ] )
+					return false;
+			return true;
+		}
+
+	} );
+}
+
+export function specific< T >(
+	filters: CatchFilter | Array< CatchFilter >,
+	handler: ( err: Error ) => T
+)
+: ( err: Error ) => ( T | Promise< T > )
+{
+	return function( err: Error )
+	{
+		if ( !catchFilter( filters, err ) )
+			throw err;
+
+		return handler( err );
+	}
 }

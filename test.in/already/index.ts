@@ -2,6 +2,7 @@
 
 import 'mocha';
 import { expect } from 'chai';
+import * as sinon from 'sinon';
 
 import {
 	delay,
@@ -13,6 +14,7 @@ import {
 	map,
 	defer,
 	Try,
+	specific,
 } from '../../es5';
 
 
@@ -371,5 +373,158 @@ describe( 'try', ( ) =>
 			if ( err.message !== fooError )
 				throw err;
 		}
+	} );
+} );
+
+describe( 'specific', ( ) =>
+{
+	function CustomErrorA( args? )
+	{
+		Error( args );
+		if ( ( < any >Error ).captureStackTrace )
+			( < any >Error ).captureStackTrace( this, CustomErrorA );
+	}
+	CustomErrorA.prototype = Object.create( Error.prototype );
+	CustomErrorA.prototype.constructor = CustomErrorA;
+
+	function CustomErrorB( args? )
+	{
+		Error( args );
+		if ( ( < any >Error ).captureStackTrace )
+			( < any >Error ).captureStackTrace( this, CustomErrorB );
+	}
+	CustomErrorB.prototype = Object.create( Error.prototype );
+	CustomErrorB.prototype.constructor = CustomErrorB;
+
+	function isMyError( err: Error )
+	{
+		return ( < any >err ).myError == true;
+	}
+	function isNotMyError( err: Error )
+	{
+		return !( < any >err ).myError;
+	}
+
+	it( 'should filter single class', async ( ) =>
+	{
+		const spy = sinon.spy( );
+
+		const err = new CustomErrorA( "custom-a" );
+
+		await Promise.reject( err )
+		.catch( specific( CustomErrorA, spy ) );
+
+		sinon.assert.calledWith( spy, err );
+	} );
+
+	it( 'should filter two classes', async ( ) =>
+	{
+		const spy = sinon.spy( );
+
+		const err = new CustomErrorA( "custom-a" );
+
+		await Promise.reject( err )
+		.catch( specific( [ CustomErrorA, CustomErrorB ], spy ) );
+
+		sinon.assert.calledWith( spy, err );
+	} );
+
+	it( 'should skip two classes', async ( ) =>
+	{
+		const spy1 = sinon.spy( );
+		const spy2 = sinon.spy( );
+
+		const err = new Error( "custom-a" );
+
+		await Promise.reject( err )
+		.catch( specific( [ CustomErrorB, CustomErrorA ], spy1 ) )
+		.catch( spy2 );
+
+		sinon.assert.notCalled( spy1 );
+		sinon.assert.calledWith( spy2, err );
+	} );
+
+	it( 'should filter one function', async ( ) =>
+	{
+		const spy = sinon.spy( );
+
+		const err = new CustomErrorA( "custom-a" );
+		err.myError = true;
+
+		await Promise.reject( err )
+		.catch( specific( isMyError, spy ) );
+
+		sinon.assert.calledWith( spy, err );
+	} );
+
+	it( 'should filter two functions', async ( ) =>
+	{
+		const spy = sinon.spy( );
+
+		const err = new CustomErrorA( "custom-a" );
+		err.myError = true;
+
+		await Promise.reject( err )
+		.catch( specific( [ isNotMyError, isMyError ], spy ) );
+
+		sinon.assert.calledWith( spy, err );
+	} );
+
+	it( 'should skip two functions', async ( ) =>
+	{
+		const spy1 = sinon.spy( );
+		const spy2 = sinon.spy( );
+
+		const err = new CustomErrorA( "custom-a" );
+		err.myError = "not true";
+
+		await Promise.reject( err )
+		.catch( specific( [ isNotMyError, isMyError ], spy1 ) )
+		.catch( spy2 );
+
+		sinon.assert.notCalled( spy1 );
+		sinon.assert.calledWith( spy2, err );
+	} );
+
+	it( 'should filter one object', async ( ) =>
+	{
+		const spy = sinon.spy( );
+
+		const err = new CustomErrorA( "custom-a" );
+		err.myError = true;
+
+		await Promise.reject( err )
+		.catch( specific( { myError: true }, spy ) );
+
+		sinon.assert.calledWith( spy, err );
+	} );
+
+	it( 'should filter two objects', async ( ) =>
+	{
+		const spy = sinon.spy( );
+
+		const err = new CustomErrorA( "custom-a" );
+		err.myError = true;
+
+		await Promise.reject( err )
+		.catch( specific( [ { foo: 'bar' }, { myError: true } ], spy ) );
+
+		sinon.assert.calledWith( spy, err );
+	} );
+
+	it( 'should skip two objects', async ( ) =>
+	{
+		const spy1 = sinon.spy( );
+		const spy2 = sinon.spy( );
+
+		const err = new CustomErrorA( "custom-a" );
+		err.myError = "not true";
+
+		await Promise.reject( err )
+		.catch( specific( [ { a: 1 }, { b: 2 } ], spy1 ) )
+		.catch( spy2 );
+
+		sinon.assert.notCalled( spy1 );
+		sinon.assert.calledWith( spy2, err );
 	} );
 } );

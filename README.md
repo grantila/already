@@ -3,7 +3,7 @@
 
 # Already
 
-`already` is a set of promise helper functions which are also found in libraries such as Bluebird.
+`already` is a set of promise helper functions which many of them are also found in libraries such as Bluebird.
 
 The functions are standalone and depends on no particular Promise implementation and therefore works well for Javascript's built-in Promise.
 
@@ -19,6 +19,7 @@ This library is written in TypeScript but is exposed as ES7 (if imported as `alr
   * [map](#map)
   * [defer](#defer)
   * [Try](#try)
+  * [specific](#specific)
 
 
 ## delay
@@ -129,7 +130,7 @@ const outArray = await filter( inArray, { concurrency: 4 }, filterFun );
 
 ## map
 
-Same as with `filter`, `map` acts like awaiting all promises in an array, and then applying `array.map( )` on the result. Also, just like with `map`, it will also await the resulting promises from the map callback (if they actually are promises).
+Same as with `filter`, `map` acts like awaiting all promises in an array, and then applying `array.map( )` on the result. Also, just like with `filter`, it will await the resulting promises from the map callback (if they actually are promises).
 
 ```ts
 import { map } from 'already'
@@ -188,6 +189,31 @@ import { Try } from 'already'
 
 Try( ( ) => "foo" )
 .then( val => console.log( val ) ); // Prints "foo"
+```
+
+
+## specific
+
+The `specific` function can be used in a `.catch( ... )` handler to filter the catch for specific errors only. Its logic is taken from Bluebird's [`catch`](http://bluebirdjs.com/docs/api/catch.html).
+
+The syntax is
+
+```ts
+specific( filter | [ filters ], handlerFn )
+```
+
+where the `filter` (or an array of such) is either an error constructor, a predicate function or an object, and `handlerFn` is the error handler.
+
+Error constructors are checked with `instanceof`, predicate functions get the error object and must return `true` or `false`, and custom objects are shallowly checked key-by-key for `==` match. If the predicate function throws, the promise chain will contain this error.
+
+```ts
+import { specific } from 'already'
+
+somePromise
+.catch( specific( MyError, err => { /* handler */ } ) )
+.catch( specific( isHttpClientError, err => { /* handler */ } ) )
+.catch( specific( { minorIssue: true }, err => { /* handler */ } ) )
+.catch( err => { /* any other error, OR if the above error handlers threw */ } )
 ```
 
 

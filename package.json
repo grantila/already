@@ -31,13 +31,14 @@
     "deferred"
   ],
   "devDependencies": {
-    "@types/mocha": "^2.2.42",
-    "chai": "^3.5",
-    "mocha": "^3",
-    "pre-commit": "^1.1",
-    "typescript": "^2.5.2"
+    "@types/mocha": "2.x",
+    "chai": "3.x",
+    "mocha": "3.x",
+    "pre-commit": "1.x",
+    "sinon": "3.x",
+    "typescript": "2.5.x"
   },
   "dependencies": {
-    "throat": "^4.1.0"
+    "throat": "4.x"
   }
 }
