@@ -13,6 +13,7 @@ import {
 	filter,
 	map,
 	defer,
+	inspect,
 	Try,
 	specific,
 } from '../../es5';
@@ -327,6 +328,64 @@ describe( 'defer', ( ) =>
 			if ( err.message !== fooError )
 				throw err;
 		} );
+	} );
+} );
+
+describe( 'inspect', ( ) =>
+{
+	it( 'should work with pending', async ( ) =>
+	{
+		const deferred = defer< string >( );
+
+		const inspectable = inspect( deferred.promise );
+
+		await delay( 1 );
+
+		expect( inspectable.isPending ).to.be.true;
+		expect( inspectable.isResolved ).to.be.false;
+		expect( inspectable.isRejected ).to.be.false;
+
+		deferred.resolve( "" );
+
+		return inspectable.promise;
+	} );
+
+	it( 'should work with resolving', async ( ) =>
+	{
+		const deferred = defer< string >( );
+
+		const inspectable = inspect( deferred.promise );
+
+		deferred.resolve( "" );
+
+		await delay( 1 );
+
+		expect( inspectable.isPending ).to.be.false;
+		expect( inspectable.isResolved ).to.be.true;
+		expect( inspectable.isRejected ).to.be.false;
+
+		return inspectable.promise;
+	} );
+
+	it( 'should work with rejecting', async ( ) =>
+	{
+		const deferred = defer< string >( );
+
+		const inspectable = inspect( deferred.promise );
+
+		// Register catch handler before asynchronously rejecting upstream
+		// to avoid erroneous nodejs warning about unhandled rejections.
+		inspectable.promise.catch( err => { } );
+
+		deferred.reject( new Error( ) );
+
+		await delay( 1 );
+
+		expect( inspectable.isPending ).to.be.false;
+		expect( inspectable.isResolved ).to.be.false;
+		expect( inspectable.isRejected ).to.be.true;
+
+		return inspectable.promise.catch( err => { } );
 	} );
 } );
 

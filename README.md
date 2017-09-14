@@ -18,6 +18,7 @@ This library is written in TypeScript but is exposed as ES7 (if imported as `alr
   * [filter](#filter)
   * [map](#map)
   * [defer](#defer)
+  * [inspect](#inspect)
   * [Try](#try)
   * [specific](#specific)
 
@@ -164,7 +165,7 @@ const outArray = await map( inArray, { concurrency: 4 }, mapFun );
 
 ## defer
 
-The `defer` function template returns an object containing both a promise and its resolver/rejected functions. This is generally an anti-pattern, and `new Promise( ... )` should be preferred, but this is sometimes necessary (or at least very useful).
+The `defer` function template returns an object containing both a promise and its resolve/reject functions. This is generally an anti-pattern, and `new Promise( ... )` should be preferred, but this is sometimes necessary (or at least very useful).
 
 ```ts
 import { defer } from 'already'
@@ -176,6 +177,27 @@ deferred.reject;  // The reject function.
 
 deferred.resolve( "foo" ); // deferred.promise is now resolved to "foo"
 ```
+
+
+## inspect
+
+In some cases is it useful to synchronously know if a promise is pending, resolved or rejected. Some promise libraries provide this on the promise as `isPending( )` functions e.g.
+
+With `already`, wrap the promise in an *InspectablePromise* using the `inspect( )` function.
+
+```ts
+import { inspect } from 'already'
+
+const inspectable = inspect( somePromise );
+inspectable.promise    // <Promise> A new promise, chained from `somePromise`
+inspectable.isPending  // <boolean>
+inspectable.isResolved // <boolean>
+inspectable.isRejected // <boolean>
+```
+
+**Note;** The returned object's promise must be used in the rest of the application, rather than the upstream promise (the one given as argument to `inspect`). It is technically not the same promise, and a rejection will likely result in an "Unhandled promise rejection" warning, or worse.
+
+**Note;** The returned object will always be in *pending-mode*, i.e. `isPending` will be `true` and `isResolved` and `isRejected` will both be `false`. Only after the next tick will these values have been settled.
 
 
 ## Try

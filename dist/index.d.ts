@@ -22,6 +22,7 @@ declare const _default: {
         <T, U>(arr: (T | PromiseLike<T>)[], opts: Partial<ConcurrencyOptions>, mapFn: MapFn<T, U>): Promise<U[]>;
     };
     defer: <T>() => Deferred<T>;
+    inspect: <T>(promise: Promise<T>) => InspectablePromise<T>;
     Try: <T>(cb: () => T) => Promise<T>;
     specific: <T>(filters: ErrorConstructor | ErrorFilterObject | ErrorFilterFunction | CatchFilter[], handler: (err: Error) => T) => (err: Error) => T | Promise<T>;
 };
@@ -57,6 +58,13 @@ export interface Deferred<T> {
  * Creates a defer object used to pass around a promise and its resolver
  */
 export declare function defer<T>(): Deferred<T>;
+export interface InspectablePromise<T> {
+    promise: Promise<T>;
+    isResolved: boolean;
+    isRejected: boolean;
+    isPending: boolean;
+}
+export declare function inspect<T>(promise: Promise<T>): InspectablePromise<T>;
 export declare function Try<T>(cb: () => T): Promise<T>;
 export declare type ErrorFilterFunction = (err: Error) => boolean;
 export declare type ErrorFilterObject = {

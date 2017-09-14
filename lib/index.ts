@@ -13,6 +13,7 @@ export default {
 	filter,
 	map,
 	defer,
+	inspect,
 	Try,
 	specific,
 }
@@ -254,6 +255,39 @@ export function defer< T >( ): Deferred< T >
 		deferred.reject = reject;
 	} );
 	return deferred;
+}
+
+
+export interface InspectablePromise< T >
+{
+	promise: Promise< T >;
+	isResolved: boolean;
+	isRejected: boolean;
+	isPending: boolean;
+}
+export function inspect< T >( promise: Promise< T > ) : InspectablePromise< T >
+{
+	const inspectable: InspectablePromise< T > = {
+		promise: null,
+		isResolved: false,
+		isRejected: false,
+		isPending: true,
+	};
+
+	inspectable.promise = promise.then( value =>
+	{
+		inspectable.isResolved = true;
+		inspectable.isPending = false;
+		return value;
+	} )
+	.catch( err =>
+	{
+		inspectable.isRejected = true;
+		inspectable.isPending = false;
+		return Promise.reject( err );
+	} );
+
+	return inspectable;
 }
 
 

@@ -12,6 +12,7 @@ exports.default = {
     filter,
     map,
     defer,
+    inspect,
     Try,
     specific,
 };
@@ -123,6 +124,26 @@ function defer() {
     return deferred;
 }
 exports.defer = defer;
+function inspect(promise) {
+    const inspectable = {
+        promise: null,
+        isResolved: false,
+        isRejected: false,
+        isPending: true,
+    };
+    inspectable.promise = promise.then(value => {
+        inspectable.isResolved = true;
+        inspectable.isPending = false;
+        return value;
+    })
+        .catch(err => {
+        inspectable.isRejected = true;
+        inspectable.isPending = false;
+        return Promise.reject(err);
+    });
+    return inspectable;
+}
+exports.inspect = inspect;
 async function Try(cb) {
     return cb();
 }

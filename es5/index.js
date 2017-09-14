@@ -47,6 +47,7 @@ exports.default = {
     filter: filter,
     map: map,
     defer: defer,
+    inspect: inspect,
     Try: Try,
     specific: specific,
 };
@@ -205,6 +206,26 @@ function defer() {
     return deferred;
 }
 exports.defer = defer;
+function inspect(promise) {
+    var inspectable = {
+        promise: null,
+        isResolved: false,
+        isRejected: false,
+        isPending: true,
+    };
+    inspectable.promise = promise.then(function (value) {
+        inspectable.isResolved = true;
+        inspectable.isPending = false;
+        return value;
+    })
+        .catch(function (err) {
+        inspectable.isRejected = true;
+        inspectable.isPending = false;
+        return Promise.reject(err);
+    });
+    return inspectable;
+}
+exports.inspect = inspect;
 function Try(cb) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
