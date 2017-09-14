@@ -15,7 +15,7 @@ import {
 	defer,
 	Try,
 	specific,
-} from '../../';
+} from '../../es5';
 
 const fooError = "foo error";
 const fooValue = 4711;
