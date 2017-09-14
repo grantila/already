@@ -1,6 +1,7 @@
 'use strict';
-import * as throat from 'throat';
-export default {
+Object.defineProperty(exports, "__esModule", { value: true });
+const throat = require("throat");
+exports.default = {
     delay,
     delayChain,
     finallyDelay,
@@ -14,18 +15,21 @@ export default {
     Try,
     specific,
 };
-export function delay(milliseconds, t) {
+function delay(milliseconds, t) {
     return new Promise((resolve, reject) => {
         setTimeout(() => resolve(t), milliseconds);
     });
 }
-export function delayChain(milliseconds) {
+exports.delay = delay;
+function delayChain(milliseconds) {
     return tap(() => delay(milliseconds));
 }
-export function finallyDelay(milliseconds) {
+exports.delayChain = delayChain;
+function finallyDelay(milliseconds) {
     return Finally(() => delay(milliseconds));
 }
-export function Finally(fn) {
+exports.finallyDelay = finallyDelay;
+function Finally(fn) {
     async function _then(t) {
         await fn();
         return t;
@@ -36,13 +40,15 @@ export function Finally(fn) {
     }
     return [_then, _catch];
 }
-export function tap(fn) {
+exports.Finally = Finally;
+function tap(fn) {
     return async function (t) {
         await fn(t);
         return t;
     };
 }
-export function props(obj) {
+exports.tap = tap;
+function props(obj) {
     const ret = {};
     const awaiters = [];
     for (let prop of Object.keys(obj))
@@ -50,8 +56,9 @@ export function props(obj) {
             .then(val => { ret[prop] = val; }));
     return Promise.all(awaiters).then(() => ret);
 }
+exports.props = props;
 const defaultFilterMapOptions = { concurrency: Infinity };
-export function filter(arr, opts, filterFn) {
+function filter(arr, opts, filterFn) {
     if (Array.isArray(arr)) {
         if (typeof opts === 'function') {
             filterFn = opts;
@@ -76,7 +83,8 @@ export function filter(arr, opts, filterFn) {
             .map(({ val }) => val));
     };
 }
-export function map(arr, opts, mapFn) {
+exports.filter = filter;
+function map(arr, opts, mapFn) {
     if (Array.isArray(arr)) {
         if (typeof opts === 'function') {
             mapFn = opts;
@@ -102,10 +110,11 @@ export function map(arr, opts, mapFn) {
             .then(values => Promise.all(values));
     };
 }
+exports.map = map;
 /**
  * Creates a defer object used to pass around a promise and its resolver
  */
-export function defer() {
+function defer() {
     const deferred = {};
     deferred.promise = new Promise((resolve, reject) => {
         deferred.resolve = resolve;
@@ -113,9 +122,11 @@ export function defer() {
     });
     return deferred;
 }
-export async function Try(cb) {
+exports.defer = defer;
+async function Try(cb) {
     return cb();
 }
+exports.Try = Try;
 // This logic is taken from Bluebird
 function catchFilter(filters, err) {
     return (Array.isArray(filters) ? filters : [filters])
@@ -142,11 +153,12 @@ function catchFilter(filters, err) {
         }
     });
 }
-export function specific(filters, handler) {
+function specific(filters, handler) {
     return function (err) {
         if (!catchFilter(filters, err))
             throw err;
         return handler(err);
     };
 }
+exports.specific = specific;
 //# sourceMappingURL=index.js.map

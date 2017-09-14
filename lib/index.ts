@@ -1,6 +1,6 @@
 'use strict'
 
-import * as throat from 'throat'
+import throat = require( 'throat' );
 
 export default {
 	delay,

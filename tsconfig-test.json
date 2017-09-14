@@ -2,6 +2,7 @@
 	"compilerOptions": {
 		"declaration": true,
 		"lib": [ "es2015", "es2017", "dom" ],
+		"target": "es5",
 		"moduleResolution": "node",
 		"outDir": "test/already",
 		"pretty": true,
