@@ -12,6 +12,7 @@ export default {
 	props,
 	filter,
 	map,
+	reduce,
 	defer,
 	inspect,
 	Try,
@@ -233,6 +234,99 @@ export function map< T, U >(
 		)
 		.then( values => Promise.all( values ) );
 	};
+}
+
+
+export type SyncReduceInput< T > = Iterable< T | PromiseLike< T > >;
+
+export type ReduceInput< T > =
+	SyncReduceInput< T > |
+	PromiseLike< SyncReduceInput< T > >;
+
+export type ReduceFunction< T, R > =
+	( accumulator: R, current: T, index: number, length: number ) =>
+		R | PromiseLike< R >;
+
+export async function reduce< T >(
+	input: ReduceInput< T >,
+	reducer: ReduceFunction< T, T >
+)
+: Promise< T | undefined >;
+
+export async function reduce< T, R >(
+	input: ReduceInput< T >,
+	reducer: ReduceFunction< T, R >,
+	initialValue: R | PromiseLike< R >
+)
+: Promise< R | undefined >;
+
+export function reduce< T >(
+	reducer: ReduceFunction< T, T >
+)
+: < U extends SyncReduceInput< T > >( input: U ) => Promise< T | undefined >;
+
+export function reduce< T, R >(
+	reducer: ReduceFunction< T, R >,
+	initialValue: R | PromiseLike< R >
+)
+: < U extends SyncReduceInput< T > >( input: U ) => Promise< R | undefined >;
+
+export function reduce< T, R >(
+	input: ReduceInput< T > | ReduceFunction< T, R >,
+	reducer?: ReduceFunction< T, R > | R | PromiseLike< R >,
+	initialValue?: R | PromiseLike< R >
+)
+:
+	( Promise< R | undefined > )
+	|
+	( < U extends SyncReduceInput< T > >( input: U ) => Promise< R | undefined > )
+{
+	if ( typeof input === 'function' )
+	{
+		initialValue = < R >reducer;
+		const _reducer = < ReduceFunction< T, R > >input;
+		return async function< U extends SyncReduceInput< T > >( input: U )
+		{
+			return reduceImpl( input, _reducer, initialValue );
+		}
+	}
+
+	return reduceImpl(
+		< ReduceInput< T > >input,
+		< ReduceFunction< T, R > >reducer,
+		initialValue
+	);
+}
+
+async function reduceImpl< T, R >(
+	input: ReduceInput< T >,
+	reducer: ReduceFunction< T, R >,
+	initialValue?: R | PromiseLike< R >
+)
+: Promise< R | undefined >
+{
+	const _input = Array.from< T | PromiseLike< T > >( await input );
+	const _initialValue = await initialValue;
+
+	if ( _input.length === 0 )
+		return _initialValue;
+
+	const usingInitialValue = typeof _initialValue !== 'undefined';
+
+	const length = _input.length;
+	let index = usingInitialValue ? 0 : 1;
+
+	let accumulator: R =
+		usingInitialValue
+		? _initialValue
+		// This cast should be safe if the interface is respected
+		: < R >< any >await _input.shift( );
+
+	while ( _input.length > 0 )
+		accumulator = await reducer(
+			accumulator, await _input.shift( ), index++, length );
+
+	return accumulator;
 }
 
 

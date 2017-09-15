@@ -12,6 +12,7 @@ import {
 	props,
 	filter,
 	map,
+	reduce,
 	defer,
 	inspect,
 	Try,
@@ -297,6 +298,92 @@ describe( 'map', ( ) =>
 		const arr3 = arr2.map( ( { t } ) => t );
 
 		expect( arr3 ).to.deep.equal( [ 1, 2, 3, 4, 5 ] );
+	} );
+} );
+
+describe( 'reduce', ( ) =>
+{
+	function reduceAdd( acc: number, cur: number )
+	{
+		return acc + cur;
+	}
+
+	it( 'should reduce initialValue if empty array', async ( ) =>
+	{
+		const input = [ ];
+		const initialValue = fooValue;
+
+		const reduced = await reduce( input, reduceAdd, fooValue );
+
+		expect( reduced ).to.equal( fooValue );
+	} );
+
+	it( 'should reduce single-value array without initialValue', async ( ) =>
+	{
+		const input = [ fooValue ];
+
+		const reduced = await reduce( input, reduceAdd );
+
+		expect( reduced ).to.equal( fooValue );
+	} );
+
+	it( 'should reduce single-value array with initialValue', async ( ) =>
+	{
+		const input = [ fooValue ];
+		const initialValue = fooValue;
+
+		const reduced = await reduce( input, reduceAdd, fooValue );
+
+		expect( reduced ).to.equal( fooValue + fooValue );
+	} );
+
+	it( 'should reduce multi-value array without initialValue', async ( ) =>
+	{
+		const input = [ fooValue, fooValue ];
+
+		const reduced = await reduce( input, reduceAdd );
+
+		expect( reduced ).to.equal( fooValue + fooValue );
+	} );
+
+	it( 'should reduce multi-value array with initialValue', async ( ) =>
+	{
+		const input = [ fooValue, fooValue ];
+		const initialValue = fooValue;
+
+		const reduced = await reduce( input, reduceAdd, fooValue );
+
+		expect( reduced ).to.equal( fooValue + fooValue + fooValue );
+	} );
+
+	it( 'should handle future array and future values', async ( ) =>
+	{
+		const input = Promise.resolve( [ Promise.resolve( fooValue ), fooValue ] );
+		const initialValue = Promise.resolve( fooValue );
+
+		const reduced = await reduce( input, reduceAdd, fooValue );
+
+		expect( reduced ).to.equal( fooValue + fooValue + fooValue );
+	} );
+
+	it( 'should work in a promise chain without initialValue', async ( ) =>
+	{
+		const input = Promise.resolve( [ Promise.resolve( fooValue ), fooValue ] );
+		const initialValue = Promise.resolve( fooValue );
+
+		const reduced = await input.then( reduce( reduceAdd ) )
+
+		expect( reduced ).to.equal( fooValue + fooValue );
+	} );
+
+	it( 'should work in a promise chain with initialValue', async ( ) =>
+	{
+		const input = Promise.resolve( [ Promise.resolve( fooValue ), fooValue ] );
+		const initialValue = Promise.resolve( fooValue );
+
+		const reduced = await input.then( reduce( reduceAdd, fooValue ) )
+
+		expect( reduced ).to.equal( fooValue + fooValue + fooValue );
 	} );
 } );
 

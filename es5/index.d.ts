@@ -21,6 +21,12 @@ declare const _default: {
         <T, U>(arr: (T | PromiseLike<T>)[], mapFn: MapFn<T, U>): Promise<U[]>;
         <T, U>(arr: (T | PromiseLike<T>)[], opts: Partial<ConcurrencyOptions>, mapFn: MapFn<T, U>): Promise<U[]>;
     };
+    reduce: {
+        <T>(input: ReduceInput<T>, reducer: ReduceFunction<T, T>): Promise<T>;
+        <T, R>(input: ReduceInput<T>, reducer: ReduceFunction<T, R>, initialValue: R | PromiseLike<R>): Promise<R>;
+        <T>(reducer: ReduceFunction<T, T>): <U extends Iterable<T | PromiseLike<T>>>(input: U) => Promise<T>;
+        <T, R>(reducer: ReduceFunction<T, R>, initialValue: R | PromiseLike<R>): <U extends Iterable<T | PromiseLike<T>>>(input: U) => Promise<R>;
+    };
     defer: <T>() => Deferred<T>;
     inspect: <T>(promise: Promise<T>) => InspectablePromise<T>;
     Try: <T>(cb: () => T) => Promise<T>;
@@ -49,6 +55,13 @@ export declare function map<T, U>(mapFn: MapFn<T, U>): (t: Array<T | PromiseLike
 export declare function map<T, U>(opts: FilterMapOptions, mapFn: MapFn<T, U>): (t: Array<T | PromiseLike<T>>) => Promise<Array<U>>;
 export declare function map<T, U>(arr: Array<T | PromiseLike<T>>, mapFn: MapFn<T, U>): Promise<Array<U>>;
 export declare function map<T, U>(arr: Array<T | PromiseLike<T>>, opts: FilterMapOptions, mapFn: MapFn<T, U>): Promise<Array<U>>;
+export declare type SyncReduceInput<T> = Iterable<T | PromiseLike<T>>;
+export declare type ReduceInput<T> = SyncReduceInput<T> | PromiseLike<SyncReduceInput<T>>;
+export declare type ReduceFunction<T, R> = (accumulator: R, current: T, index: number, length: number) => R | PromiseLike<R>;
+export declare function reduce<T>(input: ReduceInput<T>, reducer: ReduceFunction<T, T>): Promise<T | undefined>;
+export declare function reduce<T, R>(input: ReduceInput<T>, reducer: ReduceFunction<T, R>, initialValue: R | PromiseLike<R>): Promise<R | undefined>;
+export declare function reduce<T>(reducer: ReduceFunction<T, T>): <U extends SyncReduceInput<T>>(input: U) => Promise<T | undefined>;
+export declare function reduce<T, R>(reducer: ReduceFunction<T, R>, initialValue: R | PromiseLike<R>): <U extends SyncReduceInput<T>>(input: U) => Promise<R | undefined>;
 export interface Deferred<T> {
     resolve: (t: T | PromiseLike<T>) => void;
     reject: <E extends Error>(err: E) => void;

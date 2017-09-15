@@ -11,6 +11,7 @@ exports.default = {
     props,
     filter,
     map,
+    reduce,
     defer,
     inspect,
     Try,
@@ -112,6 +113,32 @@ function map(arr, opts, mapFn) {
     };
 }
 exports.map = map;
+function reduce(input, reducer, initialValue) {
+    if (typeof input === 'function') {
+        initialValue = reducer;
+        const _reducer = input;
+        return async function (input) {
+            return reduceImpl(input, _reducer, initialValue);
+        };
+    }
+    return reduceImpl(input, reducer, initialValue);
+}
+exports.reduce = reduce;
+async function reduceImpl(input, reducer, initialValue) {
+    const _input = Array.from(await input);
+    const _initialValue = await initialValue;
+    if (_input.length === 0)
+        return _initialValue;
+    const usingInitialValue = typeof _initialValue !== 'undefined';
+    const length = _input.length;
+    let index = usingInitialValue ? 0 : 1;
+    let accumulator = usingInitialValue
+        ? _initialValue
+        : await _input.shift();
+    while (_input.length > 0)
+        accumulator = await reducer(accumulator, await _input.shift(), index++, length);
+    return accumulator;
+}
 /**
  * Creates a defer object used to pass around a promise and its resolver
  */

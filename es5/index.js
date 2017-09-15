@@ -46,6 +46,7 @@ exports.default = {
     props: props,
     filter: filter,
     map: map,
+    reduce: reduce,
     defer: defer,
     inspect: inspect,
     Try: Try,
@@ -194,6 +195,63 @@ function map(arr, opts, mapFn) {
     };
 }
 exports.map = map;
+function reduce(input, reducer, initialValue) {
+    if (typeof input === 'function') {
+        initialValue = reducer;
+        var _reducer_1 = input;
+        return function (input) {
+            return __awaiter(this, void 0, void 0, function () {
+                return __generator(this, function (_a) {
+                    return [2 /*return*/, reduceImpl(input, _reducer_1, initialValue)];
+                });
+            });
+        };
+    }
+    return reduceImpl(input, reducer, initialValue);
+}
+exports.reduce = reduce;
+function reduceImpl(input, reducer, initialValue) {
+    return __awaiter(this, void 0, void 0, function () {
+        var _input, _a, _b, _initialValue, usingInitialValue, length, index, accumulator, _c, _d, _e;
+        return __generator(this, function (_f) {
+            switch (_f.label) {
+                case 0:
+                    _b = (_a = Array).from;
+                    return [4 /*yield*/, input];
+                case 1:
+                    _input = _b.apply(_a, [_f.sent()]);
+                    return [4 /*yield*/, initialValue];
+                case 2:
+                    _initialValue = _f.sent();
+                    if (_input.length === 0)
+                        return [2 /*return*/, _initialValue];
+                    usingInitialValue = typeof _initialValue !== 'undefined';
+                    length = _input.length;
+                    index = usingInitialValue ? 0 : 1;
+                    if (!usingInitialValue) return [3 /*break*/, 3];
+                    _c = _initialValue;
+                    return [3 /*break*/, 5];
+                case 3: return [4 /*yield*/, _input.shift()];
+                case 4:
+                    _c = _f.sent();
+                    _f.label = 5;
+                case 5:
+                    accumulator = _c;
+                    _f.label = 6;
+                case 6:
+                    if (!(_input.length > 0)) return [3 /*break*/, 9];
+                    _d = reducer;
+                    _e = [accumulator];
+                    return [4 /*yield*/, _input.shift()];
+                case 7: return [4 /*yield*/, _d.apply(void 0, _e.concat([_f.sent(), index++, length]))];
+                case 8:
+                    accumulator = _f.sent();
+                    return [3 /*break*/, 6];
+                case 9: return [2 /*return*/, accumulator];
+            }
+        });
+    });
+}
 /**
  * Creates a defer object used to pass around a promise and its resolver
  */
