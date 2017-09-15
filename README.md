@@ -169,7 +169,7 @@ const outArray = await map( inArray, { concurrency: 4 }, mapFun );
 
 Reducing (folding) over an iterable of values or promises is easily done with `reduce( )`. The reducer function can return promises, and they will be awaited before continuing with the next value.
 
-The mechanism for this follows the reasong behind Bluebird'a [`reduce`](http://bluebirdjs.com/docs/api/promise.reduce.html) in how the initial value is handled, and the last argument in the reducer function being a number, not an array.
+The mechanism for this follows the reasoning behind Bluebird's [`reduce`](http://bluebirdjs.com/docs/api/promise.reduce.html) in how the initial value is handled, and the last argument in the reducer function being a number, not an array.
 
 ```ts
 import { reduce } from 'already'
@@ -194,7 +194,9 @@ reduce( accumulator: R, current: T, index: number, length: number ) => R | Promi
 
 The `accumulator` has the same type as the return value (although the return can be asynchronous), which is the *reduced* type `R`. The `current` is of type `T`, which is what the input array consists of (although it may consist of `PromiseLike< T >` too).
 
-This means that the returned type from `reduce` doesn't need to be the same as the input, although **this is only true if `initialValue` is set**. If it is set, it will be used as the first `accumulator`, and `index` will begin at `0`. If `initialValue` is left unset (or is `undefined`), `R` and `T` must be the same, and  `index` will begein at `1`, since the first call will use the first index in the input as `accumulator` and the second as `current`.
+This means that the returned type from `reduce` doesn't need to be the same as the input, although **this is only true if `initialValue` is set**. If it is set, it will be used as the first `accumulator`, and `index` will begin at `0`. If `initialValue` is left unset (or is `undefined`), `R` and `T` must be the same, and  `index` will begin at `1`, since the first call will use the first index in the input as `accumulator` and the second as `current`.
+
+`length` is the length of the input iterable/array, which is the same logic as in Bluebird, and **unlike** how Javascript's `Array.reduce` works (where you get the *array* as fourth argument).
 
 
 ## defer
