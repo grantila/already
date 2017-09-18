@@ -474,6 +474,21 @@ describe( 'inspect', ( ) =>
 
 		return inspectable.promise.catch( err => { } );
 	} );
+
+	it( 'should be settled after {await}', async ( ) =>
+	{
+		const deferred = defer< string >( );
+
+		deferred.resolve( "" );
+
+		const inspectable = await inspect( deferred.promise );
+
+		expect( inspectable.isPending ).to.be.false;
+		expect( inspectable.isResolved ).to.be.true;
+		expect( inspectable.isRejected ).to.be.false;
+
+		return inspectable.promise;
+	} );
 } );
 
 describe( 'try', ( ) =>

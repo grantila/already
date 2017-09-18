@@ -231,9 +231,16 @@ inspectable.isResolved // <boolean>
 inspectable.isRejected // <boolean>
 ```
 
-**Note;** The returned object's promise must be used in the rest of the application, rather than the upstream promise (the one given as argument to `inspect`). It is technically not the same promise, and a rejection will likely result in an "Unhandled promise rejection" warning, or worse.
+**Note;** The returned object's promise must be used in the rest of the application, rather than the upstream promise (the one given as argument to `inspect`). It is technically not the same promise, and a rejection will otherwise likely result in an "Unhandled promise rejection" warning, or worse.
 
-**Note;** The returned object will always be in *pending-mode*, i.e. `isPending` will be `true` and `isResolved` and `isRejected` will both be `false`. Only after the next tick will these values have been settled.
+**Note;** The returned object will always be in *pending-mode* when the function returns, i.e. `isPending` will be `true` and `isResolved` and `isRejected` will both be `false`. Only after the next tick will these values have been settled. To ensure the right value "immediately", `await` the inspect return, to allow the value to settle:
+
+```ts
+import { inspect } from 'already'
+
+const inspectable = await inspect( somePromise );
+// inspectable.is{Pending|Resolved|Rejected} are now settled
+```
 
 
 ## Try
