@@ -280,7 +280,9 @@ export function reduce< T, R >(
 :
 	( Promise< R | undefined > )
 	|
-	( < U extends SyncReduceInput< T > >( input: U ) => Promise< R | undefined > )
+	( < U extends SyncReduceInput< T > >( input: U ) =>
+		Promise< R | undefined >
+	)
 {
 	if ( typeof input === 'function' )
 	{
