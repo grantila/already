@@ -27,6 +27,10 @@ declare const _default: {
         <T>(reducer: ReduceFunction<T, T>): <U extends Iterable<T | PromiseLike<T>>>(input: U) => Promise<T>;
         <T, R>(reducer: ReduceFunction<T, R>, initialValue: R | PromiseLike<R>): <U extends Iterable<T | PromiseLike<T>>>(input: U) => Promise<R>;
     };
+    some: {
+        <T, R>(list: SomeArray<T>, fn: SomePredicate<T, R>): Promise<false | R>;
+        <T, R>(fn: SomePredicate<T, R>): (list: SomeArray<T>) => Promise<false | R>;
+    };
     defer: <T>() => Deferred<T>;
     inspect: <T>(promise: Promise<T>) => InspectablePromise<T>;
     Try: <T>(cb: () => T) => Promise<T>;
@@ -62,6 +66,12 @@ export declare function reduce<T>(input: ReduceInput<T>, reducer: ReduceFunction
 export declare function reduce<T, R>(input: ReduceInput<T>, reducer: ReduceFunction<T, R>, initialValue: R | PromiseLike<R>): Promise<R | undefined>;
 export declare function reduce<T>(reducer: ReduceFunction<T, T>): <U extends SyncReduceInput<T>>(input: U) => Promise<T | undefined>;
 export declare function reduce<T, R>(reducer: ReduceFunction<T, R>, initialValue: R | PromiseLike<R>): <U extends SyncReduceInput<T>>(input: U) => Promise<R | undefined>;
+export declare type SomeReturn<R> = Promise<R | false>;
+export declare type SomeSyncReturn<R> = SomeReturn<R> | R | false;
+export declare type SomePredicate<T, R> = (T) => SomeSyncReturn<R>;
+export declare type SomeArray<T> = ReadonlyArray<T | PromiseLike<T>> | PromiseLike<ReadonlyArray<T | PromiseLike<T>>>;
+export declare function some<T, R>(list: SomeArray<T>, fn: SomePredicate<T, R>): SomeReturn<R>;
+export declare function some<T, R>(fn: SomePredicate<T, R>): (list: SomeArray<T>) => SomeReturn<R>;
 export interface Deferred<T> {
     resolve: (t: T | PromiseLike<T>) => void;
     reject: <E extends Error>(err: E) => void;

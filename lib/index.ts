@@ -13,6 +13,7 @@ export default {
 	filter,
 	map,
 	reduce,
+	some,
 	defer,
 	inspect,
 	Try,
@@ -327,6 +328,60 @@ async function reduceImpl< T, R >(
 			accumulator, await _input.shift( ), index++, length );
 
 	return accumulator;
+}
+
+
+export type SomeReturn< R > = Promise< R | false >;
+export type SomeSyncReturn< R > = SomeReturn< R > | R | false;
+export type SomePredicate< T, R > = ( T ) => SomeSyncReturn< R >;
+export type SomeArray< T > =
+	ReadonlyArray< T | PromiseLike< T > >
+	|
+	PromiseLike< ReadonlyArray< T | PromiseLike< T > > >;
+
+export function some< T, R >(
+	list: SomeArray< T >,
+	fn: SomePredicate< T, R >
+)
+: SomeReturn< R >;
+
+export function some< T, R >( fn: SomePredicate< T, R > )
+: ( list: SomeArray< T > ) => SomeReturn< R >;
+
+export function some< T, R >(
+	list: SomeArray< T > | SomePredicate< T, R >,
+	fn?: SomePredicate< T, R >
+)
+:
+	SomeReturn< R >
+	|
+	( ( list: SomeArray< T > ) => SomeReturn< R > )
+{
+	if ( typeof list === 'function' )
+	{
+		fn = list;
+		return ( list: SomeArray< T > ) => someImpl( list, fn );
+	}
+
+	return someImpl( list, fn );
+}
+
+async function someImpl< T, R >(
+	list: SomeArray< T >,
+	fn: SomePredicate< T, R >
+)
+: Promise< R | false >
+{
+	const _list = await list;
+
+	for ( let i = 0; i < _list.length; ++i )
+	{
+		const ret = await fn( await _list[ i ] );
+		if ( ret )
+			return ret;
+	}
+
+	return false;
 }
 
 

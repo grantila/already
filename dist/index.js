@@ -12,6 +12,7 @@ exports.default = {
     filter,
     map,
     reduce,
+    some,
     defer,
     inspect,
     Try,
@@ -134,10 +135,28 @@ async function reduceImpl(input, reducer, initialValue) {
     let index = usingInitialValue ? 0 : 1;
     let accumulator = usingInitialValue
         ? _initialValue
+        // This cast should be safe if the interface is respected
         : await _input.shift();
     while (_input.length > 0)
         accumulator = await reducer(accumulator, await _input.shift(), index++, length);
     return accumulator;
+}
+function some(list, fn) {
+    if (typeof list === 'function') {
+        fn = list;
+        return (list) => someImpl(list, fn);
+    }
+    return someImpl(list, fn);
+}
+exports.some = some;
+async function someImpl(list, fn) {
+    const _list = await list;
+    for (let i = 0; i < _list.length; ++i) {
+        const ret = await fn(await _list[i]);
+        if (ret)
+            return ret;
+    }
+    return false;
 }
 /**
  * Creates a defer object used to pass around a promise and its resolver

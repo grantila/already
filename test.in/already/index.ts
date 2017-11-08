@@ -13,6 +13,7 @@ import {
 	filter,
 	map,
 	reduce,
+	some,
 	defer,
 	inspect,
 	Try,
@@ -384,6 +385,292 @@ describe( 'reduce', ( ) =>
 		const reduced = await input.then( reduce( reduceAdd, fooValue ) )
 
 		expect( reduced ).to.equal( fooValue + fooValue + fooValue );
+	} );
+} );
+
+describe( 'some', ( ) =>
+{
+	function somePredNull( val: number )
+	{
+		return null; // Falsy
+	}
+	function somePred( val: number )
+	{
+		return { val };
+	}
+	function somePredIf( matched: number )
+	{
+		return function( val: number )
+		{
+			if ( matched === val )
+				return { val };
+			return 0; // Falsy
+		}
+	}
+	function asyncSomePredNull( val: number )
+	{
+		return Promise.resolve( null ); // Falsy
+	}
+	function asyncSomePred( val: number )
+	{
+		return Promise.resolve( { val } );
+	}
+	function asyncSomePredIf( matched: number )
+	{
+		return function( val: number )
+		: Promise< { val: number; } | false >
+		{
+			if ( matched === val )
+				return Promise.resolve( { val } );
+			return < Promise< false > >Promise.resolve( false ); // Falsy
+		}
+	}
+
+	describe( 'sync flat', ( ) =>
+	{
+		it( 'should be false on empty array', async ( ) =>
+		{
+			const input = [ ];
+
+			const res = await some( input, somePred );
+
+			expect( res ).to.be.false;
+		} );
+
+		it( 'should return false on unmatching single-value array', async ( ) =>
+		{
+			const input = [ fooValue ];
+
+			const res = await some( input, somePredNull );
+
+			expect( res ).to.be.false;
+		} );
+
+		it( 'should return value on matching single-value array', async ( ) =>
+		{
+			const input = [ fooValue ];
+
+			const res = await some( input, somePred );
+
+			expect( res ).to.deep.equal( { val: fooValue } );
+		} );
+
+		it( 'should return false on unmatching multi-value array', async ( ) =>
+		{
+			const input = [ fooValue, fooValue + 1, fooValue + 2 ];
+
+			const res = await some( input, somePredNull );
+
+			expect( res ).to.be.false;
+		} );
+
+		it( 'should return first match in multi-value array', async ( ) =>
+		{
+			const input = [ fooValue, fooValue + 1, fooValue + 2 ];
+
+			const res = await some( input, somePredIf( fooValue + 1 ) );
+
+			expect( res ).to.deep.equal( { val: fooValue + 1 } );
+		} );
+	} );
+
+	describe( 'sync in promise chain', ( ) =>
+	{
+		it( 'should be false on empty array', async ( ) =>
+		{
+			const res = await
+				Promise.resolve( [ ] )
+				.then( some( somePred ) );
+
+			expect( res ).to.be.false;
+		} );
+
+		it( 'should return false on unmatching single-value array', async ( ) =>
+		{
+			const res = await
+				Promise.resolve( [ fooValue ] )
+				.then( some( somePredNull ) );
+
+			expect( res ).to.be.false;
+		} );
+
+		it( 'should return value on matching single-value array', async ( ) =>
+		{
+			const res = await
+				Promise.resolve( [ fooValue ] )
+				.then( some( somePred ) );
+
+			expect( res ).to.deep.equal( { val: fooValue } );
+		} );
+
+		it( 'should return false on unmatching multi-value array', async ( ) =>
+		{
+			const res = await
+				Promise.resolve( [ fooValue, fooValue + 1, fooValue + 2 ] )
+				.then( some( somePredNull ) );
+
+			expect( res ).to.be.false;
+		} );
+
+		it( 'should return first match in multi-value array', async ( ) =>
+		{
+			const res = await
+				Promise.resolve( [ fooValue, fooValue + 1, fooValue + 2 ] )
+				.then( some( somePredIf( fooValue + 1 ) ) );
+
+			expect( res ).to.deep.equal( { val: fooValue + 1 } );
+		} );
+	} );
+
+	describe( 'async flat', ( ) =>
+	{
+		it( 'should be false on empty array', async ( ) =>
+		{
+			const input = [ ];
+
+			const res = await some( input, asyncSomePred );
+
+			expect( res ).to.be.false;
+		} );
+
+		it( 'should return false on unmatching single-value array', async ( ) =>
+		{
+			const input = [ fooValue ];
+
+			const res = await some( input, asyncSomePredNull );
+
+			expect( res ).to.be.false;
+		} );
+
+		it( 'should return value on matching single-value array', async ( ) =>
+		{
+			const input = [ fooValue ];
+
+			const res = await some( input, asyncSomePred );
+
+			expect( res ).to.deep.equal( { val: fooValue } );
+		} );
+
+		it( 'should return false on unmatching multi-value array', async ( ) =>
+		{
+			const input = [ fooValue, fooValue + 1, fooValue + 2 ];
+
+			const res = await some( input, asyncSomePredNull );
+
+			expect( res ).to.be.false;
+		} );
+
+		it( 'should return first match in multi-value array', async ( ) =>
+		{
+			const input = [ fooValue, fooValue + 1, fooValue + 2 ];
+
+			const res = await some( input, asyncSomePredIf( fooValue + 1 ) );
+
+			expect( res ).to.deep.equal( { val: fooValue + 1 } );
+		} );
+	} );
+
+	describe( 'async in promise chain', ( ) =>
+	{
+		it( 'should be false on empty array', async ( ) =>
+		{
+			const res = await
+				Promise.resolve( [ ] )
+				.then( some( asyncSomePred ) );
+
+			expect( res ).to.be.false;
+		} );
+
+		it( 'should return false on unmatching single-value array', async ( ) =>
+		{
+			const res = await
+				Promise.resolve( [ fooValue ] )
+				.then( some( asyncSomePredNull ) );
+
+			expect( res ).to.be.false;
+		} );
+
+		it( 'should return value on matching single-value array', async ( ) =>
+		{
+			const res = await
+				Promise.resolve( [ fooValue ] )
+				.then( some( asyncSomePred ) );
+
+			expect( res ).to.deep.equal( { val: fooValue } );
+		} );
+
+		it( 'should return false on unmatching multi-value array', async ( ) =>
+		{
+			const res = await
+				Promise.resolve( [ fooValue, fooValue + 1, fooValue + 2 ] )
+				.then( some( asyncSomePredNull ) );
+
+			expect( res ).to.be.false;
+		} );
+
+		it( 'should return first match in multi-value array', async ( ) =>
+		{
+			const res = await
+				Promise.resolve( [ fooValue, fooValue + 1, fooValue + 2 ] )
+				.then( some( asyncSomePredIf( fooValue + 1 ) ) );
+
+			expect( res ).to.deep.equal( { val: fooValue + 1 } );
+		} );
+	} );
+
+	describe( 'promise of lists and items', ( ) =>
+	{
+		function promisifyList< T >( list: ReadonlyArray< T > )
+		{
+			return Promise.resolve(
+				list.map( item => Promise.resolve( item ) )
+			);
+		}
+
+		it( 'should be false on empty array', async ( ) =>
+		{
+			const res = await some( Promise.resolve( [ ] ), asyncSomePred );
+
+			expect( res ).to.be.false;
+		} );
+
+		it( 'should return false on unmatching single-value array', async ( ) =>
+		{
+			const input = promisifyList( [ fooValue ] );
+
+			const res = await some( input, asyncSomePredNull );
+
+			expect( res ).to.be.false;
+		} );
+
+		it( 'should return value on matching single-value array', async ( ) =>
+		{
+			const input = promisifyList( [ fooValue ] );
+
+			const res = await some( input, asyncSomePred );
+
+			expect( res ).to.deep.equal( { val: fooValue } );
+		} );
+
+		it( 'should return false on unmatching multi-value array', async ( ) =>
+		{
+			const input =
+				promisifyList( [ fooValue, fooValue + 1, fooValue + 2 ] );
+
+			const res = await some( input, asyncSomePredNull );
+
+			expect( res ).to.be.false;
+		} );
+
+		it( 'should return first match in multi-value array', async ( ) =>
+		{
+			const input =
+				promisifyList( [ fooValue, fooValue + 1, fooValue + 2 ] );
+
+			const res = await some( input, asyncSomePredIf( fooValue + 1 ) );
+
+			expect( res ).to.deep.equal( { val: fooValue + 1 } );
+		} );
 	} );
 } );
 

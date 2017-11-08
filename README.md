@@ -18,6 +18,7 @@ This library is written in TypeScript but is exposed as ES7 (if imported as `alr
   * [filter](#filter)
   * [map](#map)
   * [reduce](#reduce)
+  * [some](#some)
   * [defer](#defer)
   * [inspect](#inspect)
   * [Try](#try)
@@ -197,6 +198,42 @@ The `accumulator` has the same type as the return value (although the return can
 This means that the returned type from `reduce` doesn't need to be the same as the input, although **this is only true if `initialValue` is set**. If it is set, it will be used as the first `accumulator`, and `index` will begin at `0`. If `initialValue` is left unset (or is `undefined`), `R` and `T` must be the same, and  `index` will begin at `1`, since the first call will use the first index in the input as `accumulator` and the second as `current`.
 
 `length` is the length of the input iterable/array, which is the same logic as in Bluebird, and **unlike** how Javascript's `Array.reduce` works (where you get the *array* as fourth argument).
+
+
+## some
+
+Just like filter, map and reduce which here are implemented closely mimicing the Array prototype functions but supporting asynchrony, `some` works similar to [`Array.some()`](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array/some). The return is different though, in that it doesn't necessarily return a promise to `true` or `false`, but rather a promise of the *truthy* value (of type `T`) or `false`.
+
+Like `filter`, `map` and `reduce` above, it supports a promise to a list, promises as values in the list, and an asynchronous predicate function.
+
+```ts
+import { some } from 'already'
+
+somePromiseToAnArray
+.then( some( predicateFn ) )
+.then( ( t: T | false ) => { ... } ) // T is the return type of predicateFn
+
+// or on an array
+
+const t = some( arrayOrIterable, predicateFn );
+// t is of type T (the return type of predicateFn) or false
+```
+
+### Example
+
+```ts
+import { some } from 'already'
+
+const arr =[ 1, 2, 3 ];
+
+async function pred( num: number ): Promise< string >
+{
+    // ... Implementation goes here
+}
+
+const val = await some( arr, pred );
+// val is not either a string (the first truthy match) or false
+```
 
 
 ## defer
