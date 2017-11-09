@@ -204,6 +204,8 @@ This means that the returned type from `reduce` doesn't need to be the same as t
 
 Just like filter, map and reduce which here are implemented closely mimicing the Array prototype functions but supporting asynchrony, `some` works similar to [`Array.some()`](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array/some). The return is different though, in that it doesn't necessarily return a promise to `true` or `false`, but rather a promise of the *truthy* value (of type `T`) or `false`.
 
+The return type not being coerced to `true` upon match, makes it ideal in situations where `reduce` would otherwise be used only to find the first match. `some` may perform better, since it stops iterating on first match, while `reduce` would complete the iteration before it returns.
+
 Like `filter`, `map` and `reduce` above, it supports a promise to a list, promises as values in the list, and an asynchronous predicate function.
 
 ```ts
@@ -224,7 +226,7 @@ const t = some( arrayOrIterable, predicateFn );
 ```ts
 import { some } from 'already'
 
-const arr =[ 1, 2, 3 ];
+const arr = [ 1, 2, 3 ];
 
 async function pred( num: number ): Promise< string >
 {
@@ -232,7 +234,7 @@ async function pred( num: number ): Promise< string >
 }
 
 const val = await some( arr, pred );
-// val is not either a string (the first truthy match) or false
+// val is now either a string (the first truthy match) or false
 ```
 
 
