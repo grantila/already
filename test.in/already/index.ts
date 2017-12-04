@@ -8,6 +8,7 @@ import {
 	delay,
 	delayChain,
 	Finally,
+	finallyDelay,
 	tap,
 	props,
 	filter,
@@ -56,6 +57,45 @@ describe( 'finally', ( ) =>
 				throw new Error( "Finally callback not called!" );
 			if ( err.message !== fooError )
 				throw new Error( "Finally callback altered error!" );
+		} );
+	} );
+} );
+
+describe( 'finallyDelay', ( ) =>
+{
+	it( 'should be called on a resolved promise', ( ) =>
+	{
+		let value = 0;
+
+		setTimeout( ( ) => { value = 1; }, 5 );
+
+		return Promise.resolve( fooValue )
+		.then( ...finallyDelay( 20 ) )
+		.then( ...Finally( ( ) => { value = 2; } ) )
+		.then( async num =>
+		{
+			await delay( 25 );
+			expect( value ).to.equal( 2 );
+		} );
+	} );
+
+	it( 'should be called on a rejected promise', ( ) =>
+	{
+		let value = 0;
+
+		setTimeout( ( ) => { value = 1; }, 5 );
+
+		return Promise.reject( new Error( fooError ) )
+		.then( ...finallyDelay( 20 ) )
+		.then( ...Finally( ( ) => { value = 2; } ) )
+		.then( ( ) =>
+		{
+			throw new Error( "Finally silently swallowed user error!" );
+		} )
+		.catch( async err =>
+		{
+			await delay( 25 );
+			expect( value ).to.equal( 2 );
 		} );
 	} );
 } );
@@ -192,12 +232,40 @@ describe( 'filter', ( ) =>
 		expect( concurrencies ).to.include( 3 );
 	} );
 
+	it( 'should work without options', async ( ) =>
+	{
+		const arr = [ 1, 2, Promise.resolve( 3 ), delayChain( 50 )( 4 ), 5 ];
+		const arr2 = await Promise.all( arr )
+		.then( filter(
+			t =>
+				t < 4
+				? delay( 50 ).then( ( ) => t % 2 === 0 )
+				: t % 2 === 0
+		) );
+
+		expect( arr2 ).to.deep.equal( [ 2, 4 ] );
+	} );
+
 	it( 'should work as a free function', async ( ) =>
 	{
 		const arr = [ 1, 2, Promise.resolve( 3 ), delayChain( 50 )( 4 ), 5 ];
 		const arr2 = await filter(
 			arr,
 			{ concurrency: 10 },
+			t =>
+				t < 4
+				? delay( 50 ).then( ( ) => t % 2 === 0 )
+				: t % 2 === 0
+		);
+
+		expect( arr2 ).to.deep.equal( [ 2, 4 ] );
+	} );
+
+	it( 'should work as a free function without options', async ( ) =>
+	{
+		const arr = [ 1, 2, Promise.resolve( 3 ), delayChain( 50 )( 4 ), 5 ];
+		const arr2 = await filter(
+			arr,
 			t =>
 				t < 4
 				? delay( 50 ).then( ( ) => t % 2 === 0 )
@@ -285,12 +353,42 @@ describe( 'map', ( ) =>
 		expect( concurrencies ).to.include( 3 );
 	} );
 
+	it( 'should work without options', async ( ) =>
+	{
+		const arr = [ 1, 2, Promise.resolve( 3 ), delayChain( 50 )( 4 ), 5 ];
+		const arr2 = await Promise.all( arr )
+		.then( map(
+			t =>
+				t === 2
+				? delay( 50 ).then( ( ) => ( { t: 2 } ) )
+				: ( { t } )
+		) );
+		const arr3 = arr2.map( ( { t } ) => t );
+
+		expect( arr3 ).to.deep.equal( [ 1, 2, 3, 4, 5 ] );
+	} );
+
 	it( 'should work as a free function', async ( ) =>
 	{
 		const arr = [ 1, 2, Promise.resolve( 3 ), delayChain( 50 )( 4 ), 5 ];
 		const arr2 = await map(
 			arr,
 			{ concurrency: 10 },
+			t =>
+				t === 2
+				? delay( 50 ).then( ( ) => ( { t: 2 } ) )
+				: ( { t } )
+		);
+		const arr3 = arr2.map( ( { t } ) => t );
+
+		expect( arr3 ).to.deep.equal( [ 1, 2, 3, 4, 5 ] );
+	} );
+
+	it( 'should work as a free function without options', async ( ) =>
+	{
+		const arr = [ 1, 2, Promise.resolve( 3 ), delayChain( 50 )( 4 ), 5 ];
+		const arr2 = await map(
+			arr,
 			t =>
 				t === 2
 				? delay( 50 ).then( ( ) => ( { t: 2 } ) )
@@ -851,6 +949,19 @@ describe( 'specific', ( ) =>
 	{
 		return !( < any >err ).myError;
 	}
+
+	it( 'should treat nully as false', async ( ) =>
+	{
+		const spy = sinon.spy( );
+
+		const err = new CustomErrorA( "custom-a" );
+
+		await Promise.reject( err )
+		.catch( specific( null, spy ) )
+		.catch( ( ) => { } );
+
+		sinon.assert.notCalled( spy );
+	} );
 
 	it( 'should filter single class', async ( ) =>
 	{
