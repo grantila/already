@@ -18,7 +18,7 @@ import {
 	inspect,
 	Try,
 	specific,
-} from '../../es5';
+} from '../../';
 
 const fooError = "foo error";
 const fooValue = 4711;
