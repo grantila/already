@@ -1,5 +1,6 @@
 [![npm version][npm-image]][npm-url]
 [![build status][travis-image]][travis-url]
+[![coverage status][coverage-image]][coverage-url]
 
 # Already
 
@@ -325,3 +326,5 @@ somePromise
 [npm-url]: https://npmjs.org/package/already
 [travis-image]: https://img.shields.io/travis/grantila/already.svg
 [travis-url]: https://travis-ci.org/grantila/already
+[coverage-image]: https://coveralls.io/repos/github/grantila/already/badge.svg?branch=master
+[coverage-url]: https://coveralls.io/github/grantila/already?branch=master
