@@ -218,6 +218,8 @@ function catchFilter(filters, err) {
                     return false;
             return true;
         }
+        else
+            return false;
     });
 }
 function specific(filters, handler) {

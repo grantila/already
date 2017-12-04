@@ -187,6 +187,20 @@ describe( 'filter', ( ) =>
 		.then( values => ( { values, concurrencies } ) );
 	}
 
+	it( 'unspecified concurrency should be correct', async ( ) =>
+	{
+		let concur = 0;
+		const { concurrencies, values } = await filterConcurrency(
+			void 0,
+			[ 1, 2, 3, 4, 5 ],
+			( val: number ) => val % 2 === 0
+		);
+
+		expect( values ).to.deep.equal( [ 2, 4 ] );
+		expect( concurrencies ).to.deep.equal(
+			[ 1, 2, 3, 4, 5, 4, 3, 2, 1, 0 ] );
+	} );
+
 	it( 'concurrency 1 should be correct', async ( ) =>
 	{
 		let concur = 0;
@@ -197,7 +211,8 @@ describe( 'filter', ( ) =>
 		);
 
 		expect( values ).to.deep.equal( [ 2, 4 ] );
-		expect( concurrencies ).to.deep.equal( [ 1, 0, 1, 0, 1, 0, 1, 0, 1, 0 ] );
+		expect( concurrencies ).to.deep.equal(
+			[ 1, 0, 1, 0, 1, 0, 1, 0, 1, 0 ] );
 	} );
 
 	it( 'concurrency 2 should be correct', async ( ) =>
@@ -303,6 +318,21 @@ describe( 'map', ( ) =>
 		.then( values => ( { values, concurrencies } ) );
 	}
 
+	it( 'unspecified concurrency should be correct', async ( ) =>
+	{
+		let concur = 0;
+		const { concurrencies, values } = await mapConcurrency(
+			void 0,
+			[ 1, 2, 3, 4, 5 ],
+			( val: number ) => "" + ( val * 2 )
+		);
+
+		expect( values[ 0 ] ).to.be.a( 'string' );
+		expect( values ).to.deep.equal( [ "2", "4", "6", "8", "10" ] );
+		expect( concurrencies ).to.deep.equal(
+			[ 1, 2, 3, 4, 5, 4, 3, 2, 1, 0 ] );
+	} );
+
 	it( 'concurrency 1 should be correct', async ( ) =>
 	{
 		let concur = 0;
@@ -314,7 +344,8 @@ describe( 'map', ( ) =>
 
 		expect( values[ 0 ] ).to.be.a( 'string' );
 		expect( values ).to.deep.equal( [ "2", "4", "6", "8", "10" ] );
-		expect( concurrencies ).to.deep.equal( [ 1, 0, 1, 0, 1, 0, 1, 0, 1, 0 ] );
+		expect( concurrencies ).to.deep.equal(
+			[ 1, 0, 1, 0, 1, 0, 1, 0, 1, 0 ] );
 	} );
 
 	it( 'concurrency 2 should be correct', async ( ) =>
@@ -958,6 +989,19 @@ describe( 'specific', ( ) =>
 
 		await Promise.reject( err )
 		.catch( specific( null, spy ) )
+		.catch( ( ) => { } );
+
+		sinon.assert.notCalled( spy );
+	} );
+
+	it( 'should treat invalid specific clauses as false', async ( ) =>
+	{
+		const spy = sinon.spy( );
+
+		const err = new CustomErrorA( "custom-a" );
+
+		await Promise.reject( err )
+		.catch( specific( < any >"custom-a", spy ) )
 		.catch( ( ) => { } );
 
 		sinon.assert.notCalled( spy );

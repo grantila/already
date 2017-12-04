@@ -490,7 +490,8 @@ function catchFilter( filters: CatchFilter | Array< CatchFilter >, err: Error )
 					return false;
 			return true;
 		}
-
+		else
+			return false;
 	} );
 }
 

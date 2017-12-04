@@ -355,6 +355,8 @@ function catchFilter(filters, err) {
             }
             return true;
         }
+        else
+            return false;
     });
 }
 function specific(filters, handler) {
