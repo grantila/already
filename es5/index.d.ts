@@ -34,7 +34,10 @@ declare const _default: {
     defer: <T>() => Deferred<T>;
     inspect: <T>(promise: Promise<T>) => InspectablePromise<T>;
     Try: <T>(cb: () => T) => Promise<T>;
-    specific: <T>(filters: ErrorConstructor | ErrorFilterObject | ErrorFilterFunction | CatchFilter[], handler: (err: Error) => T) => (err: Error) => T | Promise<T>;
+    specific: {
+        <T, U extends Promise<T>>(filters: ErrorConstructor | ErrorFilterObject | ErrorFilterFunction | CatchFilter[], handler: (err: Error) => U): (err: Error) => U;
+        <T>(filters: ErrorConstructor | ErrorFilterObject | ErrorFilterFunction | CatchFilter[], handler: (err: Error) => T): (err: Error) => T | Promise<T>;
+    };
 };
 export default _default;
 export declare function delay(milliseconds: number): Promise<void>;
@@ -94,4 +97,5 @@ export declare type ErrorFilterObject = {
     [key: string]: any;
 };
 export declare type CatchFilter = ErrorConstructor | ErrorFilterFunction | ErrorFilterObject;
+export declare function specific<T, U extends Promise<T>>(filters: CatchFilter | Array<CatchFilter>, handler: (err: Error) => U): (err: Error) => (U);
 export declare function specific<T>(filters: CatchFilter | Array<CatchFilter>, handler: (err: Error) => T): (err: Error) => (T | Promise<T>);

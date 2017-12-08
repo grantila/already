@@ -495,6 +495,18 @@ function catchFilter( filters: CatchFilter | Array< CatchFilter >, err: Error )
 	} );
 }
 
+export function specific< T, U extends Promise< T > >(
+	filters: CatchFilter | Array< CatchFilter >,
+	handler: ( err: Error ) => U
+)
+: ( err: Error ) => ( U );
+
+export function specific< T >(
+	filters: CatchFilter | Array< CatchFilter >,
+	handler: ( err: Error ) => T
+)
+: ( err: Error ) => ( T | Promise< T > );
+
 export function specific< T >(
 	filters: CatchFilter | Array< CatchFilter >,
 	handler: ( err: Error ) => T

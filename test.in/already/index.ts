@@ -1129,4 +1129,24 @@ describe( 'specific', ( ) =>
 		sinon.assert.notCalled( spy1 );
 		sinon.assert.calledWith( spy2, err );
 	} );
+
+	it( 'should handle promise-returning callback', async ( ) =>
+	{
+		interface I
+		{
+			i: number;
+		}
+		async function callback( ): Promise< I >
+		{
+			return { i: 2 };
+		}
+
+		const err = new CustomErrorA( "custom-a" );
+		err.myError = true;
+
+		const res = await Promise.reject< I >( err )
+		.catch( specific( { myError: true } , callback ) );
+
+		expect( res ).to.deep.equal( { i: 2 } );
+	} );
 } );
