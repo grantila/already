@@ -394,10 +394,20 @@ export interface Deferred< T >
 	promise: Promise< T >;
 }
 
+export interface EmptyDeferred
+{
+	resolve: ( ( t: void | PromiseLike< void > ) => void ) & ( ( ) => void );
+	reject: < E extends Error >( err: E ) => void;
+	promise: Promise< void >;
+}
+
 /**
  * Creates a defer object used to pass around a promise and its resolver
  */
-export function defer< T >( ): Deferred< T >
+export function defer< T >( ): Deferred< T >;
+export function defer( v: void ): EmptyDeferred;
+
+export function defer< T = void >( ): Deferred< T >
 {
 	const deferred = < Deferred< T > >{ };
 	deferred.promise = new Promise< T >( ( resolve, reject ) =>

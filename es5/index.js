@@ -289,9 +289,6 @@ function someImpl(list, fn) {
         });
     });
 }
-/**
- * Creates a defer object used to pass around a promise and its resolver
- */
 function defer() {
     var deferred = {};
     deferred.promise = new Promise(function (resolve, reject) {

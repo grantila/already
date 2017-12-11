@@ -254,6 +254,15 @@ deferred.reject;  // The reject function.
 deferred.resolve( "foo" ); // deferred.promise is now resolved to "foo"
 ```
 
+### Empty defer
+
+To create a defer object backed by a `Promise< void >`, creating it through `defer< void >( )` will not suffice. The returned object's `resolve` function will require an argument. Instead, create with an explicit void argument:
+
+```ts
+const deferred = defer( void 0 );
+deferred.resolve( ); // This is now legal, typewise
+```
+
 
 ## inspect
 

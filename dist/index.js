@@ -158,9 +158,6 @@ async function someImpl(list, fn) {
     }
     return false;
 }
-/**
- * Creates a defer object used to pass around a promise and its resolver
- */
 function defer() {
     const deferred = {};
     deferred.promise = new Promise((resolve, reject) => {

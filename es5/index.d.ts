@@ -31,7 +31,10 @@ declare const _default: {
         <T, R>(list: SomeArray<T>, fn: SomePredicate<T, R>): Promise<false | R>;
         <T, R>(fn: SomePredicate<T, R>): (list: SomeArray<T>) => Promise<false | R>;
     };
-    defer: <T>() => Deferred<T>;
+    defer: {
+        <T>(): Deferred<T>;
+        (v: void): EmptyDeferred;
+    };
     inspect: <T>(promise: Promise<T>) => InspectablePromise<T>;
     Try: <T>(cb: () => T) => Promise<T>;
     specific: {
@@ -80,10 +83,16 @@ export interface Deferred<T> {
     reject: <E extends Error>(err: E) => void;
     promise: Promise<T>;
 }
+export interface EmptyDeferred {
+    resolve: ((t: void | PromiseLike<void>) => void) & (() => void);
+    reject: <E extends Error>(err: E) => void;
+    promise: Promise<void>;
+}
 /**
  * Creates a defer object used to pass around a promise and its resolver
  */
 export declare function defer<T>(): Deferred<T>;
+export declare function defer(v: void): EmptyDeferred;
 export interface InspectablePromise<T> {
     promise: Promise<T>;
     isResolved: boolean;

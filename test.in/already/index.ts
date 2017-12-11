@@ -805,6 +805,26 @@ describe( 'some', ( ) =>
 
 describe( 'defer', ( ) =>
 {
+	it( 'should work with undefined and no resolve argument', async ( ) =>
+	{
+		const deferred = defer( void 0 );
+
+		deferred.resolve( );
+
+		const val = await deferred.promise;
+		expect( val ).to.be.undefined;
+	} );
+
+	it( 'should work with undefined and one resolve argument', async ( ) =>
+	{
+		const deferred = defer( void 0 );
+
+		deferred.resolve( void 0 );
+
+		const val = await deferred.promise;
+		expect( val ).to.be.undefined;
+	} );
+
 	it( 'should work with resolving', async ( ) =>
 	{
 		const deferred = defer< number >( );
