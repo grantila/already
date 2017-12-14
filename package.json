@@ -2,7 +2,7 @@
   "name": "already",
   "description": "Promise extensions; finally, map, filter, etc",
   "license": "MIT",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "author": "Gustaf Räntilä <g.rantila@gmail.com>",
   "repository": {
     "type": "git",
