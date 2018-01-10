@@ -18,6 +18,7 @@ export default {
 	inspect,
 	Try,
 	specific,
+	rethrow,
 }
 
 export function delay( milliseconds: number ): Promise< void >;
@@ -529,5 +530,17 @@ export function specific< T >(
 			throw err;
 
 		return handler( err );
+	}
+}
+
+
+export function rethrow< T extends Error = any >(
+	fn: ( err?: T ) => ( void | PromiseLike< void > )
+)
+{
+	return async function( err: T )
+	{
+		await fn( err );
+		throw err;
 	}
 }

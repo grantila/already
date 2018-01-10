@@ -19,6 +19,7 @@ import {
 	inspect,
 	Try,
 	specific,
+	rethrow,
 } from '../../';
 
 const fooError = "foo error";
@@ -1168,5 +1169,92 @@ describe( 'specific', ( ) =>
 		.catch( specific( { myError: true } , callback ) );
 
 		expect( res ).to.deep.equal( { i: 2 } );
+	} );
+} );
+
+describe( 'rethrow', ( ) =>
+{
+	it( 'should rethrow error on synchronous callback', async ( ) =>
+	{
+		const spy1 = sinon.spy( );
+		const spy2 = sinon.spy( );
+
+		const err = new Error( "error" );
+
+		await Promise.reject( err )
+		.catch( rethrow( spy1 ) )
+		.catch( spy2 );
+
+		sinon.assert.calledWith( spy1, err );
+		sinon.assert.calledWith( spy2, err );
+	} );
+
+	it( 'should rethrow error on asynchronous callback', async ( ) =>
+	{
+		const spy1 = sinon.spy( );
+		const spy2 = sinon.spy( );
+
+		const err = new Error( "error" );
+
+		async function proxy( err )
+		{
+			await delay( 10 );
+			spy1( err );
+		}
+
+		await Promise.reject( err )
+		.catch( rethrow( proxy ) )
+		.then( ...Finally( ( ) =>
+		{
+			sinon.assert.calledOnce( spy1 );
+			sinon.assert.notCalled( spy2 );
+		} ) )
+		.catch( spy2 );
+
+		sinon.assert.calledWith( spy1, err );
+		sinon.assert.calledWith( spy2, err );
+	} );
+
+	it( 'should throw synchronous callback error', async ( ) =>
+	{
+		const err1 = new Error( "error" );
+		const err2 = new Error( "error" );
+
+		function wrapper( err )
+		{
+			throw err2;
+		}
+
+		const spy1 = sinon.spy( wrapper );
+		const spy2 = sinon.spy( );
+
+		await Promise.reject( err1 )
+		.catch( rethrow( spy1 ) )
+		.catch( spy2 );
+
+		sinon.assert.calledWith( spy1, err1 );
+		sinon.assert.calledWith( spy2, err2 );
+	} );
+
+	it( 'should throw asynchronous callback error', async ( ) =>
+	{
+		const err1 = new Error( "error" );
+		const err2 = new Error( "error" );
+
+		async function wrapper( err )
+		{
+			await delay( 10 );
+			throw err2;
+		}
+
+		const spy1 = sinon.spy( wrapper );
+		const spy2 = sinon.spy( );
+
+		await Promise.reject( err1 )
+		.catch( rethrow( spy1 ) )
+		.catch( spy2 );
+
+		sinon.assert.calledWith( spy1, err1 );
+		sinon.assert.calledWith( spy2, err2 );
 	} );
 } );

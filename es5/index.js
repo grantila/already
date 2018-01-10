@@ -52,6 +52,7 @@ exports.default = {
     inspect: inspect,
     Try: Try,
     specific: specific,
+    rethrow: rethrow,
 };
 function delay(milliseconds, t) {
     return new Promise(function (resolve, reject) {
@@ -364,4 +365,19 @@ function specific(filters, handler) {
     };
 }
 exports.specific = specific;
+function rethrow(fn) {
+    return function (err) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, fn(err)];
+                    case 1:
+                        _a.sent();
+                        throw err;
+                }
+            });
+        });
+    };
+}
+exports.rethrow = rethrow;
 //# sourceMappingURL=index.js.map

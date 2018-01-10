@@ -41,6 +41,7 @@ declare const _default: {
         <T, U extends Promise<T>>(filters: ErrorConstructor | ErrorFilterObject | ErrorFilterFunction | CatchFilter[], handler: (err: Error) => U): (err: Error) => U;
         <T>(filters: ErrorConstructor | ErrorFilterObject | ErrorFilterFunction | CatchFilter[], handler: (err: Error) => T): (err: Error) => T | Promise<T>;
     };
+    rethrow: <T extends Error = any>(fn: (err?: T) => void | PromiseLike<void>) => (err: T) => Promise<never>;
 };
 export default _default;
 export declare function delay(milliseconds: number): Promise<void>;
@@ -108,3 +109,4 @@ export declare type ErrorFilterObject = {
 export declare type CatchFilter = ErrorConstructor | ErrorFilterFunction | ErrorFilterObject;
 export declare function specific<T, U extends Promise<T>>(filters: CatchFilter | Array<CatchFilter>, handler: (err: Error) => U): (err: Error) => (U);
 export declare function specific<T>(filters: CatchFilter | Array<CatchFilter>, handler: (err: Error) => T): (err: Error) => (T | Promise<T>);
+export declare function rethrow<T extends Error = any>(fn: (err?: T) => (void | PromiseLike<void>)): (err: T) => Promise<never>;

@@ -17,6 +17,7 @@ exports.default = {
     inspect,
     Try,
     specific,
+    rethrow,
 };
 function delay(milliseconds, t) {
     return new Promise((resolve, reject) => {
@@ -227,4 +228,11 @@ function specific(filters, handler) {
     };
 }
 exports.specific = specific;
+function rethrow(fn) {
+    return async function (err) {
+        await fn(err);
+        throw err;
+    };
+}
+exports.rethrow = rethrow;
 //# sourceMappingURL=index.js.map

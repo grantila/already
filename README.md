@@ -24,6 +24,7 @@ This library is written in TypeScript but is exposed as ES7 (if imported as `alr
   * [inspect](#inspect)
   * [Try](#try)
   * [specific](#specific)
+  * [rethrow](#rethrow)
 
 
 ## delay
@@ -328,6 +329,34 @@ somePromise
 .catch( specific( isHttpClientError, err => { /* handler */ } ) )
 .catch( specific( { minorIssue: true }, err => { /* handler */ } ) )
 .catch( err => { /* any other error, OR if the above error handlers threw */ } )
+```
+
+
+## rethrow
+
+Another `catch` helper is `rethrow` which allows a function to be called as an error handler, but ensures it rethrows the upstream error.
+Note; if the callback function throws an error, or returns a rejected promise, this error will flow through rather than the upstream error.
+
+The callback can either return nothing (synchronously) or an empty promise, which will be awaited before continuing with rethrowing.
+
+The callback will get the error as argument.
+
+```ts
+import { rethrow } from 'already'
+
+somePromise
+.catch( rethrow( err => { /* handler */ } ) )
+// the promise is still rejected
+```
+
+or, combined with `specific`:
+
+```ts
+import { specific, rethrow } from 'already'
+
+somePromise
+.catch( specific( MyError, rethrow( err => { /* handler */ } ) ) )
+.catch( err => { /* handler */ } ) // will always be called, if somePromise was rejected
 ```
 
 
