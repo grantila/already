@@ -14,6 +14,7 @@ import {
 	filter,
 	map,
 	reduce,
+	each,
 	some,
 	defer,
 	inspect,
@@ -24,6 +25,7 @@ import {
 
 const fooError = "foo error";
 const fooValue = 4711;
+const barValue = 17;
 
 describe( 'finally', ( ) =>
 {
@@ -515,6 +517,229 @@ describe( 'reduce', ( ) =>
 		const reduced = await input.then( reduce( reduceAdd, fooValue ) )
 
 		expect( reduced ).to.equal( fooValue + fooValue + fooValue );
+	} );
+} );
+
+describe( 'each', ( ) =>
+{
+	describe( 'with array', ( ) =>
+	{
+		it( 'should iterate empty array', async ( ) =>
+		{
+			const input = [ ];
+			const spy = sinon.spy( );
+
+			each( input, ( x: number ) => { } ); // Type safety test
+			const arr = await each( input, spy );
+
+			expect( arr ).to.deep.equal( input );
+			expect( spy.callCount ).to.equal( 0 );
+		} );
+
+		it( 'should iterate single-value array', async ( ) =>
+		{
+			const input = [ fooValue ];
+			const spy = sinon.spy( );
+
+			each( input, ( x: number ) => { } ); // Type safety test
+			const arr = await each( input, spy );
+
+			expect( arr ).to.deep.equal( input );
+			expect( spy.args ).to.deep.equal( [ [ fooValue, 0, 1 ] ] );
+		} );
+
+		it( 'should iterate multi-value array', async ( ) =>
+		{
+			const input = [ fooValue, barValue, fooValue ];
+			const spy = sinon.spy( );
+
+			each( input, ( x: number ) => { } ); // Type safety test
+			const arr = await each( input, spy );
+
+			expect( arr ).to.deep.equal( input );
+			expect( spy.args ).to.deep.equal( [
+				[ fooValue, 0, 3 ],
+				[ barValue, 1, 3 ],
+				[ fooValue, 2, 3 ],
+			] );
+		} );
+
+		it( 'should iterate empty array asynchronously', async ( ) =>
+		{
+			const order = [ ];
+			const input = [ ];
+			const spy = sinon.spy(
+				async ( a: string, index: number ) =>
+				{
+					order.push( index );
+					await delay( 5 );
+					order.push( index );
+				}
+			);
+
+			each( input, async ( x: number ) => { } ); // Type safety test
+			const arr = await each( input, spy );
+
+			expect( arr ).to.deep.equal( input );
+			expect( spy.callCount ).to.equal( 0 );
+			expect( order ).to.deep.equal( [ ] );
+		} );
+
+		it( 'should iterate single-value array asynchronously', async ( ) =>
+		{
+			const order = [ ];
+			const input = [ fooValue ];
+			const spy = sinon.spy(
+				async ( a: string, index: number ) =>
+				{
+					order.push( index );
+					await delay( 5 );
+					order.push( index );
+				}
+			);
+
+			each( input, async ( x: number ) => { } ); // Type safety test
+			const arr = await each( input, spy );
+
+			expect( arr ).to.deep.equal( input );
+			expect( spy.args ).to.deep.equal( [ [ fooValue, 0, 1 ] ] );
+			expect( order ).to.deep.equal( [ 0, 0 ] );
+		} );
+
+		it( 'should iterate multi-value array asynchronously', async ( ) =>
+		{
+			const order = [ ];
+			const input = [ fooValue, barValue, fooValue ];
+			const spy = sinon.spy(
+				async ( a: string, index: number ) =>
+				{
+					order.push( index );
+					await delay( 5 );
+					order.push( index );
+				}
+			);
+
+			each( input, async ( x: number ) => { } ); // Type safety test
+			const arr = await each( input, spy );
+
+			expect( arr ).to.deep.equal( input );
+			expect( spy.args ).to.deep.equal( [
+				[ fooValue, 0, 3 ],
+				[ barValue, 1, 3 ],
+				[ fooValue, 2, 3 ],
+			] );
+			expect( order ).to.deep.equal( [ 0, 0, 1, 1, 2, 2 ] );
+		} );
+	} );
+
+	describe( 'in promise chain', ( ) =>
+	{
+		it( 'should iterate empty array', async ( ) =>
+		{
+			const input = Promise.resolve( [ ] );
+			const spy = sinon.spy( );
+
+			input.then( each( ( x: number ) => { } ) ); // Type safety test
+			const arr = await input.then( each( spy ) );
+
+			expect( arr ).to.deep.equal( await input );
+			expect( spy.callCount ).to.equal( 0 );
+		} );
+
+		it( 'should iterate single-value array', async ( ) =>
+		{
+			const input = Promise.resolve( [ fooValue ] );
+			const spy = sinon.spy( );
+
+			input.then( each( ( x: number ) => { } ) ); // Type safety test
+			const arr = await input.then( each( spy ) );
+
+			expect( arr ).to.deep.equal( await input );
+			expect( spy.args ).to.deep.equal( [ [ fooValue, 0, 1 ] ] );
+		} );
+
+		it( 'should iterate multi-value array', async ( ) =>
+		{
+			const input = Promise.resolve( [ fooValue, barValue, fooValue ] );
+			const spy = sinon.spy( );
+
+			input.then( each( ( x: number ) => { } ) ); // Type safety test
+			const arr = await input.then( each( spy ) );
+
+			expect( arr ).to.deep.equal( await input );
+			expect( spy.args ).to.deep.equal( [
+				[ fooValue, 0, 3 ],
+				[ barValue, 1, 3 ],
+				[ fooValue, 2, 3 ],
+			] );
+		} );
+
+		it( 'should iterate empty array asynchronously', async ( ) =>
+		{
+			const order = [ ];
+			const input = Promise.resolve( [ ] );
+			const spy = sinon.spy(
+				async ( a: string, index: number ) =>
+				{
+					order.push( index );
+					await delay( 5 );
+					order.push( index );
+				}
+			);
+
+			input.then( each( async ( x: number ) => { } ) ); // TS test
+			const arr = await input.then( each( spy ) );
+
+			expect( arr ).to.deep.equal( await input );
+			expect( spy.callCount ).to.equal( 0 );
+			expect( order ).to.deep.equal( [ ] );
+		} );
+
+		it( 'should iterate single-value array asynchronously', async ( ) =>
+		{
+			const order = [ ];
+			const input = Promise.resolve( [ fooValue ] );
+			const spy = sinon.spy(
+				async ( a: string, index: number ) =>
+				{
+					order.push( index );
+					await delay( 5 );
+					order.push( index );
+				}
+			);
+
+			input.then( each( async ( x: number ) => { } ) ); // TS test
+			const arr = await input.then( each( spy ) );
+
+			expect( arr ).to.deep.equal( await input );
+			expect( spy.args ).to.deep.equal( [ [ fooValue, 0, 1 ] ] );
+			expect( order ).to.deep.equal( [ 0, 0 ] );
+		} );
+
+		it( 'should iterate multi-value array asynchronously', async ( ) =>
+		{
+			const order = [ ];
+			const input = Promise.resolve( [ fooValue, barValue, fooValue ] );
+			const spy = sinon.spy(
+				async ( a: string, index: number ) =>
+				{
+					order.push( index );
+					await delay( 5 );
+					order.push( index );
+				}
+			);
+
+			input.then( each( async ( x: number ) => { } ) ); // TS test
+			const arr = await input.then( each( spy ) );
+
+			expect( arr ).to.deep.equal( await input );
+			expect( spy.args ).to.deep.equal( [
+				[ fooValue, 0, 3 ],
+				[ barValue, 1, 3 ],
+				[ fooValue, 2, 3 ],
+			] );
+			expect( order ).to.deep.equal( [ 0, 0, 1, 1, 2, 2 ] );
+		} );
 	} );
 } );
 

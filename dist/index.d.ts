@@ -1,47 +1,21 @@
 declare const _default: {
-    delay: {
-        (milliseconds: number): Promise<void>;
-        <T>(milliseconds: number, t: T): Promise<T>;
-    };
-    delayChain: (milliseconds: number) => <T>(t?: T) => Promise<T>;
-    finallyDelay: (milliseconds: number) => [<T>(t?: T) => Promise<T>, (err?: any) => any];
-    finally: (fn: () => void | PromiseLike<void>) => [<T>(t?: T) => Promise<T>, (err?: any) => any];
-    Finally: (fn: () => void | PromiseLike<void>) => [<T>(t?: T) => Promise<T>, (err?: any) => any];
-    tap: <T, U, Fn extends (T: any) => void | PromiseLike<void>>(fn: Fn) => (u: U) => Promise<U>;
-    props: (obj: any) => Promise<any>;
-    filter: {
-        <T>(filterFn: MapFn<T, boolean>): (t: (T | PromiseLike<T>)[]) => Promise<T[]>;
-        <T>(opts: Partial<ConcurrencyOptions>, filterFn: MapFn<T, boolean>): (t: (T | PromiseLike<T>)[]) => Promise<T[]>;
-        <T>(arr: (T | PromiseLike<T>)[], filterFn: MapFn<T, boolean>): Promise<T[]>;
-        <T>(arr: (T | PromiseLike<T>)[], opts: Partial<ConcurrencyOptions>, filterFn: MapFn<T, boolean>): Promise<T[]>;
-    };
-    map: {
-        <T, U>(mapFn: MapFn<T, U>): (t: (T | PromiseLike<T>)[]) => Promise<U[]>;
-        <T, U>(opts: Partial<ConcurrencyOptions>, mapFn: MapFn<T, U>): (t: (T | PromiseLike<T>)[]) => Promise<U[]>;
-        <T, U>(arr: (T | PromiseLike<T>)[], mapFn: MapFn<T, U>): Promise<U[]>;
-        <T, U>(arr: (T | PromiseLike<T>)[], opts: Partial<ConcurrencyOptions>, mapFn: MapFn<T, U>): Promise<U[]>;
-    };
-    reduce: {
-        <T>(input: ReduceInput<T>, reducer: ReduceFunction<T, T>): Promise<T>;
-        <T, R>(input: ReduceInput<T>, reducer: ReduceFunction<T, R>, initialValue: R | PromiseLike<R>): Promise<R>;
-        <T>(reducer: ReduceFunction<T, T>): <U extends Iterable<T | PromiseLike<T>>>(input: U) => Promise<T>;
-        <T, R>(reducer: ReduceFunction<T, R>, initialValue: R | PromiseLike<R>): <U extends Iterable<T | PromiseLike<T>>>(input: U) => Promise<R>;
-    };
-    some: {
-        <T, R>(list: SomeArray<T>, fn: SomePredicate<T, R>): Promise<false | R>;
-        <T, R>(fn: SomePredicate<T, R>): (list: SomeArray<T>) => Promise<false | R>;
-    };
-    defer: {
-        <T>(): Deferred<T>;
-        (v: void): EmptyDeferred;
-    };
-    inspect: <T>(promise: Promise<T>) => InspectablePromise<T>;
-    Try: <T>(cb: () => T) => Promise<T>;
-    specific: {
-        <T, U extends Promise<T>>(filters: ErrorConstructor | ErrorFilterObject | ErrorFilterFunction | CatchFilter[], handler: (err: Error) => U): (err: Error) => U;
-        <T>(filters: ErrorConstructor | ErrorFilterObject | ErrorFilterFunction | CatchFilter[], handler: (err: Error) => T): (err: Error) => T | Promise<T>;
-    };
-    rethrow: <T extends Error = any>(fn: (err?: T) => void | PromiseLike<void>) => (err: T) => Promise<never>;
+    delay: typeof delay;
+    delayChain: typeof delayChain;
+    finallyDelay: typeof finallyDelay;
+    finally: typeof Finally;
+    Finally: typeof Finally;
+    tap: typeof tap;
+    props: typeof props;
+    filter: typeof filter;
+    map: typeof map;
+    reduce: typeof reduce;
+    each: typeof each;
+    some: typeof some;
+    defer: typeof defer;
+    inspect: typeof inspect;
+    Try: typeof Try;
+    specific: typeof specific;
+    rethrow: typeof rethrow;
 };
 export default _default;
 export declare function delay(milliseconds: number): Promise<void>;
@@ -73,6 +47,10 @@ export declare function reduce<T>(input: ReduceInput<T>, reducer: ReduceFunction
 export declare function reduce<T, R>(input: ReduceInput<T>, reducer: ReduceFunction<T, R>, initialValue: R | PromiseLike<R>): Promise<R | undefined>;
 export declare function reduce<T>(reducer: ReduceFunction<T, T>): <U extends SyncReduceInput<T>>(input: U) => Promise<T | undefined>;
 export declare function reduce<T, R>(reducer: ReduceFunction<T, R>, initialValue: R | PromiseLike<R>): <U extends SyncReduceInput<T>>(input: U) => Promise<R | undefined>;
+export declare type EachFn<T> = (t: T, index: number, length: number) => void | Promise<void>;
+export declare function each<T>(eachFn: EachFn<T>): (t: ReadonlyArray<T | PromiseLike<T>>) => Promise<Array<T>>;
+export declare function each<T>(arr: ReadonlyArray<T | PromiseLike<T>>, eachFn: EachFn<T>): Promise<Array<T>>;
+export declare function eachImpl<T>(eachFn: EachFn<T>): ((t: ReadonlyArray<T | PromiseLike<T>>) => Promise<Array<T>>);
 export declare type SomeReturn<R> = Promise<R | false>;
 export declare type SomeSyncReturn<R> = SomeReturn<R> | R | false;
 export declare type SomePredicate<T, R> = (T) => SomeSyncReturn<R>;

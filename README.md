@@ -19,6 +19,7 @@ This library is written in TypeScript but is exposed as ES7 (if imported as `alr
   * [filter](#filter)
   * [map](#map)
   * [reduce](#reduce)
+  * [each](#each)
   * [some](#some)
   * [defer](#defer)
   * [inspect](#inspect)
@@ -200,6 +201,30 @@ The `accumulator` has the same type as the return value (although the return can
 This means that the returned type from `reduce` doesn't need to be the same as the input, although **this is only true if `initialValue` is set**. If it is set, it will be used as the first `accumulator`, and `index` will begin at `0`. If `initialValue` is left unset (or is `undefined`), `R` and `T` must be the same, and  `index` will begin at `1`, since the first call will use the first index in the input as `accumulator` and the second as `current`.
 
 `length` is the length of the input iterable/array, which is the same logic as in Bluebird, and **unlike** how Javascript's `Array.reduce` works (where you get the *array* as fourth argument).
+
+
+## each
+
+`each` iterates an array of promises or values, very much like `map`, although always serially as if `concurrency` was set to `1`.
+
+The iterator function cannot return a value (or it will be ignored), but can return an empty promise which will be awaited before the next iteration. It's like `tap` but for elements in an array.
+
+The return value of `each` is the input array unmodified.
+
+If any of the iterator function calls throws an exception, or returns a rejected promise, the iteration will end and the return of `each` will be a promise rejected with this error.
+
+```ts
+import { each } from 'already'
+
+somePromiseToAnArrayOfPromisesAndValues
+.then( each( item => { doSomethingWith( item ); } ) )
+.then( /* input array is here and unmodified */ )
+
+// or provide the array as first argument:
+
+const outArray = await each( inArray, iteratorFun );
+// outArray ~ inArray, not necessarily the *same* array, but the same content
+```
 
 
 ## some

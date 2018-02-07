@@ -47,6 +47,7 @@ exports.default = {
     filter: filter,
     map: map,
     reduce: reduce,
+    each: each,
     some: some,
     defer: defer,
     inspect: inspect,
@@ -254,6 +255,36 @@ function reduceImpl(input, reducer, initialValue) {
         });
     });
 }
+function each(arr, eachFn) {
+    if (Array.isArray(arr))
+        return eachImpl(eachFn)(arr);
+    return eachImpl(arr);
+}
+exports.each = each;
+function eachImpl(eachFn) {
+    return function (arr) {
+        return __awaiter(this, void 0, void 0, function () {
+            function iterator(t, index) {
+                return __awaiter(this, void 0, void 0, function () {
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0: return [4 /*yield*/, eachFn(t, index, length)];
+                            case 1:
+                                _a.sent();
+                                return [2 /*return*/, t];
+                        }
+                    });
+                });
+            }
+            var length;
+            return __generator(this, function (_a) {
+                length = arr.length;
+                return [2 /*return*/, map(arr, { concurrency: 1 }, iterator)];
+            });
+        });
+    };
+}
+exports.eachImpl = eachImpl;
 function some(list, fn) {
     if (typeof list === 'function') {
         fn = list;

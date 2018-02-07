@@ -13,6 +13,7 @@ export default {
 	filter,
 	map,
 	reduce,
+	each,
 	some,
 	defer,
 	inspect,
@@ -331,6 +332,47 @@ async function reduceImpl< T, R >(
 			accumulator, await _input.shift( ), index++, length );
 
 	return accumulator;
+}
+
+
+export type EachFn< T > =
+	( t: T, index: number, length: number ) => void | Promise< void >;
+
+export function each< T >( eachFn: EachFn< T > )
+: ( t: ReadonlyArray< T | PromiseLike< T > > ) => Promise< Array< T > >;
+export function each< T >(
+	arr: ReadonlyArray< T | PromiseLike< T > >,
+	eachFn: EachFn< T >
+) : Promise< Array< T > >;
+
+export function each< T >(
+	arr: ReadonlyArray< T | PromiseLike< T > > | EachFn< T >,
+	eachFn?: EachFn< T >
+)
+:
+	( ( t: ReadonlyArray< T | PromiseLike< T > > ) => Promise< Array< T > > ) |
+	( Promise< Array< T > > )
+{
+	if ( Array.isArray( arr ) )
+		return eachImpl( eachFn )( arr );
+	return eachImpl( < EachFn< T > >arr );
+}
+
+export function eachImpl< T >( eachFn: EachFn< T > )
+: ( ( t: ReadonlyArray< T | PromiseLike< T > > ) => Promise< Array< T > > )
+{
+	return async function( arr: ReadonlyArray< T | Promise< T > > )
+	: Promise< Array< T > >
+	{
+		const length = arr.length;
+
+		async function iterator( t: T, index: number )
+		{
+			await eachFn( t, index, length );
+			return t;
+		}
+		return map( <any>arr, { concurrency: 1 }, iterator );
+	}
 }
 
 

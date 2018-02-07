@@ -12,8 +12,10 @@
   "main": "./dist/index.js",
   "scripts": {
     "build": "scripts/build.sh",
-    "test": "node_modules/.bin/istanbul cover node_modules/.bin/_mocha -- --bail --check-leaks",
-    "test-nocov": "node_modules/.bin/mocha --bail --check-leaks"
+    "mocha": "node_modules/.bin/mocha --bail --check-leaks",
+    "test": "node_modules/.bin/nyc npm run mocha",
+    "buildtest": "npm run build && npm run test",
+    "coverage": "node_modules/.bin/nyc report --reporter=html"
   },
   "pre-commit": [
     "build",
@@ -28,18 +30,22 @@
     "filter",
     "props",
     "tap",
+    "each",
     "defer",
     "deferred"
   ],
   "devDependencies": {
+    "@types/chai": "4.x",
     "@types/mocha": "2.x",
-    "chai": "3.x",
-    "coveralls": "2.x",
-    "istanbul": "1.1.0-alpha.1",
-    "mocha": "3.x",
+    "@types/sinon": "4.x",
+    "chai": "4.x",
+    "coveralls": "3.x",
+    "mocha": "5.x",
+    "nyc": "11.x",
     "pre-commit": "1.x",
-    "sinon": "3.x",
-    "typescript": "2.5.x"
+    "sinon": "4.x",
+    "source-map-support": "0.x",
+    "typescript": "2.7.x"
   },
   "dependencies": {
     "throat": "4.x"

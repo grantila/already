@@ -12,6 +12,7 @@ exports.default = {
     filter,
     map,
     reduce,
+    each,
     some,
     defer,
     inspect,
@@ -142,6 +143,23 @@ async function reduceImpl(input, reducer, initialValue) {
         accumulator = await reducer(accumulator, await _input.shift(), index++, length);
     return accumulator;
 }
+function each(arr, eachFn) {
+    if (Array.isArray(arr))
+        return eachImpl(eachFn)(arr);
+    return eachImpl(arr);
+}
+exports.each = each;
+function eachImpl(eachFn) {
+    return async function (arr) {
+        const length = arr.length;
+        async function iterator(t, index) {
+            await eachFn(t, index, length);
+            return t;
+        }
+        return map(arr, { concurrency: 1 }, iterator);
+    };
+}
+exports.eachImpl = eachImpl;
 function some(list, fn) {
     if (typeof list === 'function') {
         fn = list;
