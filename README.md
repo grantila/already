@@ -22,6 +22,7 @@ This library is written in TypeScript but is exposed as ES7 (if imported as `alr
   * [each](#each)
   * [some](#some)
   * [defer](#defer)
+  * [reflect](#reflect)
   * [inspect](#inspect)
   * [Try](#try)
   * [specific](#specific)
@@ -298,6 +299,27 @@ To create a defer object backed by a `Promise< void >`, creating it through `def
 ```ts
 const deferred = defer( void 0 );
 deferred.resolve( ); // This is now legal, typewise
+```
+
+
+## reflect
+
+A promise can be either resolved or rejected, but sometimes it's convenient to have a shared flow for either occasion. That's when `reflect` comes in handy. It takes a promise as argument, and returns a promise to a `Reflection` object which contains the promise **or** error, and the booleans `isResolved` and `isRejected`.
+
+```ts
+import { reflect } from 'already'
+
+const somePromise = Math.random( ) < 0.5
+    ? Promise.resolve( 1 )
+    : Promise.reject( new Error( ) );
+
+const reflection = await reflect( somePromise );
+const { value, error, isResolved, isRejected } = reflection;
+
+if ( isResolved )
+    doSomethingWithValue( value );
+else
+    handleError( error );
 ```
 
 

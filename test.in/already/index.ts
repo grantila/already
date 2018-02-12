@@ -17,6 +17,7 @@ import {
 	each,
 	some,
 	defer,
+	reflect,
 	inspect,
 	Try,
 	specific,
@@ -1086,6 +1087,65 @@ describe( 'defer', ( ) =>
 			if ( err.message !== fooError )
 				throw err;
 		} );
+	} );
+} );
+
+describe( 'reflect', ( ) =>
+{
+	it( 'should work with resolved promises', async ( ) =>
+	{
+		const p = Promise.resolve( fooValue );
+
+		const reflected = await reflect( p );
+
+		const { value, error, isResolved, isRejected } = reflected;
+
+		expect( isResolved ).to.be.true;
+		expect( isRejected ).to.be.false;
+		expect( value ).to.equal( fooValue );
+		expect( error ).to.be.undefined;
+	} );
+
+	it( 'should work with not yet resolved promises', async ( ) =>
+	{
+		const p = delay( 1, fooValue );
+
+		const reflected = await reflect( p );
+
+		const { value, error, isResolved, isRejected } = reflected;
+
+		expect( isResolved ).to.be.true;
+		expect( isRejected ).to.be.false;
+		expect( value ).to.equal( fooValue );
+		expect( error ).to.be.undefined;
+	} );
+
+	it( 'should work with rejected promises', async ( ) =>
+	{
+		const p = Promise.reject( fooError );
+
+		const reflected = await reflect( p );
+
+		const { value, error, isResolved, isRejected } = reflected;
+
+		expect( isResolved ).to.be.false;
+		expect( isRejected ).to.be.true;
+		expect( value ).to.be.undefined;
+		expect( error ).to.equal( fooError );
+	} );
+
+	it( 'should work with not yet rejected promises', async ( ) =>
+	{
+		const p = delay( 1 ).then( ( ) => { throw fooError; } );
+
+		const reflected = await reflect( p );
+
+		const { value, error, isResolved, isRejected } = reflected;
+
+		expect( isResolved ).to.be.false;
+		expect( isRejected ).to.be.true;
+		expect( value ).to.be.undefined;
+		expect( error ).to.equal( fooError );
 	} );
 } );
 

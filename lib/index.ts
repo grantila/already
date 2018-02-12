@@ -462,6 +462,51 @@ export function defer< T = void >( ): Deferred< T >
 }
 
 
+export interface ResolvedReflection< T >
+{
+	error?: void;
+	value: T;
+	isResolved: true;
+	isRejected: false;
+};
+export interface RejectedReflection
+{
+	error: Error;
+	value?: void;
+	isResolved: false;
+	isRejected: true;
+};
+
+export type Reflection< T > = ResolvedReflection< T > | RejectedReflection;
+
+export function reflect< T >( promise: Promise< T > )
+: Promise< Reflection< T > >
+{
+	const inspection = inspect( promise );
+
+	function handleResolution( value: T ): ResolvedReflection< T >
+	{
+		return {
+			value,
+			isResolved: true,
+			isRejected: false,
+		};
+	}
+
+	function handleRejection( error: Error ): RejectedReflection
+	{
+		return {
+			error,
+			isResolved: false,
+			isRejected: true,
+		};
+	}
+
+	return inspection.promise
+	.then( handleResolution, handleRejection );
+}
+
+
 export interface InspectablePromise< T >
 {
 	promise: Promise< T >;

@@ -72,6 +72,20 @@ export interface EmptyDeferred {
  */
 export declare function defer<T>(): Deferred<T>;
 export declare function defer(v: void): EmptyDeferred;
+export interface ResolvedReflection<T> {
+    error?: void;
+    value: T;
+    isResolved: true;
+    isRejected: false;
+}
+export interface RejectedReflection {
+    error: Error;
+    value?: void;
+    isResolved: false;
+    isRejected: true;
+}
+export declare type Reflection<T> = ResolvedReflection<T> | RejectedReflection;
+export declare function reflect<T>(promise: Promise<T>): Promise<Reflection<T>>;
 export interface InspectablePromise<T> {
     promise: Promise<T>;
     isResolved: boolean;

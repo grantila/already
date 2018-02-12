@@ -330,6 +330,28 @@ function defer() {
     return deferred;
 }
 exports.defer = defer;
+;
+;
+function reflect(promise) {
+    var inspection = inspect(promise);
+    function handleResolution(value) {
+        return {
+            value: value,
+            isResolved: true,
+            isRejected: false,
+        };
+    }
+    function handleRejection(error) {
+        return {
+            error: error,
+            isResolved: false,
+            isRejected: true,
+        };
+    }
+    return inspection.promise
+        .then(handleResolution, handleRejection);
+}
+exports.reflect = reflect;
 function inspect(promise) {
     var inspectable = {
         promise: null,
