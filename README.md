@@ -100,6 +100,17 @@ props( { a: someValue, b: somePromise } )
 .then( ( { a, b } ) => { /* a and b are now values (not promises) */ } )
 ```
 
+Obviously, `props` can be used in a promise chain, by just refering to the function rather than calling it.
+
+```ts
+import { props } from 'already'
+
+Promise.resolve( { a: someValue, b: somePromise } )
+.then( props )
+.then( ( { a, b } ) => { /* a and b are now values (not promises) */ } )
+```
+
+
 ## filter
 
 The `filter` helper can operate on promises of arrays, and will do the same as waiting for all promises in the array and then applying `array.filter( )` on the result. If the filter callback returns a promise, it will be awaited (and expected to eventually become a `boolean`). This eventual value will determine whether to include the value or not in the resulting array.

@@ -155,9 +155,18 @@ describe( 'tap', ( ) =>
 
 describe( 'props', ( ) =>
 {
-	it( 'should work', async ( ) =>
+	it( 'should work as standalone call', async ( ) =>
 	{
 		const val = await props( { a: 1, b: delay( 10 ).then( ( ) => 2 ) } );
+
+		expect( val ).to.deep.equal( { a: 1, b: 2 } );
+	} );
+
+	it( 'should work in a promise chain as function reference', async ( ) =>
+	{
+		const val = await
+			Promise.resolve( { a: 1, b: delay( 10 ).then( ( ) => 2 ) } )
+			.then( props );
 
 		expect( val ).to.deep.equal( { a: 1, b: 2 } );
 	} );
