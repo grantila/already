@@ -4,6 +4,8 @@
 
 # Already
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/grantila/already.svg)](https://greenkeeper.io/)
+
 `already` is a set of promise helper functions which many of them are also found in libraries such as Bluebird.
 
 The functions are standalone and depends on no particular Promise implementation and therefore works well for Javascript's built-in Promise.
