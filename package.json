@@ -43,7 +43,7 @@
     "mocha": "5.x",
     "nyc": "11.x",
     "pre-commit": "1.x",
-    "sinon": "4.x",
+    "sinon": "^5.0.0",
     "source-map-support": "0.x",
     "typescript": "2.7.x"
   },
