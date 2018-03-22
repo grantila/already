@@ -1,10 +1,9 @@
 [![npm version][npm-image]][npm-url]
 [![build status][travis-image]][travis-url]
 [![coverage status][coverage-image]][coverage-url]
+[![greenkeeper badge][greenkeeper-image]][greenkeeper-url]
 
 # Already
-
-[![Greenkeeper badge](https://badges.greenkeeper.io/grantila/already.svg)](https://greenkeeper.io/)
 
 `already` is a set of promise helper functions which many of them are also found in libraries such as Bluebird.
 
@@ -426,3 +425,5 @@ somePromise
 [travis-url]: https://travis-ci.org/grantila/already
 [coverage-image]: https://coveralls.io/repos/github/grantila/already/badge.svg?branch=master
 [coverage-url]: https://coveralls.io/github/grantila/already?branch=master
+[greenkeeper-image]: https://badges.greenkeeper.io/grantila/already.svg
+[greenkeeper-url]: https://greenkeeper.io/
