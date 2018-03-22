@@ -256,7 +256,7 @@ somePromiseToAnArray
 
 // or on an array
 
-const t = some( arrayOrIterable, predicateFn );
+const t = await some( arrayOrIterable, predicateFn );
 // t is of type T (the return type of predicateFn) or false
 ```
 
