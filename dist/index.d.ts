@@ -24,7 +24,7 @@ export declare function delayChain(milliseconds: number): <T>(t?: T) => Promise<
 export declare function finallyDelay(milliseconds: number): FinallyWrapper;
 export declare type FinallyWrapper = [<T>(t?: T) => Promise<T>, (err?: any) => any];
 export declare function Finally(fn: () => (void | PromiseLike<void>)): FinallyWrapper;
-export declare function tap<T, U, Fn extends (T) => (void | PromiseLike<void>)>(fn: Fn): (u: U) => Promise<U>;
+export declare function tap<T, U, Fn extends (T: any) => (void | PromiseLike<void>)>(fn: Fn): (u: U) => Promise<U>;
 export declare function props(obj: any): Promise<any>;
 export interface ConcurrencyOptions {
     concurrency: number;
@@ -53,7 +53,7 @@ export declare function each<T>(arr: ReadonlyArray<T | PromiseLike<T>>, eachFn: 
 export declare function eachImpl<T>(eachFn: EachFn<T>): ((t: ReadonlyArray<T | PromiseLike<T>>) => Promise<Array<T>>);
 export declare type SomeReturn<R> = Promise<R | false>;
 export declare type SomeSyncReturn<R> = SomeReturn<R> | R | false;
-export declare type SomePredicate<T, R> = (T) => SomeSyncReturn<R>;
+export declare type SomePredicate<T, R> = (T: any) => SomeSyncReturn<R>;
 export declare type SomeArray<T> = ReadonlyArray<T | PromiseLike<T>> | PromiseLike<ReadonlyArray<T | PromiseLike<T>>>;
 export declare function some<T, R>(list: SomeArray<T>, fn: SomePredicate<T, R>): SomeReturn<R>;
 export declare function some<T, R>(fn: SomePredicate<T, R>): (list: SomeArray<T>) => SomeReturn<R>;

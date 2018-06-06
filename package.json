@@ -41,11 +41,11 @@
     "chai": "4.x",
     "coveralls": "3.x",
     "mocha": "5.x",
-    "nyc": "11.x",
+    "nyc": "12.x",
     "pre-commit": "1.x",
     "sinon": "5.x",
     "source-map-support": "0.x",
-    "typescript": "2.8.x"
+    "typescript": "2.9.x"
   },
   "dependencies": {
     "throat": "4.x"
