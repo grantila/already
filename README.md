@@ -28,6 +28,7 @@ This library is written in TypeScript but is exposed as ES7 (if imported as `alr
   * [Try](#try)
   * [specific](#specific)
   * [rethrow](#rethrow)
+  * [wrapFunction](#wrapFunction)
 
 
 ## delay
@@ -416,6 +417,121 @@ import { specific, rethrow } from 'already'
 somePromise
 .catch( specific( MyError, rethrow( err => { /* handler */ } ) ) )
 .catch( err => { /* handler */ } ) // will always be called, if somePromise was rejected
+```
+
+
+## wrapFunction
+
+In many cases, wrapping a function with custom 'before' and 'after' hooks is useful, e.g. in unit tests. When working with asynchronous code, this may sound easier than it really is, especially in a type safe manner. The 'before' handler, the wrapped function and the 'after' handler can all be either synchronous or asynchronous, and the returned (wrapped) function should reflect this and be synchronous is possible, otherwise asynchronous.
+
+`wrapFunction` takes a 'before' handler (a function) which is supposed to return an 'after' handler. It returns a new function which takes the target function as argument and performs the invocation by 1) calling the 'before' function, 2) calling the target function and 3) calling the 'after' function (returned by the 'before' function)
+
+```ts
+import { wrapFunction } from 'already'
+
+const wrapFactory = wrapFunction(
+    ( ) =>
+    {
+        // Do stuff before
+        console.log( "before" );
+        // ...
+
+        return ( ) =>
+        {
+            // Do stuff after, e.g. clean up
+            console.log( "after" );
+        }
+    }
+);
+
+function aUsefulFunction( )
+{
+    // Imagine this function to be useful, and we want to wrap it
+    console.log( "useful" );
+    return "yo";
+}
+
+// Call aUsefulFunction but wrap the call
+const ret = wrapFactory( aUsefulFunction );
+
+expect( ret ).to.equal( "yo" );
+
+// Console output:
+// before
+// useful
+// after
+```
+
+The before handler can also take an optional argument, which then must be provided when invoking the wrapper.
+
+```ts
+const wrapFactory = wrapFunction(
+    ( hookData: string ) =>
+    {
+        // Do stuff before
+        console.log( hookData );
+        // ...
+
+        return ( ) =>
+        {
+            // Do stuff after, e.g. clean up
+            console.log( "after" );
+        }
+    }
+);
+
+function aUsefulFunction( )
+{
+    // Imagine this function to be useful, and we want to wrap it
+    console.log( "useful" );
+    return "yo";
+}
+
+// Call aUsefulFunction but wrap the call
+const ret = wrapFactory( "before", aUsefulFunction );
+
+expect( ret ).to.equal( "yo" );
+
+// Console output:
+// before
+// useful
+// after
+```
+
+And all three functions can be synchronous or asynchronous, e.g.
+
+```ts
+const wrapFactory = wrapFunction(
+    async ( hookData: string ) =>
+    {
+        // Do stuff before
+        console.log( hookData );
+        // ...
+
+        return ( ) =>
+        {
+            // Do stuff after, e.g. clean up
+            console.log( "after" );
+        }
+    }
+);
+
+function aUsefulFunction( )
+{
+    // Imagine this function to be useful, and we want to wrap it
+    console.log( "useful" );
+    return "yo";
+}
+
+// Call aUsefulFunction but wrap the call
+const ret = await wrapFactory( "before", aUsefulFunction );
+
+expect( ret ).to.equal( "yo" );
+
+// Console output:
+// before
+// useful
+// after
 ```
 
 

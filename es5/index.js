@@ -14,8 +14,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
         while (_) try {
-            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [0, t.value];
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
                 case 0: case 1: t = op; break;
                 case 4: _.label++; return { value: op[1], done: false };
@@ -433,4 +433,71 @@ function rethrow(fn) {
     };
 }
 exports.rethrow = rethrow;
+function wrapFunction(wrap) {
+    return function (t, cb) {
+        var _this = this;
+        if (arguments.length === 1) {
+            if (wrap.length > 0)
+                throw new EvalError("Invalid invocation, function requires 2 arguments");
+            cb = t;
+            t = void 0;
+        }
+        var anyCleanup = wrap(t);
+        var callCleanup = function (cleanup) {
+            if (typeof cleanup === 'function')
+                return cleanup();
+            else if (cleanup != null)
+                // Allow 'before' to just return null/undefined, but non-empty
+                // value would've been silently ignored.
+                throw new EvalError("Invalid return value in 'before' handler");
+        };
+        if (anyCleanup &&
+            typeof anyCleanup.then === 'function') {
+            return anyCleanup
+                .then(function (cleanup) { return __awaiter(_this, void 0, void 0, function () {
+                var val;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0: return [4 /*yield*/, cb()];
+                        case 1:
+                            val = _a.sent();
+                            return [4 /*yield*/, callCleanup(cleanup)];
+                        case 2:
+                            _a.sent();
+                            return [2 /*return*/, val];
+                    }
+                });
+            }); });
+        }
+        else {
+            var cleanup_1 = anyCleanup;
+            var cbRet_1 = cb();
+            if (cbRet_1 && typeof cbRet_1.then === 'function') {
+                return cbRet_1
+                    .then(function (u) { return __awaiter(_this, void 0, void 0, function () {
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0: return [4 /*yield*/, callCleanup(cleanup_1)];
+                            case 1:
+                                _a.sent();
+                                return [2 /*return*/, u];
+                        }
+                    });
+                }); });
+            }
+            else {
+                var cleanupRet = callCleanup(cleanup_1);
+                if (cleanupRet &&
+                    typeof cleanupRet.then === 'function') {
+                    return cleanupRet
+                        .then(function () { return cbRet_1; });
+                }
+                else {
+                    return cbRet_1;
+                }
+            }
+        }
+    };
+}
+exports.wrapFunction = wrapFunction;
 //# sourceMappingURL=index.js.map

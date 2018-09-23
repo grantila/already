@@ -275,4 +275,55 @@ function rethrow(fn) {
     };
 }
 exports.rethrow = rethrow;
+function wrapFunction(wrap) {
+    return function (t, cb) {
+        if (arguments.length === 1) {
+            if (wrap.length > 0)
+                throw new EvalError("Invalid invocation, function requires 2 arguments");
+            cb = t;
+            t = void 0;
+        }
+        const anyCleanup = wrap(t);
+        const callCleanup = (cleanup) => {
+            if (typeof cleanup === 'function')
+                return cleanup();
+            else if (cleanup != null)
+                // Allow 'before' to just return null/undefined, but non-empty
+                // value would've been silently ignored.
+                throw new EvalError("Invalid return value in 'before' handler");
+        };
+        if (anyCleanup &&
+            typeof anyCleanup.then === 'function') {
+            return anyCleanup
+                .then(async (cleanup) => {
+                const val = await cb();
+                await callCleanup(cleanup);
+                return val;
+            });
+        }
+        else {
+            const cleanup = anyCleanup;
+            const cbRet = cb();
+            if (cbRet && typeof cbRet.then === 'function') {
+                return cbRet
+                    .then(async (u) => {
+                    await callCleanup(cleanup);
+                    return u;
+                });
+            }
+            else {
+                const cleanupRet = callCleanup(cleanup);
+                if (cleanupRet &&
+                    typeof cleanupRet.then === 'function') {
+                    return cleanupRet
+                        .then(() => cbRet);
+                }
+                else {
+                    return cbRet;
+                }
+            }
+        }
+    };
+}
+exports.wrapFunction = wrapFunction;
 //# sourceMappingURL=index.js.map

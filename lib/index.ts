@@ -631,3 +631,113 @@ export function rethrow< T extends Error = any >(
 		throw err;
 	}
 }
+
+export function wrapFunction< R extends void >(
+	wrap: ( ) => ( ) => R
+): < U, V extends Promise< U > | U >( cb: ( ) => V ) => V;
+export function wrapFunction< T extends {}, R extends void >(
+	wrap: ( t: T ) => ( ) => R
+): < U, V extends Promise< U > | U >( t: T, cb: ( ) => V ) => V;
+export function wrapFunction< R extends void >(
+	wrap: ( ) => Promise< ( ) => R >
+): < U, V extends Promise< U > | U >( cb: ( ) => V ) => Promise< U >;
+export function wrapFunction< T, R extends void >(
+	wrap: ( t: T ) => Promise< ( ) => R >
+): < U, V extends Promise< U > | U >( t: T, cb: ( ) => V ) => Promise< U >;
+export function wrapFunction< R extends Promise< void > >(
+	wrap: ( ) => ( ) => R
+): < U, V extends Promise< U > | U >( cb: ( ) => V ) => Promise< U >;
+export function wrapFunction< T, R extends Promise< void > >(
+	wrap: ( t: T ) => ( ) => R
+): < U, V extends Promise< U > | U >( t: T, cb: ( ) => V ) => Promise< U >;
+export function wrapFunction< R extends Promise< void > >(
+	wrap: ( ) => Promise< ( ) => R >
+): < U, V extends Promise< U > | U >( cb: ( ) => V ) => Promise< U >;
+export function wrapFunction< T, R extends Promise< void > >(
+	wrap: ( t: T ) => Promise< ( ) => R >
+): < U, V extends Promise< U > | U >( t: T, cb: ( ) => V ) => Promise< U >;
+
+export function wrapFunction< T, R extends Promise< void > | void >(
+	wrap:
+		( ( t: T ) => Promise< ( ) => R > ) |
+		( ( t: T ) => ( ) => R ) |
+		( ( ) => Promise< ( ) => R > ) |
+		( ( ) => ( ) => R )
+ ):
+	( < U, V extends Promise< U > | U >( t: T, cb: ( ) => V ) => any )
+	|
+	(
+		< U, V extends Promise< U > | U >( cb: ( ) => V ) =>
+			Promise< U > | U | V
+	)
+{
+	return function< U, V extends Promise< U > | U >(
+		t: T | ( ( ) => U ), cb: ( ) => V
+	)
+	: Promise< U > | U | V
+	{
+		if ( arguments.length === 1 ) {
+			if ( wrap.length > 0 )
+				throw new EvalError(
+					"Invalid invocation, function requires 2 arguments"
+				);
+
+			cb = < ( ) => V >t;
+			t = < T >( < any >void 0 );
+		}
+
+		const anyCleanup = (<( t: T ) => any>wrap)( < T >t );
+
+		const callCleanup = < Fun extends Function >( cleanup: Fun ) =>
+		{
+			if ( typeof cleanup === 'function' )
+				return cleanup( );
+			else if ( cleanup != null )
+				// Allow 'before' to just return null/undefined, but non-empty
+				// value would've been silently ignored.
+				throw new EvalError(
+					"Invalid return value in 'before' handler"
+				);
+		};
+
+		if (
+			anyCleanup &&
+			typeof ( < Promise< ( ( ) => R ) > >anyCleanup ).then === 'function'
+		)
+		{
+			return < Promise< U > >( < Promise< ( ( ) => R ) > >anyCleanup )
+				.then( async cleanup =>
+				{
+					const val = await cb( );
+					await callCleanup( cleanup );
+					return val;
+				} );
+		} else {
+			const cleanup = < ( ) => R >anyCleanup;
+			const cbRet = cb( );
+			if (
+				cbRet && typeof ( < Promise< U > >cbRet ).then === 'function'
+			)
+			{
+				return < Promise< U > >( < Promise< U > >cbRet )
+					.then( async ( u: U ) =>
+					{
+						await callCleanup( cleanup );
+						return u;
+					} );
+			} else {
+				const cleanupRet = callCleanup( cleanup );
+				if (
+					cleanupRet &&
+					typeof ( < Promise< void > >cleanupRet ).then === 'function'
+				)
+				{
+					return < Promise< U > >( < Promise< void > >cleanupRet )
+						.then( ( ) => cbRet );
+				} else {
+					return cbRet;
+				}
+			}
+		}
+	}
+}

@@ -102,3 +102,11 @@ export declare type CatchFilter = ErrorConstructor | ErrorFilterFunction | Error
 export declare function specific<T, U extends Promise<T>>(filters: CatchFilter | Array<CatchFilter>, handler: (err: Error) => U): (err: Error) => (U);
 export declare function specific<T>(filters: CatchFilter | Array<CatchFilter>, handler: (err: Error) => T): (err: Error) => (T | Promise<T>);
 export declare function rethrow<T extends Error = any>(fn: (err?: T) => (void | PromiseLike<void>)): (err: T) => Promise<never>;
+export declare function wrapFunction<R extends void>(wrap: () => () => R): <U, V extends Promise<U> | U>(cb: () => V) => V;
+export declare function wrapFunction<T extends {}, R extends void>(wrap: (t: T) => () => R): <U, V extends Promise<U> | U>(t: T, cb: () => V) => V;
+export declare function wrapFunction<R extends void>(wrap: () => Promise<() => R>): <U, V extends Promise<U> | U>(cb: () => V) => Promise<U>;
+export declare function wrapFunction<T, R extends void>(wrap: (t: T) => Promise<() => R>): <U, V extends Promise<U> | U>(t: T, cb: () => V) => Promise<U>;
+export declare function wrapFunction<R extends Promise<void>>(wrap: () => () => R): <U, V extends Promise<U> | U>(cb: () => V) => Promise<U>;
+export declare function wrapFunction<T, R extends Promise<void>>(wrap: (t: T) => () => R): <U, V extends Promise<U> | U>(t: T, cb: () => V) => Promise<U>;
+export declare function wrapFunction<R extends Promise<void>>(wrap: () => Promise<() => R>): <U, V extends Promise<U> | U>(cb: () => V) => Promise<U>;
+export declare function wrapFunction<T, R extends Promise<void>>(wrap: (t: T) => Promise<() => R>): <U, V extends Promise<U> | U>(t: T, cb: () => V) => Promise<U>;
