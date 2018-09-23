@@ -28,7 +28,7 @@ This library is written in TypeScript but is exposed as ES7 (if imported as `alr
   * [Try](#try)
   * [specific](#specific)
   * [rethrow](#rethrow)
-  * [wrapFunction](#wrapFunction)
+  * [wrapFunction](#wrapfunction)
 
 
 ## delay
