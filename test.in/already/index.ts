@@ -1561,216 +1561,323 @@ describe( 'wrapFunction', ( ) =>
 		return <sinon.SinonSpy & Fun>sinon.spy( fun )
 	}
 
-	it( 'sync sync sync noarg', ( ) =>
+	describe( '(before, fn, after) combinations', ( ) =>
 	{
-		const after = makeSpy( ( ) => { } );
-		const before = makeSpy( ( ) => after );
+		it( 'sync sync sync noarg noreturn', ( ) =>
+		{
+			const after = makeSpy( ( ) => { } );
+			const before = makeSpy( ( ) => after );
 
-		expect(
-			wrapFunction( before )( ( ) => 42 )
-		).to.equal( 42 );
+			expect(
+				wrapFunction( before )( ( ) => { } )
+			).to.be.undefined;
 
-		expect( before.callCount ).to.equal( 1 );
-		expect( after.callCount ).to.equal( 1 );
-	} );
+			expect( before.callCount ).to.equal( 1 );
+			expect( after.callCount ).to.equal( 1 );
+		} );
 
-	it( 'sync sync sync arg', ( ) =>
-	{
-		const after = makeSpy( ( ) => { } );
-		const before = makeSpy( ( s: string ) => after );
+		it( 'sync sync sync noarg', ( ) =>
+		{
+			const after = makeSpy( ( ) => { } );
+			const before = makeSpy( ( ) => after );
 
-		expect(
-			wrapFunction( before )( "foo", ( ) => 42 )
-		).to.equal( 42 );
+			expect(
+				wrapFunction( before )( ( ) => 42 )
+			).to.equal( 42 );
 
-		expect( before.args ).to.deep.equal( [ [ "foo" ] ] );
-		expect( after.callCount ).to.equal( 1 );
-	} );
+			expect( before.callCount ).to.equal( 1 );
+			expect( after.callCount ).to.equal( 1 );
+		} );
 
+		it( 'sync sync sync arg noreturn', ( ) =>
+		{
+			const after = makeSpy( ( ) => { } );
+			const before = makeSpy( ( s: string ) => after );
 
-	it( 'async sync sync noarg', async ( ) =>
-	{
-		const after = makeSpy( ( ) => { } );
-		const before = makeSpy( ( ) => Promise.resolve( after ) );
+			expect(
+				wrapFunction( before )( "foo", ( ) => { } )
+			).to.be.undefined;
 
-		expect(
-			await wrapFunction( before )( ( ) => 42 )
-		).to.equal( 42 );
+			expect( before.args ).to.deep.equal( [ [ "foo" ] ] );
+			expect( after.callCount ).to.equal( 1 );
+		} );
 
-		expect( before.callCount ).to.equal( 1 );
-		expect( after.callCount ).to.equal( 1 );
-	} );
+		it( 'sync sync sync arg', ( ) =>
+		{
+			const after = makeSpy( ( ) => { } );
+			const before = makeSpy( ( s: string ) => after );
 
-	it( 'async sync sync arg', async ( ) =>
-	{
-		const after = makeSpy( ( ) => { } );
-		const before = makeSpy( ( s: string ) => Promise.resolve( after ) );
+			expect(
+				wrapFunction( before )( "foo", ( ) => 42 )
+			).to.equal( 42 );
 
-		expect(
-			await wrapFunction( before )( "foo", ( ) => 42 )
-		).to.equal( 42 );
-
-		expect( before.args ).to.deep.equal( [ [ "foo" ] ] );
-		expect( after.callCount ).to.equal( 1 );
-	} );
-
-	it( 'sync async sync noarg', async ( ) =>
-	{
-		const after = makeSpy( ( ) => { } );
-		const before = makeSpy( ( ) => after );
-
-		expect(
-			await wrapFunction( before )( ( ) => Promise.resolve( 42 ) )
-		).to.equal( 42 );
-
-		expect( before.callCount ).to.equal( 1 );
-		expect( after.callCount ).to.equal( 1 );
-	} );
-
-	it( 'sync async sync arg', async ( ) =>
-	{
-		const after = makeSpy( ( ) => { } );
-		const before = makeSpy( ( s: string ) => after );
-
-		expect(
-			await wrapFunction( before )( "foo", ( ) => Promise.resolve( 42 ) )
-		).to.equal( 42 );
-
-		expect( before.args ).to.deep.equal( [ [ "foo" ] ] );
-		expect( after.callCount ).to.equal( 1 );
-	} );
+			expect( before.args ).to.deep.equal( [ [ "foo" ] ] );
+			expect( after.callCount ).to.equal( 1 );
+		} );
 
 
-	it( 'async async sync noarg', async ( ) =>
-	{
-		const after = makeSpy( ( ) => { } );
-		const before = makeSpy( ( ) => Promise.resolve( after ) );
+		it( 'async sync sync noarg noreturn', async ( ) =>
+		{
+			const after = makeSpy( ( ) => { } );
+			const before = makeSpy( ( ) => Promise.resolve( after ) );
 
-		expect(
-			await wrapFunction( before )( ( ) => Promise.resolve( 42 ) )
-		).to.equal( 42 );
+			expect(
+				await wrapFunction( before )( ( ) => { } )
+			).to.be.undefined;
 
-		expect( before.callCount ).to.equal( 1 );
-		expect( after.callCount ).to.equal( 1 );
-	} );
+			expect( before.callCount ).to.equal( 1 );
+			expect( after.callCount ).to.equal( 1 );
+		} );
 
-	it( 'async async sync arg', async ( ) =>
-	{
-		const after = makeSpy( ( ) => { } );
-		const before = makeSpy( ( s: string ) => Promise.resolve( after ) );
+		it( 'async sync sync noarg', async ( ) =>
+		{
+			const after = makeSpy( ( ) => { } );
+			const before = makeSpy( ( ) => Promise.resolve( after ) );
 
-		expect(
-			await wrapFunction( before )( "foo", ( ) => Promise.resolve( 42 ) )
-		).to.equal( 42 );
+			expect(
+				await wrapFunction( before )( ( ) => 42 )
+			).to.equal( 42 );
 
-		expect( before.args ).to.deep.equal( [ [ "foo" ] ] );
-		expect( after.callCount ).to.equal( 1 );
-	} );
+			expect( before.callCount ).to.equal( 1 );
+			expect( after.callCount ).to.equal( 1 );
+		} );
 
-	it( 'sync sync async noarg', async ( ) =>
-	{
-		const after = makeSpy( ( ) => Promise.resolve( ) );
-		const before = makeSpy( ( ) => after );
+		it( 'async sync sync arg noreturn', async ( ) =>
+		{
+			const after = makeSpy( ( ) => { } );
+			const before = makeSpy( ( s: string ) => Promise.resolve( after ) );
 
-		expect(
-			await wrapFunction( before )( ( ) => 42 )
-		).to.equal( 42 );
+			expect(
+				await wrapFunction( before )( "foo", ( ) => { } )
+			).to.be.undefined;
 
-		expect( before.callCount ).to.equal( 1 );
-		expect( after.callCount ).to.equal( 1 );
-	} );
+			expect( before.args ).to.deep.equal( [ [ "foo" ] ] );
+			expect( after.callCount ).to.equal( 1 );
+		} );
 
-	it( 'sync sync async arg', async ( ) =>
-	{
-		const after = makeSpy( ( ) => Promise.resolve( ) );
-		const before = makeSpy( ( s: string ) => after );
+		it( 'async sync sync arg', async ( ) =>
+		{
+			const after = makeSpy( ( ) => { } );
+			const before = makeSpy( ( s: string ) => Promise.resolve( after ) );
 
-		expect(
-			await wrapFunction( before )( "foo", ( ) => 42 )
-		).to.equal( 42 );
+			expect(
+				await wrapFunction( before )( "foo", ( ) => 42 )
+			).to.equal( 42 );
 
-		expect( before.args ).to.deep.equal( [ [ "foo" ] ] );
-		expect( after.callCount ).to.equal( 1 );
-	} );
+			expect( before.args ).to.deep.equal( [ [ "foo" ] ] );
+			expect( after.callCount ).to.equal( 1 );
+		} );
+
+		it( 'sync async sync noarg noreturn', async ( ) =>
+		{
+			const after = makeSpy( ( ) => { } );
+			const before = makeSpy( ( ) => after );
+
+			expect(
+				await wrapFunction( before )( ( ) => Promise.resolve( ) )
+			).to.be.undefined;
+
+			expect( before.callCount ).to.equal( 1 );
+			expect( after.callCount ).to.equal( 1 );
+		} );
+
+		it( 'sync async sync noarg', async ( ) =>
+		{
+			const after = makeSpy( ( ) => { } );
+			const before = makeSpy( ( ) => after );
+
+			expect(
+				await wrapFunction( before )( ( ) => Promise.resolve( 42 ) )
+			).to.equal( 42 );
+
+			expect( before.callCount ).to.equal( 1 );
+			expect( after.callCount ).to.equal( 1 );
+		} );
+
+		it( 'sync async sync arg noreturn', async ( ) =>
+		{
+			const after = makeSpy( ( ) => { } );
+			const before = makeSpy( ( s: string ) => after );
+
+			expect(
+				await wrapFunction( before )( "foo", ( ) => Promise.resolve( ) )
+			).to.be.undefined;
+
+			expect( before.args ).to.deep.equal( [ [ "foo" ] ] );
+			expect( after.callCount ).to.equal( 1 );
+		} );
+
+		it( 'sync async sync arg', async ( ) =>
+		{
+			const after = makeSpy( ( ) => { } );
+			const before = makeSpy( ( s: string ) => after );
+
+			expect(
+				await wrapFunction( before )( "foo", ( ) => Promise.resolve( 42 ) )
+			).to.equal( 42 );
+
+			expect( before.args ).to.deep.equal( [ [ "foo" ] ] );
+			expect( after.callCount ).to.equal( 1 );
+		} );
 
 
-	it( 'async sync async noarg', async ( ) =>
-	{
-		const after = makeSpy( ( ) => Promise.resolve( ) );
-		const before = makeSpy( ( ) => Promise.resolve( after ) );
+		it( 'async async sync noarg', async ( ) =>
+		{
+			const after = makeSpy( ( ) => { } );
+			const before = makeSpy( ( ) => Promise.resolve( after ) );
 
-		expect(
-			await wrapFunction( before )( ( ) => 42 )
-		).to.equal( 42 );
+			expect(
+				await wrapFunction( before )( ( ) => Promise.resolve( 42 ) )
+			).to.equal( 42 );
 
-		expect( before.callCount ).to.equal( 1 );
-		expect( after.callCount ).to.equal( 1 );
-	} );
+			expect( before.callCount ).to.equal( 1 );
+			expect( after.callCount ).to.equal( 1 );
+		} );
 
-	it( 'async sync async arg', async ( ) =>
-	{
-		const after = makeSpy( ( ) => Promise.resolve( ) );
-		const before = makeSpy( ( s: string ) => Promise.resolve( after ) );
+		it( 'async async sync arg', async ( ) =>
+		{
+			const after = makeSpy( ( ) => { } );
+			const before = makeSpy( ( s: string ) => Promise.resolve( after ) );
 
-		expect(
-			await wrapFunction( before )( "foo", ( ) => 42 )
-		).to.equal( 42 );
+			expect(
+				await wrapFunction( before )( "foo", ( ) => Promise.resolve( 42 ) )
+			).to.equal( 42 );
 
-		expect( before.args ).to.deep.equal( [ [ "foo" ] ] );
-		expect( after.callCount ).to.equal( 1 );
-	} );
+			expect( before.args ).to.deep.equal( [ [ "foo" ] ] );
+			expect( after.callCount ).to.equal( 1 );
+		} );
 
-	it( 'sync async async noarg', async ( ) =>
-	{
-		const after = makeSpy( ( ) => Promise.resolve( ) );
-		const before = makeSpy( ( ) => after );
+		it( 'sync sync async noarg', async ( ) =>
+		{
+			const after = makeSpy( ( ) => Promise.resolve( ) );
+			const before = makeSpy( ( ) => after );
 
-		expect(
-			await wrapFunction( before )( ( ) => Promise.resolve( 42 ) )
-		).to.equal( 42 );
+			expect(
+				await wrapFunction( before )( ( ) => 42 )
+			).to.equal( 42 );
 
-		expect( before.callCount ).to.equal( 1 );
-		expect( after.callCount ).to.equal( 1 );
-	} );
+			expect( before.callCount ).to.equal( 1 );
+			expect( after.callCount ).to.equal( 1 );
+		} );
 
-	it( 'sync async async arg', async ( ) =>
-	{
-		const after = makeSpy( ( ) => Promise.resolve( ) );
-		const before = makeSpy( ( s: string ) => after );
+		it( 'sync sync async arg', async ( ) =>
+		{
+			const after = makeSpy( ( ) => Promise.resolve( ) );
+			const before = makeSpy( ( s: string ) => after );
 
-		expect(
-			await wrapFunction( before )( "foo", ( ) => Promise.resolve( 42 ) )
-		).to.equal( 42 );
+			expect(
+				await wrapFunction( before )( "foo", ( ) => 42 )
+			).to.equal( 42 );
 
-		expect( before.args ).to.deep.equal( [ [ "foo" ] ] );
-		expect( after.callCount ).to.equal( 1 );
-	} );
+			expect( before.args ).to.deep.equal( [ [ "foo" ] ] );
+			expect( after.callCount ).to.equal( 1 );
+		} );
 
 
-	it( 'async async async noarg', async ( ) =>
-	{
-		const after = makeSpy( ( ) => Promise.resolve( ) );
-		const before = makeSpy( ( ) => Promise.resolve( after ) );
+		it( 'async sync async noarg noreturn', async ( ) =>
+		{
+			const after = makeSpy( ( ) => Promise.resolve( ) );
+			const before = makeSpy( ( ) => Promise.resolve( after ) );
 
-		expect(
-			await wrapFunction( before )( ( ) => Promise.resolve( 42 ) )
-		).to.equal( 42 );
+			expect(
+				await wrapFunction( before )( ( ) => { } )
+			).to.be.undefined;
 
-		expect( before.callCount ).to.equal( 1 );
-		expect( after.callCount ).to.equal( 1 );
-	} );
+			expect( before.callCount ).to.equal( 1 );
+			expect( after.callCount ).to.equal( 1 );
+		} );
 
-	it( 'async async async arg', async ( ) =>
-	{
-		const after = makeSpy( ( ) => Promise.resolve( ) );
-		const before = makeSpy( ( s: string ) => Promise.resolve( after ) );
+		it( 'async sync async noarg', async ( ) =>
+		{
+			const after = makeSpy( ( ) => Promise.resolve( ) );
+			const before = makeSpy( ( ) => Promise.resolve( after ) );
 
-		expect(
-			await wrapFunction( before )( "foo", ( ) => Promise.resolve( 42 ) )
-		).to.equal( 42 );
+			expect(
+				await wrapFunction( before )( ( ) => 42 )
+			).to.equal( 42 );
 
-		expect( before.args ).to.deep.equal( [ [ "foo" ] ] );
-		expect( after.callCount ).to.equal( 1 );
+			expect( before.callCount ).to.equal( 1 );
+			expect( after.callCount ).to.equal( 1 );
+		} );
+
+		it( 'async sync async arg noreturn', async ( ) =>
+		{
+			const after = makeSpy( ( ) => Promise.resolve( ) );
+			const before = makeSpy( ( s: string ) => Promise.resolve( after ) );
+
+			expect(
+				await wrapFunction( before )( "foo", ( ) => { } )
+			).to.be.undefined;
+
+			expect( before.args ).to.deep.equal( [ [ "foo" ] ] );
+			expect( after.callCount ).to.equal( 1 );
+		} );
+
+		it( 'async sync async arg', async ( ) =>
+		{
+			const after = makeSpy( ( ) => Promise.resolve( ) );
+			const before = makeSpy( ( s: string ) => Promise.resolve( after ) );
+
+			expect(
+				await wrapFunction( before )( "foo", ( ) => 42 )
+			).to.equal( 42 );
+
+			expect( before.args ).to.deep.equal( [ [ "foo" ] ] );
+			expect( after.callCount ).to.equal( 1 );
+		} );
+
+		it( 'sync async async noarg', async ( ) =>
+		{
+			const after = makeSpy( ( ) => Promise.resolve( ) );
+			const before = makeSpy( ( ) => after );
+
+			expect(
+				await wrapFunction( before )( ( ) => Promise.resolve( 42 ) )
+			).to.equal( 42 );
+
+			expect( before.callCount ).to.equal( 1 );
+			expect( after.callCount ).to.equal( 1 );
+		} );
+
+		it( 'sync async async arg', async ( ) =>
+		{
+			const after = makeSpy( ( ) => Promise.resolve( ) );
+			const before = makeSpy( ( s: string ) => after );
+
+			expect(
+				await wrapFunction( before )( "foo", ( ) => Promise.resolve( 42 ) )
+			).to.equal( 42 );
+
+			expect( before.args ).to.deep.equal( [ [ "foo" ] ] );
+			expect( after.callCount ).to.equal( 1 );
+		} );
+
+
+		it( 'async async async noarg', async ( ) =>
+		{
+			const after = makeSpy( ( ) => Promise.resolve( ) );
+			const before = makeSpy( ( ) => Promise.resolve( after ) );
+
+			expect(
+				await wrapFunction( before )( ( ) => Promise.resolve( 42 ) )
+			).to.equal( 42 );
+
+			expect( before.callCount ).to.equal( 1 );
+			expect( after.callCount ).to.equal( 1 );
+		} );
+
+		it( 'async async async arg', async ( ) =>
+		{
+			const after = makeSpy( ( ) => Promise.resolve( ) );
+			const before = makeSpy( ( s: string ) => Promise.resolve( after ) );
+
+			expect(
+				await wrapFunction( before )( "foo", ( ) => Promise.resolve( 42 ) )
+			).to.equal( 42 );
+
+			expect( before.args ).to.deep.equal( [ [ "foo" ] ] );
+			expect( after.callCount ).to.equal( 1 );
+		} );
 	} );
 
 	it( 'Invalid (missing) argument', async ( ) =>

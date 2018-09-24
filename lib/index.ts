@@ -634,16 +634,36 @@ export function rethrow< T extends Error = any >(
 
 export function wrapFunction< R extends void >(
 	wrap: ( ) => ( ) => R
-): < U, V extends Promise< U > | U >( cb: ( ) => V ) => V;
+): (
+	< U extends void,V extends Promise< U > | U >( cb: ( ) => V ) => V
+) & (
+	< U extends any, V extends Promise< U > | U >( cb: ( ) => V ) => V
+);
 export function wrapFunction< T extends {}, R extends void >(
 	wrap: ( t: T ) => ( ) => R
-): < U, V extends Promise< U > | U >( t: T, cb: ( ) => V ) => V;
+): (
+	< U extends void, V extends Promise< U > | U >( t: T, cb: ( ) => V ) => V
+) & (
+	< U extends any, V extends Promise< U > | U >( t: T, cb: ( ) => V ) => V
+);
 export function wrapFunction< R extends void >(
 	wrap: ( ) => Promise< ( ) => R >
-): < U, V extends Promise< U > | U >( cb: ( ) => V ) => Promise< U >;
+): (
+	< U extends void, V extends Promise< U > | U >( cb: ( ) => V ) =>
+		Promise< U >
+) & (
+	< U extends any, V extends Promise< U > | U >( cb: ( ) => V ) =>
+		Promise< U >
+);
 export function wrapFunction< T, R extends void >(
 	wrap: ( t: T ) => Promise< ( ) => R >
-): < U, V extends Promise< U > | U >( t: T, cb: ( ) => V ) => Promise< U >;
+): (
+	< U extends void, V extends Promise< U > | U >( t: T, cb: ( ) => V ) =>
+		Promise< U >
+) & (
+	< U extends any, V extends Promise< U > | U >( t: T, cb: ( ) => V ) =>
+		Promise< U >
+);
 export function wrapFunction< R extends Promise< void > >(
 	wrap: ( ) => ( ) => R
 ): < U, V extends Promise< U > | U >( cb: ( ) => V ) => Promise< U >;
