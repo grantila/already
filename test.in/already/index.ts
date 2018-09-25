@@ -1913,7 +1913,7 @@ describe( 'wrapFunction', ( ) =>
 			await wrapFunction( before )( "foo", ( ) => Promise.resolve( 42 ) )
 		).to.equal( 42 );
 
-		expect( before.args ).to.deep.equal( [ [ "foo" ] ] )
+		expect( before.args ).to.deep.equal( [ [ "foo" ] ] );
 	} );
 
 	it( 'Illegal return value from "before"', async ( ) =>
@@ -1936,6 +1936,140 @@ describe( 'wrapFunction', ( ) =>
 			}
 		} )( )
 
-		expect( before.args ).to.deep.equal( [ [ "foo" ] ] )
+		expect( before.args ).to.deep.equal( [ [ "foo" ] ] );
+	} );
+
+	describe( 'Cleanup on exceptions', ( ) =>
+	{
+		interface State { value: number; inc( ): void; dec( ): void; }
+		function makeState( ): State
+		{
+			const state = {
+				value: 0,
+				inc( ) { ++state.value; },
+				dec( ) { --state.value; },
+			};
+	
+			return state;
+		}
+
+		const throwSync: ( ) => void =
+			( ) => { throw new Error( "Foo" ); }
+		const throwAsync: ( ) => Promise< void > =
+			( ) => Promise.reject( new Error( "Foo" ) );
+
+		async function swallowException( cb )
+		{
+			try
+			{
+				await cb( );
+				expect( true ).to.be.false;
+			}
+			catch ( err ) { }
+		}
+
+		function makeWrapper(
+			state: State,
+			syncBefore: boolean,
+			syncAfter: boolean
+		)
+		{
+			const after =
+				syncAfter
+				? ( ) => state.dec( )
+				: async ( ) => state.dec( );
+
+			return syncBefore
+				? wrapFunction( ( ) =>
+					{
+						state.inc( );
+						return after;
+					} )
+				: wrapFunction( async ( ) =>
+					{
+						state.inc( );
+						return after;
+					} );
+		}
+
+		it( 'sync sync sync', async ( ) =>
+		{
+			const state = makeState( );
+			const wrapper = makeWrapper( state, true, true );
+
+			await swallowException( ( ) => wrapper( throwSync ) );
+
+			expect( state.value ).to.equal( 0 );
+		} );	
+
+		it( 'async sync sync', async ( ) =>
+		{
+			const state = makeState( );
+			const wrapper = makeWrapper( state, false, true );
+
+			await swallowException( ( ) => wrapper( throwSync ) );
+
+			expect( state.value ).to.equal( 0 );
+		} );	
+
+		it( 'sync async sync', async ( ) =>
+		{
+			const state = makeState( );
+			const wrapper = makeWrapper( state, true, true );
+
+			await swallowException( ( ) => wrapper( throwAsync ) );
+
+			expect( state.value ).to.equal( 0 );
+		} );	
+
+		it( 'async async sync', async ( ) =>
+		{
+			const state = makeState( );
+			const wrapper = makeWrapper( state, false, true );
+
+			await swallowException( ( ) => wrapper( throwAsync ) );
+
+			expect( state.value ).to.equal( 0 );
+		} );	
+
+		it( 'sync sync async', async ( ) =>
+		{
+			const state = makeState( );
+			const wrapper = makeWrapper( state, true, false );
+
+			await swallowException( ( ) => wrapper( throwSync ) );
+
+			expect( state.value ).to.equal( 0 );
+		} );	
+
+		it( 'async sync async', async ( ) =>
+		{
+			const state = makeState( );
+			const wrapper = makeWrapper( state, false, false );
+
+			await swallowException( ( ) => wrapper( throwSync ) );
+
+			expect( state.value ).to.equal( 0 );
+		} );	
+
+		it( 'sync async async', async ( ) =>
+		{
+			const state = makeState( );
+			const wrapper = makeWrapper( state, true, false );
+
+			await swallowException( ( ) => wrapper( throwAsync ) );
+
+			expect( state.value ).to.equal( 0 );
+		} );	
+
+		it( 'async async async', async ( ) =>
+		{
+			const state = makeState( );
+			const wrapper = makeWrapper( state, false, false );
+
+			await swallowException( ( ) => wrapper( throwAsync ) );
+
+			expect( state.value ).to.equal( 0 );
+		} );	
 	} );
 } );

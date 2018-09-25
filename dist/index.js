@@ -294,22 +294,37 @@ function wrapFunction(wrap) {
         };
         if (anyCleanup &&
             typeof anyCleanup.then === 'function') {
+            let doCleanup;
             return anyCleanup
                 .then(async (cleanup) => {
-                const val = await cb();
-                await callCleanup(cleanup);
-                return val;
-            });
+                doCleanup = () => callCleanup(cleanup);
+                return cb();
+            })
+                .then(...Finally(() => {
+                if (doCleanup)
+                    return doCleanup();
+            }));
         }
         else {
             const cleanup = anyCleanup;
-            const cbRet = cb();
+            let cbRet;
+            try {
+                cbRet = cb();
+            }
+            catch (err) {
+                const cleanupRet = callCleanup(cleanup);
+                if (cleanupRet &&
+                    typeof cleanupRet.then === 'function') {
+                    return cleanupRet
+                        .then(() => { throw err; });
+                }
+                else {
+                    throw err;
+                }
+            }
             if (cbRet && typeof cbRet.then === 'function') {
                 return cbRet
-                    .then(async (u) => {
-                    await callCleanup(cleanup);
-                    return u;
-                });
+                    .then(...Finally(() => callCleanup(cleanup)));
             }
             else {
                 const cleanupRet = callCleanup(cleanup);

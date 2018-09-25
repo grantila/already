@@ -436,6 +436,7 @@ exports.rethrow = rethrow;
 function wrapFunction(wrap) {
     return function (t, cb) {
         var _this = this;
+        var _a, _b;
         if (arguments.length === 1) {
             if (wrap.length > 0)
                 throw new EvalError("Invalid invocation, function requires 2 arguments");
@@ -453,37 +454,37 @@ function wrapFunction(wrap) {
         };
         if (anyCleanup &&
             typeof anyCleanup.then === 'function') {
-            return anyCleanup
+            var doCleanup_1;
+            return (_a = anyCleanup
                 .then(function (cleanup) { return __awaiter(_this, void 0, void 0, function () {
-                var val;
                 return __generator(this, function (_a) {
-                    switch (_a.label) {
-                        case 0: return [4 /*yield*/, cb()];
-                        case 1:
-                            val = _a.sent();
-                            return [4 /*yield*/, callCleanup(cleanup)];
-                        case 2:
-                            _a.sent();
-                            return [2 /*return*/, val];
-                    }
+                    doCleanup_1 = function () { return callCleanup(cleanup); };
+                    return [2 /*return*/, cb()];
                 });
-            }); });
+            }); })).then.apply(_a, Finally(function () {
+                if (doCleanup_1)
+                    return doCleanup_1();
+            }));
         }
         else {
             var cleanup_1 = anyCleanup;
-            var cbRet_1 = cb();
+            var cbRet_1;
+            try {
+                cbRet_1 = cb();
+            }
+            catch (err) {
+                var cleanupRet = callCleanup(cleanup_1);
+                if (cleanupRet &&
+                    typeof cleanupRet.then === 'function') {
+                    return cleanupRet
+                        .then(function () { throw err; });
+                }
+                else {
+                    throw err;
+                }
+            }
             if (cbRet_1 && typeof cbRet_1.then === 'function') {
-                return cbRet_1
-                    .then(function (u) { return __awaiter(_this, void 0, void 0, function () {
-                    return __generator(this, function (_a) {
-                        switch (_a.label) {
-                            case 0: return [4 /*yield*/, callCleanup(cleanup_1)];
-                            case 1:
-                                _a.sent();
-                                return [2 /*return*/, u];
-                        }
-                    });
-                }); });
+                return (_b = cbRet_1).then.apply(_b, Finally(function () { return callCleanup(cleanup_1); }));
             }
             else {
                 var cleanupRet = callCleanup(cleanup_1);

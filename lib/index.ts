@@ -725,26 +725,49 @@ export function wrapFunction< T, R extends Promise< void > | void >(
 			typeof ( < Promise< ( ( ) => R ) > >anyCleanup ).then === 'function'
 		)
 		{
+			let doCleanup;
 			return < Promise< U > >( < Promise< ( ( ) => R ) > >anyCleanup )
 				.then( async cleanup =>
 				{
-					const val = await cb( );
-					await callCleanup( cleanup );
-					return val;
-				} );
+					doCleanup = ( ) => callCleanup( cleanup );
+
+					return cb( );
+				} )
+				.then( ...Finally( ( ) =>
+				{
+					if ( doCleanup )
+						return doCleanup( );
+				} ) );
 		} else {
 			const cleanup = < ( ) => R >anyCleanup;
-			const cbRet = cb( );
+			let cbRet;
+
+			try
+			{
+				cbRet = cb( );
+			}
+			catch ( err )
+			{
+				const cleanupRet = callCleanup( cleanup );
+
+				if (
+					cleanupRet &&
+					typeof ( < Promise< void > >cleanupRet ).then === 'function'
+				)
+				{
+					return < Promise< U > >( < Promise< void > >cleanupRet )
+						.then( ( ) => { throw err; } );
+				} else {
+					throw err;
+				}
+			}
+
 			if (
 				cbRet && typeof ( < Promise< U > >cbRet ).then === 'function'
 			)
 			{
 				return < Promise< U > >( < Promise< U > >cbRet )
-					.then( async ( u: U ) =>
-					{
-						await callCleanup( cleanup );
-						return u;
-					} );
+					.then( ...Finally( ( ) => callCleanup( cleanup ) ) );
 			} else {
 				const cleanupRet = callCleanup( cleanup );
 				if (
