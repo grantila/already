@@ -1,10 +1,15 @@
 {
 	"compilerOptions": {
+		"allowJs": false,
 		"declaration": true,
 		"lib": [ "es2015", "es2017", "dom" ],
 		"moduleResolution": "node",
+		"noImplicitAny": true,
+		"noUnusedLocals": true,
 		"pretty": true,
 		"sourceMap": true,
+		"strict": true,
+		"alwaysStrict": true,
 		"allowSyntheticDefaultImports": true
 	},
 	"include": [

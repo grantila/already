@@ -1,13 +1,8 @@
 {
+	"extends": "./tsconfig.json",
 	"compilerOptions": {
-		"declaration": true,
-		"lib": [ "es2015", "es2017", "dom" ],
-		"target": "es5",
-		"moduleResolution": "node",
 		"outDir": "test/already",
-		"pretty": true,
-		"sourceMap": true,
-		"allowSyntheticDefaultImports": true
+		"target": "es5"
 	},
 	"include": [
 		"test.in/already"

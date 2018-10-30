@@ -184,7 +184,7 @@ describe( 'filter', ( ) =>
 	: Promise< { concurrencies: Array< number >; values: Array< T >; } >
 	{
 		let concur = 0;
-		const concurrencies = [ ];
+		const concurrencies: Array< number > = [ ];
 
 		return Promise.resolve( values )
 		.then( filter( { concurrency }, ( val: T, index: number ) =>
@@ -203,9 +203,8 @@ describe( 'filter', ( ) =>
 
 	it( 'unspecified concurrency should be correct', async ( ) =>
 	{
-		let concur = 0;
 		const { concurrencies, values } = await filterConcurrency(
-			void 0,
+			< number >< any >void 0,
 			[ 1, 2, 3, 4, 5 ],
 			( val: number ) => val % 2 === 0
 		);
@@ -217,7 +216,6 @@ describe( 'filter', ( ) =>
 
 	it( 'concurrency 1 should be correct', async ( ) =>
 	{
-		let concur = 0;
 		const { concurrencies, values } = await filterConcurrency(
 			1,
 			[ 1, 2, 3, 4, 5 ],
@@ -231,7 +229,6 @@ describe( 'filter', ( ) =>
 
 	it( 'concurrency 2 should be correct', async ( ) =>
 	{
-		let concur = 0;
 		const { concurrencies, values } = await filterConcurrency(
 			2,
 			[ 1, 2, 3, 4, 5, 6, 7, 8, 9 ],
@@ -247,7 +244,6 @@ describe( 'filter', ( ) =>
 
 	it( 'concurrency 3 should be correct', async ( ) =>
 	{
-		let concur = 0;
 		const { concurrencies, values } = await filterConcurrency(
 			3,
 			[ 1, 2, 3, 4, 5, 6, 7, 8, 9 ],
@@ -266,7 +262,7 @@ describe( 'filter', ( ) =>
 		const arr = [ 1, 2, Promise.resolve( 3 ), delayChain( 50 )( 4 ), 5 ];
 		const arr2 = await Promise.all( arr )
 		.then( filter(
-			t =>
+			( t: number ) =>
 				t < 4
 				? delay( 50 ).then( ( ) => t % 2 === 0 )
 				: t % 2 === 0
@@ -315,7 +311,7 @@ describe( 'map', ( ) =>
 	: Promise< { concurrencies: Array< number >; values: Array< U >; } >
 	{
 		let concur = 0;
-		const concurrencies = [ ];
+		const concurrencies: Array< number > = [ ];
 
 		return Promise.resolve( values )
 		.then( map( { concurrency }, ( val: T, index: number ) =>
@@ -334,9 +330,8 @@ describe( 'map', ( ) =>
 
 	it( 'unspecified concurrency should be correct', async ( ) =>
 	{
-		let concur = 0;
 		const { concurrencies, values } = await mapConcurrency(
-			void 0,
+			< number >< any >void 0,
 			[ 1, 2, 3, 4, 5 ],
 			( val: number ) => "" + ( val * 2 )
 		);
@@ -349,7 +344,6 @@ describe( 'map', ( ) =>
 
 	it( 'concurrency 1 should be correct', async ( ) =>
 	{
-		let concur = 0;
 		const { concurrencies, values } = await mapConcurrency(
 			1,
 			[ 1, 2, 3, 4, 5 ],
@@ -364,7 +358,6 @@ describe( 'map', ( ) =>
 
 	it( 'concurrency 2 should be correct', async ( ) =>
 	{
-		let concur = 0;
 		const { concurrencies, values } = await mapConcurrency(
 			2,
 			[ 1, 2, 3, 4, 5, 6, 7, 8, 9 ],
@@ -382,7 +375,6 @@ describe( 'map', ( ) =>
 
 	it( 'concurrency 3 should be correct', async ( ) =>
 	{
-		let concur = 0;
 		const { concurrencies, values } = await mapConcurrency(
 			3,
 			[ 1, 2, 3, 4, 5, 6, 7, 8, 9 ],
@@ -403,7 +395,7 @@ describe( 'map', ( ) =>
 		const arr = [ 1, 2, Promise.resolve( 3 ), delayChain( 50 )( 4 ), 5 ];
 		const arr2 = await Promise.all( arr )
 		.then( map(
-			t =>
+			( t: number ) =>
 				t === 2
 				? delay( 50 ).then( ( ) => ( { t: 2 } ) )
 				: ( { t } )
@@ -454,10 +446,10 @@ describe( 'reduce', ( ) =>
 
 	it( 'should reduce initialValue if empty array', async ( ) =>
 	{
-		const input = [ ];
+		const input: Array< number > = [ ];
 		const initialValue = fooValue;
 
-		const reduced = await reduce( input, reduceAdd, fooValue );
+		const reduced = await reduce( input, reduceAdd, initialValue );
 
 		expect( reduced ).to.equal( fooValue );
 	} );
@@ -476,7 +468,7 @@ describe( 'reduce', ( ) =>
 		const input = [ fooValue ];
 		const initialValue = fooValue;
 
-		const reduced = await reduce( input, reduceAdd, fooValue );
+		const reduced = await reduce( input, reduceAdd, initialValue );
 
 		expect( reduced ).to.equal( fooValue + fooValue );
 	} );
@@ -495,7 +487,7 @@ describe( 'reduce', ( ) =>
 		const input = [ fooValue, fooValue ];
 		const initialValue = fooValue;
 
-		const reduced = await reduce( input, reduceAdd, fooValue );
+		const reduced = await reduce( input, reduceAdd, initialValue );
 
 		expect( reduced ).to.equal( fooValue + fooValue + fooValue );
 	} );
@@ -505,7 +497,7 @@ describe( 'reduce', ( ) =>
 		const input = Promise.resolve( [ Promise.resolve( fooValue ), fooValue ] );
 		const initialValue = Promise.resolve( fooValue );
 
-		const reduced = await reduce( input, reduceAdd, fooValue );
+		const reduced = await reduce( input, reduceAdd, initialValue );
 
 		expect( reduced ).to.equal( fooValue + fooValue + fooValue );
 	} );
@@ -513,7 +505,6 @@ describe( 'reduce', ( ) =>
 	it( 'should work in a promise chain without initialValue', async ( ) =>
 	{
 		const input = Promise.resolve( [ Promise.resolve( fooValue ), fooValue ] );
-		const initialValue = Promise.resolve( fooValue );
 
 		const reduced = await input.then( reduce( reduceAdd ) )
 
@@ -525,9 +516,37 @@ describe( 'reduce', ( ) =>
 		const input = Promise.resolve( [ Promise.resolve( fooValue ), fooValue ] );
 		const initialValue = Promise.resolve( fooValue );
 
-		const reduced = await input.then( reduce( reduceAdd, fooValue ) )
+		const reduced = await input.then( reduce( reduceAdd, initialValue ) )
 
 		expect( reduced ).to.equal( fooValue + fooValue + fooValue );
+	} );
+
+	it( 'should handle reduce with different aggregate type', async ( ) =>
+	{
+		const makeLessThan = async ( than: number ) =>
+		{
+			async function foo( ) { }
+			return await reduce(
+				[ { a: 1 }, { a: 2 }, { a: 3 } ],
+				async ( prev, { a } ) =>
+				{
+					await foo( )
+					try
+					{
+						await foo( )
+					}
+					catch ( err )
+					{
+						return false
+					}
+					return prev && a < than
+				},
+				true
+			);
+		};
+
+		expect( await makeLessThan( 3 ) ).to.equal( false );
+		expect( await makeLessThan( 4 ) ).to.equal( true );
 	} );
 } );
 
@@ -537,7 +556,7 @@ describe( 'each', ( ) =>
 	{
 		it( 'should iterate empty array', async ( ) =>
 		{
-			const input = [ ];
+			const input: Array< number > = [ ];
 			const spy = sinon.spy( );
 
 			each( input, ( x: number ) => { } ); // Type safety test
@@ -577,8 +596,8 @@ describe( 'each', ( ) =>
 
 		it( 'should iterate empty array asynchronously', async ( ) =>
 		{
-			const order = [ ];
-			const input = [ ];
+			const order: Array< number > = [ ];
+			const input: Array< number > = [ ];
 			const spy = sinon.spy(
 				async ( a: string, index: number ) =>
 				{
@@ -598,7 +617,7 @@ describe( 'each', ( ) =>
 
 		it( 'should iterate single-value array asynchronously', async ( ) =>
 		{
-			const order = [ ];
+			const order: Array< number > = [ ];
 			const input = [ fooValue ];
 			const spy = sinon.spy(
 				async ( a: string, index: number ) =>
@@ -619,7 +638,7 @@ describe( 'each', ( ) =>
 
 		it( 'should iterate multi-value array asynchronously', async ( ) =>
 		{
-			const order = [ ];
+			const order: Array< number > = [ ];
 			const input = [ fooValue, barValue, fooValue ];
 			const spy = sinon.spy(
 				async ( a: string, index: number ) =>
@@ -687,7 +706,7 @@ describe( 'each', ( ) =>
 
 		it( 'should iterate empty array asynchronously', async ( ) =>
 		{
-			const order = [ ];
+			const order: Array< number > = [ ];
 			const input = Promise.resolve( [ ] );
 			const spy = sinon.spy(
 				async ( a: string, index: number ) =>
@@ -708,7 +727,7 @@ describe( 'each', ( ) =>
 
 		it( 'should iterate single-value array asynchronously', async ( ) =>
 		{
-			const order = [ ];
+			const order: Array< number > = [ ];
 			const input = Promise.resolve( [ fooValue ] );
 			const spy = sinon.spy(
 				async ( a: string, index: number ) =>
@@ -729,7 +748,7 @@ describe( 'each', ( ) =>
 
 		it( 'should iterate multi-value array asynchronously', async ( ) =>
 		{
-			const order = [ ];
+			const order: Array< number > = [ ];
 			const input = Promise.resolve( [ fooValue, barValue, fooValue ] );
 			const spy = sinon.spy(
 				async ( a: string, index: number ) =>
@@ -796,7 +815,7 @@ describe( 'some', ( ) =>
 	{
 		it( 'should be false on empty array', async ( ) =>
 		{
-			const input = [ ];
+			const input: Array< number > = [ ];
 
 			const res = await some( input, somePred );
 
@@ -892,7 +911,7 @@ describe( 'some', ( ) =>
 	{
 		it( 'should be false on empty array', async ( ) =>
 		{
-			const input = [ ];
+			const input: Array< number > = [ ];
 
 			const res = await some( input, asyncSomePred );
 
@@ -1254,7 +1273,7 @@ describe( 'try', ( ) =>
 		}
 		try
 		{
-			const ret = await (
+			await (
 				Try( fn )
 				.then( val => val )
 			);
@@ -1270,20 +1289,22 @@ describe( 'try', ( ) =>
 
 describe( 'specific', ( ) =>
 {
-	function CustomErrorA( args? )
+	function CustomErrorA( args?: any )
 	{
 		Error( args );
 		if ( ( < any >Error ).captureStackTrace )
-			( < any >Error ).captureStackTrace( this, CustomErrorA );
+			// @ts-ignore
+			( < any >Error ).captureStackTrace( < any >this, CustomErrorA );
 	}
 	CustomErrorA.prototype = Object.create( Error.prototype );
 	CustomErrorA.prototype.constructor = CustomErrorA;
 
-	function CustomErrorB( args? )
+	function CustomErrorB( args?: any )
 	{
 		Error( args );
 		if ( ( < any >Error ).captureStackTrace )
-			( < any >Error ).captureStackTrace( this, CustomErrorB );
+			// @ts-ignore
+			( < any >Error ).captureStackTrace( < any >this, CustomErrorB );
 	}
 	CustomErrorB.prototype = Object.create( Error.prototype );
 	CustomErrorB.prototype.constructor = CustomErrorB;
@@ -1301,6 +1322,7 @@ describe( 'specific', ( ) =>
 	{
 		const spy = sinon.spy( );
 
+		// @ts-ignore
 		const err = new CustomErrorA( "custom-a" );
 
 		await Promise.reject( err )
@@ -1314,6 +1336,7 @@ describe( 'specific', ( ) =>
 	{
 		const spy = sinon.spy( );
 
+		// @ts-ignore
 		const err = new CustomErrorA( "custom-a" );
 
 		await Promise.reject( err )
@@ -1327,6 +1350,7 @@ describe( 'specific', ( ) =>
 	{
 		const spy = sinon.spy( );
 
+		// @ts-ignore
 		const err = new CustomErrorA( "custom-a" );
 
 		await Promise.reject( err )
@@ -1339,6 +1363,7 @@ describe( 'specific', ( ) =>
 	{
 		const spy = sinon.spy( );
 
+		// @ts-ignore
 		const err = new CustomErrorA( "custom-a" );
 
 		await Promise.reject( err )
@@ -1366,6 +1391,7 @@ describe( 'specific', ( ) =>
 	{
 		const spy = sinon.spy( );
 
+		// @ts-ignore
 		const err = new CustomErrorA( "custom-a" );
 		err.myError = true;
 
@@ -1379,6 +1405,7 @@ describe( 'specific', ( ) =>
 	{
 		const spy = sinon.spy( );
 
+		// @ts-ignore
 		const err = new CustomErrorA( "custom-a" );
 		err.myError = true;
 
@@ -1393,6 +1420,7 @@ describe( 'specific', ( ) =>
 		const spy1 = sinon.spy( );
 		const spy2 = sinon.spy( );
 
+		// @ts-ignore
 		const err = new CustomErrorA( "custom-a" );
 		err.myError = "not true";
 
@@ -1408,6 +1436,7 @@ describe( 'specific', ( ) =>
 	{
 		const spy = sinon.spy( );
 
+		// @ts-ignore
 		const err = new CustomErrorA( "custom-a" );
 		err.myError = true;
 
@@ -1421,6 +1450,7 @@ describe( 'specific', ( ) =>
 	{
 		const spy = sinon.spy( );
 
+		// @ts-ignore
 		const err = new CustomErrorA( "custom-a" );
 		err.myError = true;
 
@@ -1435,6 +1465,7 @@ describe( 'specific', ( ) =>
 		const spy1 = sinon.spy( );
 		const spy2 = sinon.spy( );
 
+		// @ts-ignore
 		const err = new CustomErrorA( "custom-a" );
 		err.myError = "not true";
 
@@ -1457,6 +1488,7 @@ describe( 'specific', ( ) =>
 			return { i: 2 };
 		}
 
+		// @ts-ignore
 		const err = new CustomErrorA( "custom-a" );
 		err.myError = true;
 
@@ -1491,7 +1523,7 @@ describe( 'rethrow', ( ) =>
 
 		const err = new Error( "error" );
 
-		async function proxy( err )
+		async function proxy( err: any )
 		{
 			await delay( 10 );
 			spy1( err );
@@ -1515,7 +1547,7 @@ describe( 'rethrow', ( ) =>
 		const err1 = new Error( "error" );
 		const err2 = new Error( "error" );
 
-		function wrapper( err )
+		function wrapper( err: any )
 		{
 			throw err2;
 		}
@@ -1536,7 +1568,7 @@ describe( 'rethrow', ( ) =>
 		const err1 = new Error( "error" );
 		const err2 = new Error( "error" );
 
-		async function wrapper( err )
+		async function wrapper( err: any )
 		{
 			await delay( 10 );
 			throw err2;
@@ -1958,7 +1990,7 @@ describe( 'wrapFunction', ( ) =>
 		const throwAsync: ( ) => Promise< void > =
 			( ) => Promise.reject( new Error( "Foo" ) );
 
-		async function swallowException( cb )
+		async function swallowException( cb: ( ) => any )
 		{
 			try
 			{

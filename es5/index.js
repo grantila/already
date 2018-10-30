@@ -133,16 +133,14 @@ function filter(arr, opts, filterFn) {
             filterFn = opts;
             opts = defaultFilterMapOptions;
         }
-        return filter(opts, filterFn)(arr);
+        var intermediate = filter(opts, filterFn);
+        return intermediate(arr);
     }
-    if (typeof arr === 'function') {
-        filterFn = arr;
-        opts = defaultFilterMapOptions;
-    }
-    else {
-        filterFn = opts;
-        opts = arr;
-    }
+    filterFn = typeof arr === 'function' ? arr : opts;
+    opts =
+        typeof arr === 'function'
+            ? defaultFilterMapOptions
+            : arr;
     var wrappedFilterFn = function (val, index, arr) {
         return Promise.resolve(filterFn(val, index, arr))
             .then(function (ok) { return ({ ok: ok, val: val }); });
@@ -171,14 +169,11 @@ function map(arr, opts, mapFn) {
         }
         return map(opts, mapFn)(arr);
     }
-    if (typeof arr === 'function') {
-        mapFn = arr;
-        opts = defaultFilterMapOptions;
-    }
-    else {
-        mapFn = opts;
-        opts = arr;
-    }
+    mapFn = typeof arr === 'function' ? arr : opts;
+    opts =
+        typeof arr === 'function'
+            ? defaultFilterMapOptions
+            : arr;
     var _a = opts.concurrency, concurrency = _a === void 0 ? Infinity : _a;
     var promiseMapFn = function (t, index, arr) {
         return Promise.resolve(mapFn(t, index, arr));
@@ -288,7 +283,9 @@ exports.eachImpl = eachImpl;
 function some(list, fn) {
     if (typeof list === 'function') {
         fn = list;
-        return function (list) { return someImpl(list, fn); };
+        return function (list) {
+            return someImpl(list, fn);
+        };
     }
     return someImpl(list, fn);
 }
@@ -354,7 +351,7 @@ function reflect(promise) {
 exports.reflect = reflect;
 function inspect(promise) {
     var inspectable = {
-        promise: null,
+        promise: void 0,
         isResolved: false,
         isRejected: false,
         isPending: true,
@@ -406,8 +403,7 @@ function catchFilter(filters, err) {
             }
             return true;
         }
-        else
-            return false;
+        return false;
     });
 }
 function specific(filters, handler) {

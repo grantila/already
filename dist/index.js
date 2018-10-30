@@ -69,16 +69,14 @@ function filter(arr, opts, filterFn) {
             filterFn = opts;
             opts = defaultFilterMapOptions;
         }
-        return filter(opts, filterFn)(arr);
+        const intermediate = filter(opts, filterFn);
+        return intermediate(arr);
     }
-    if (typeof arr === 'function') {
-        filterFn = arr;
-        opts = defaultFilterMapOptions;
-    }
-    else {
-        filterFn = opts;
-        opts = arr;
-    }
+    filterFn = typeof arr === 'function' ? arr : opts;
+    opts =
+        typeof arr === 'function'
+            ? defaultFilterMapOptions
+            : arr;
     const wrappedFilterFn = (val, index, arr) => Promise.resolve(filterFn(val, index, arr))
         .then(ok => ({ ok, val }));
     return function (t) {
@@ -97,14 +95,11 @@ function map(arr, opts, mapFn) {
         }
         return map(opts, mapFn)(arr);
     }
-    if (typeof arr === 'function') {
-        mapFn = arr;
-        opts = defaultFilterMapOptions;
-    }
-    else {
-        mapFn = opts;
-        opts = arr;
-    }
+    mapFn = typeof arr === 'function' ? arr : opts;
+    opts =
+        typeof arr === 'function'
+            ? defaultFilterMapOptions
+            : arr;
     const { concurrency = Infinity } = opts;
     const promiseMapFn = (t, index, arr) => Promise.resolve(mapFn(t, index, arr));
     const throated = throat(concurrency);
@@ -210,7 +205,7 @@ function reflect(promise) {
 exports.reflect = reflect;
 function inspect(promise) {
     const inspectable = {
-        promise: null,
+        promise: void 0,
         isResolved: false,
         isRejected: false,
         isPending: true,
@@ -256,8 +251,7 @@ function catchFilter(filters, err) {
                     return false;
             return true;
         }
-        else
-            return false;
+        return false;
     });
 }
 function specific(filters, handler) {
