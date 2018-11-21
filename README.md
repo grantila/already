@@ -116,7 +116,7 @@ Promise.resolve( { a: someValue, b: somePromise } )
 
 ## filter
 
-The `filter` helper can operate on promises of arrays, and will do the same as waiting for all promises in the array and then applying `array.filter( )` on the result. If the filter callback returns a promise, it will be awaited (and expected to eventually become a `boolean`). This eventual value will determine whether to include the value or not in the resulting array.
+The `filter` helper can operate on arrays of promises, and will do the same as waiting for all promises in the array and then applying `array.filter( )` on the result. If the filter callback returns a promise, it will be awaited (and expected to eventually become a `boolean`). This eventual value will determine whether to include the value or not in the resulting array.
 
 ```ts
 import { filter } from 'already'
@@ -422,7 +422,7 @@ somePromise
 
 ## wrapFunction
 
-In many cases, wrapping a function with custom 'before' and 'after' hooks is useful, e.g. in unit tests. When working with asynchronous code, this may sound easier than it really is, especially in a type safe manner. The 'before' handler, the wrapped function and the 'after' handler can all be either synchronous or asynchronous, and the returned (wrapped) function should reflect this and be synchronous is possible, otherwise asynchronous.
+In many cases, wrapping a function with custom 'before' and 'after' hooks is useful, e.g. in unit tests. When working with asynchronous code, this may sound easier than it really is, especially in a type safe manner. The 'before' handler, the wrapped function and the 'after' handler can all be either synchronous or asynchronous, and the returned (wrapped) function should reflect this and be synchronous if possible, otherwise asynchronous.
 
 `wrapFunction` takes a 'before' handler (a function) which is supposed to return an 'after' handler. It returns a new function which takes the target function as argument and performs the invocation by 1) calling the 'before' function, 2) calling the target function and 3) calling the 'after' function (returned by the 'before' function)
 
