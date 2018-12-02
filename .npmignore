@@ -12,3 +12,5 @@ benchmark
 libphonenumber.version
 .travis.yml
 tsconfig*.json
+test
+test.in
