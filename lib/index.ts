@@ -271,7 +271,7 @@ export function reduce< T, R >(
 	reducer: ReduceFunction< T, R >,
 	initialValue: R | PromiseLike< R >
 )
-: < U extends SyncReduceInput< T > >( input: U ) => Promise< R | undefined >;
+: < U extends SyncReduceInput< T > >( input: U ) => Promise< R >;
 
 export function reduce< T, R >(
 	input: ReduceInput< T > | ReduceFunction< T, R >,
