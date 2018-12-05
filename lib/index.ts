@@ -260,7 +260,7 @@ export async function reduce< T, R >(
 	reducer: ReduceFunction< T, R >,
 	initialValue: R | PromiseLike< R >
 )
-: Promise< R | undefined >;
+: Promise< R >;
 
 export function reduce< T >(
 	reducer: ReduceFunction< T, T >
