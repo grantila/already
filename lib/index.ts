@@ -249,11 +249,11 @@ export type ReduceFunction< T, R > =
 	( accumulator: R, current: T, index: number, length: number ) =>
 		R | PromiseLike< R >;
 
-export async function reduce< T >(
+export async function reduce< T, R >(
 	input: ReduceInput< T >,
-	reducer: ReduceFunction< T, T >
+	reducer: ReduceFunction< T, R >
 )
-: Promise< T | undefined >;
+: Promise< R | undefined >;
 
 export async function reduce< T, R >(
 	input: ReduceInput< T >,
@@ -262,10 +262,10 @@ export async function reduce< T, R >(
 )
 : Promise< R >;
 
-export function reduce< T >(
-	reducer: ReduceFunction< T, T >
+export function reduce< T, R >(
+	reducer: ReduceFunction< T, R >
 )
-: < U extends SyncReduceInput< T > >( input: U ) => Promise< T | undefined >;
+: < U extends SyncReduceInput< T > >( input: U ) => Promise< R | undefined >;
 
 export function reduce< T, R >(
 	reducer: ReduceFunction< T, R >,
