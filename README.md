@@ -306,7 +306,7 @@ deferred.resolve( ); // This is now legal, typewise
 
 ## reflect
 
-A promise can be either resolved or rejected, but sometimes it's convenient to have a shared flow for either occasion. That's when `reflect` comes in handy. It takes a promise as argument, and returns a promise to a `Reflection` object which contains the promise **or** error, and the booleans `isResolved` and `isRejected`.
+A promise can be either resolved or rejected, but sometimes it's convenient to have a shared flow for either occasion. That's when `reflect` comes in handy. It takes a promise as argument, and returns a promise to a `Reflection` object which contains the *value* **or** *error*, and the booleans `isResolved` and `isRejected`.
 
 ```ts
 import { reflect } from 'already'
