@@ -20,6 +20,7 @@ export default {
 	Try,
 	specific,
 	rethrow,
+	wrapFunction,
 }
 
 export function delay( milliseconds: number ): Promise< void >;
