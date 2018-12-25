@@ -1,37 +1,35 @@
-'use strict';
-
-import 'mocha';
-import { expect } from 'chai';
-import * as sinon from 'sinon';
+import { expect } from "chai";
+import "mocha";
+import * as sinon from "sinon";
 
 import {
+	defer,
 	delay,
 	delayChain,
+	each,
+	filter,
 	Finally,
 	finallyDelay,
-	tap,
-	props,
-	filter,
-	map,
-	reduce,
-	each,
-	some,
-	defer,
-	reflect,
 	inspect,
-	Try,
-	specific,
+	map,
+	props,
+	reduce,
+	reflect,
 	rethrow,
+	some,
+	specific,
+	tap,
+	Try,
 	wrapFunction,
-} from '../../';
+} from "../../";
 
 const fooError = "foo error";
 const fooValue = 4711;
 const barValue = 17;
 
-describe( 'finally', ( ) =>
+describe( "finally", ( ) =>
 {
-	it( 'should be called on a resolved promise', ( ) =>
+	it( "should be called on a resolved promise", ( ) =>
 	{
 		let called = false;
 
@@ -46,7 +44,7 @@ describe( 'finally', ( ) =>
 		} );
 	} );
 
-	it( 'should be called on a rejected promise', ( ) =>
+	it( "should be called on a rejected promise", ( ) =>
 	{
 		let called = false;
 
@@ -66,9 +64,9 @@ describe( 'finally', ( ) =>
 	} );
 } );
 
-describe( 'finallyDelay', ( ) =>
+describe( "finallyDelay", ( ) =>
 {
-	it( 'should be called on a resolved promise', ( ) =>
+	it( "should be called on a resolved promise", ( ) =>
 	{
 		let value = 0;
 
@@ -84,7 +82,7 @@ describe( 'finallyDelay', ( ) =>
 		} );
 	} );
 
-	it( 'should be called on a rejected promise', ( ) =>
+	it( "should be called on a rejected promise", ( ) =>
 	{
 		let value = 0;
 
@@ -105,9 +103,9 @@ describe( 'finallyDelay', ( ) =>
 	} );
 } );
 
-describe( 'tap', ( ) =>
+describe( "tap", ( ) =>
 {
-	it( 'should be called on a resolved promise', ( ) =>
+	it( "should be called on a resolved promise", ( ) =>
 	{
 		let called = false;
 
@@ -127,7 +125,7 @@ describe( 'tap', ( ) =>
 		} );
 	} );
 
-	it( 'should not be called on a rejected promise', ( ) =>
+	it( "should not be called on a rejected promise", ( ) =>
 	{
 		let called = false;
 
@@ -155,16 +153,16 @@ describe( 'tap', ( ) =>
 	} );
 } );
 
-describe( 'props', ( ) =>
+describe( "props", ( ) =>
 {
-	it( 'should work as standalone call', async ( ) =>
+	it( "should work as standalone call", async ( ) =>
 	{
 		const val = await props( { a: 1, b: delay( 10 ).then( ( ) => 2 ) } );
 
 		expect( val ).to.deep.equal( { a: 1, b: 2 } );
 	} );
 
-	it( 'should work in a promise chain as function reference', async ( ) =>
+	it( "should work in a promise chain as function reference", async ( ) =>
 	{
 		const val = await
 			Promise.resolve( { a: 1, b: delay( 10 ).then( ( ) => 2 ) } )
@@ -174,11 +172,11 @@ describe( 'props', ( ) =>
 	} );
 } );
 
-describe( 'filter', ( ) =>
+describe( "filter", ( ) =>
 {
 	function filterConcurrency< T >(
 		concurrency: number,
-		values: T[],
+		values: Array< T >,
 		filter_: ( ( t: T ) => ( boolean | PromiseLike< boolean > ) )
 	)
 	: Promise< { concurrencies: Array< number >; values: Array< T >; } >
@@ -201,7 +199,7 @@ describe( 'filter', ( ) =>
 		.then( values => ( { values, concurrencies } ) );
 	}
 
-	it( 'unspecified concurrency should be correct', async ( ) =>
+	it( "unspecified concurrency should be correct", async ( ) =>
 	{
 		const { concurrencies, values } = await filterConcurrency(
 			< number >< any >void 0,
@@ -214,7 +212,7 @@ describe( 'filter', ( ) =>
 			[ 1, 2, 3, 4, 5, 4, 3, 2, 1, 0 ] );
 	} );
 
-	it( 'concurrency 1 should be correct', async ( ) =>
+	it( "concurrency 1 should be correct", async ( ) =>
 	{
 		const { concurrencies, values } = await filterConcurrency(
 			1,
@@ -227,7 +225,7 @@ describe( 'filter', ( ) =>
 			[ 1, 0, 1, 0, 1, 0, 1, 0, 1, 0 ] );
 	} );
 
-	it( 'concurrency 2 should be correct', async ( ) =>
+	it( "concurrency 2 should be correct", async ( ) =>
 	{
 		const { concurrencies, values } = await filterConcurrency(
 			2,
@@ -242,7 +240,7 @@ describe( 'filter', ( ) =>
 		expect( concurrencies ).to.include( 2 );
 	} );
 
-	it( 'concurrency 3 should be correct', async ( ) =>
+	it( "concurrency 3 should be correct", async ( ) =>
 	{
 		const { concurrencies, values } = await filterConcurrency(
 			3,
@@ -257,7 +255,7 @@ describe( 'filter', ( ) =>
 		expect( concurrencies ).to.include( 3 );
 	} );
 
-	it( 'should work without options', async ( ) =>
+	it( "should work without options", async ( ) =>
 	{
 		const arr = [ 1, 2, Promise.resolve( 3 ), delayChain( 50 )( 4 ), 5 ];
 		const arr2 = await Promise.all( arr )
@@ -271,7 +269,7 @@ describe( 'filter', ( ) =>
 		expect( arr2 ).to.deep.equal( [ 2, 4 ] );
 	} );
 
-	it( 'should work as a free function', async ( ) =>
+	it( "should work as a free function", async ( ) =>
 	{
 		const arr = [ 1, 2, Promise.resolve( 3 ), delayChain( 50 )( 4 ), 5 ];
 		const arr2 = await filter(
@@ -286,7 +284,7 @@ describe( 'filter', ( ) =>
 		expect( arr2 ).to.deep.equal( [ 2, 4 ] );
 	} );
 
-	it( 'should work as a free function without options', async ( ) =>
+	it( "should work as a free function without options", async ( ) =>
 	{
 		const arr = [ 1, 2, Promise.resolve( 3 ), delayChain( 50 )( 4 ), 5 ];
 		const arr2 = await filter(
@@ -301,11 +299,11 @@ describe( 'filter', ( ) =>
 	} );
 } );
 
-describe( 'map', ( ) =>
+describe( "map", ( ) =>
 {
 	function mapConcurrency< T, U >(
 		concurrency: number,
-		values: T[],
+		values: Array< T >,
 		map_: ( t: T ) => U
 	)
 	: Promise< { concurrencies: Array< number >; values: Array< U >; } >
@@ -328,7 +326,7 @@ describe( 'map', ( ) =>
 		.then( values => ( { values, concurrencies } ) );
 	}
 
-	it( 'unspecified concurrency should be correct', async ( ) =>
+	it( "unspecified concurrency should be correct", async ( ) =>
 	{
 		const { concurrencies, values } = await mapConcurrency(
 			< number >< any >void 0,
@@ -336,13 +334,13 @@ describe( 'map', ( ) =>
 			( val: number ) => "" + ( val * 2 )
 		);
 
-		expect( values[ 0 ] ).to.be.a( 'string' );
+		expect( values[ 0 ] ).to.be.a( "string" );
 		expect( values ).to.deep.equal( [ "2", "4", "6", "8", "10" ] );
 		expect( concurrencies ).to.deep.equal(
 			[ 1, 2, 3, 4, 5, 4, 3, 2, 1, 0 ] );
 	} );
 
-	it( 'concurrency 1 should be correct', async ( ) =>
+	it( "concurrency 1 should be correct", async ( ) =>
 	{
 		const { concurrencies, values } = await mapConcurrency(
 			1,
@@ -350,13 +348,13 @@ describe( 'map', ( ) =>
 			( val: number ) => "" + ( val * 2 )
 		);
 
-		expect( values[ 0 ] ).to.be.a( 'string' );
+		expect( values[ 0 ] ).to.be.a( "string" );
 		expect( values ).to.deep.equal( [ "2", "4", "6", "8", "10" ] );
 		expect( concurrencies ).to.deep.equal(
 			[ 1, 0, 1, 0, 1, 0, 1, 0, 1, 0 ] );
 	} );
 
-	it( 'concurrency 2 should be correct', async ( ) =>
+	it( "concurrency 2 should be correct", async ( ) =>
 	{
 		const { concurrencies, values } = await mapConcurrency(
 			2,
@@ -364,7 +362,7 @@ describe( 'map', ( ) =>
 			( val: number ) => "" + ( val * 2 )
 		);
 
-		expect( values[ 0 ] ).to.be.a( 'string' );
+		expect( values[ 0 ] ).to.be.a( "string" );
 		expect( values ).to.deep.equal(
 			[ "2", "4", "6", "8", "10", "12", "14", "16", "18" ] );
 		const last = concurrencies.pop( );
@@ -373,7 +371,7 @@ describe( 'map', ( ) =>
 		expect( concurrencies ).to.include( 2 );
 	} );
 
-	it( 'concurrency 3 should be correct', async ( ) =>
+	it( "concurrency 3 should be correct", async ( ) =>
 	{
 		const { concurrencies, values } = await mapConcurrency(
 			3,
@@ -381,7 +379,7 @@ describe( 'map', ( ) =>
 			( val: number ) => "" + ( val * 2 )
 		);
 
-		expect( values[ 0 ] ).to.be.a( 'string' );
+		expect( values[ 0 ] ).to.be.a( "string" );
 		expect( values ).to.deep.equal(
 			[ "2", "4", "6", "8", "10", "12", "14", "16", "18" ] );
 		const last = concurrencies.pop( );
@@ -390,7 +388,7 @@ describe( 'map', ( ) =>
 		expect( concurrencies ).to.include( 3 );
 	} );
 
-	it( 'should work without options', async ( ) =>
+	it( "should work without options", async ( ) =>
 	{
 		const arr = [ 1, 2, Promise.resolve( 3 ), delayChain( 50 )( 4 ), 5 ];
 		const arr2 = await Promise.all( arr )
@@ -405,7 +403,7 @@ describe( 'map', ( ) =>
 		expect( arr3 ).to.deep.equal( [ 1, 2, 3, 4, 5 ] );
 	} );
 
-	it( 'should work as a free function', async ( ) =>
+	it( "should work as a free function", async ( ) =>
 	{
 		const arr = [ 1, 2, Promise.resolve( 3 ), delayChain( 50 )( 4 ), 5 ];
 		const arr2 = await map(
@@ -421,7 +419,7 @@ describe( 'map', ( ) =>
 		expect( arr3 ).to.deep.equal( [ 1, 2, 3, 4, 5 ] );
 	} );
 
-	it( 'should work as a free function without options', async ( ) =>
+	it( "should work as a free function without options", async ( ) =>
 	{
 		const arr = [ 1, 2, Promise.resolve( 3 ), delayChain( 50 )( 4 ), 5 ];
 		const arr2 = await map(
@@ -437,14 +435,14 @@ describe( 'map', ( ) =>
 	} );
 } );
 
-describe( 'reduce', ( ) =>
+describe( "reduce", ( ) =>
 {
 	function reduceAdd( acc: number, cur: number )
 	{
 		return acc + cur;
 	}
 
-	it( 'should reduce initialValue if empty array', async ( ) =>
+	it( "should reduce initialValue if empty array", async ( ) =>
 	{
 		const input: Array< number > = [ ];
 		const initialValue = fooValue;
@@ -454,7 +452,7 @@ describe( 'reduce', ( ) =>
 		expect( reduced ).to.equal( fooValue );
 	} );
 
-	it( 'should reduce single-value array without initialValue', async ( ) =>
+	it( "should reduce single-value array without initialValue", async ( ) =>
 	{
 		const input = [ fooValue ];
 
@@ -463,7 +461,7 @@ describe( 'reduce', ( ) =>
 		expect( reduced ).to.equal( fooValue );
 	} );
 
-	it( 'should reduce single-value array with initialValue', async ( ) =>
+	it( "should reduce single-value array with initialValue", async ( ) =>
 	{
 		const input = [ fooValue ];
 		const initialValue = fooValue;
@@ -473,7 +471,7 @@ describe( 'reduce', ( ) =>
 		expect( reduced ).to.equal( fooValue + fooValue );
 	} );
 
-	it( 'should reduce multi-value array without initialValue', async ( ) =>
+	it( "should reduce multi-value array without initialValue", async ( ) =>
 	{
 		const input = [ fooValue, fooValue ];
 
@@ -482,7 +480,7 @@ describe( 'reduce', ( ) =>
 		expect( reduced ).to.equal( fooValue + fooValue );
 	} );
 
-	it( 'should reduce multi-value array with initialValue', async ( ) =>
+	it( "should reduce multi-value array with initialValue", async ( ) =>
 	{
 		const input = [ fooValue, fooValue ];
 		const initialValue = fooValue;
@@ -492,7 +490,7 @@ describe( 'reduce', ( ) =>
 		expect( reduced ).to.equal( fooValue + fooValue + fooValue );
 	} );
 
-	it( 'should handle future array and future values', async ( ) =>
+	it( "should handle future array and future values", async ( ) =>
 	{
 		const input = Promise.resolve( [ Promise.resolve( fooValue ), fooValue ] );
 		const initialValue = Promise.resolve( fooValue );
@@ -502,26 +500,26 @@ describe( 'reduce', ( ) =>
 		expect( reduced ).to.equal( fooValue + fooValue + fooValue );
 	} );
 
-	it( 'should work in a promise chain without initialValue', async ( ) =>
+	it( "should work in a promise chain without initialValue", async ( ) =>
 	{
 		const input = Promise.resolve( [ Promise.resolve( fooValue ), fooValue ] );
 
-		const reduced = await input.then( reduce( reduceAdd ) )
+		const reduced = await input.then( reduce( reduceAdd ) );
 
 		expect( reduced ).to.equal( fooValue + fooValue );
 	} );
 
-	it( 'should work in a promise chain with initialValue', async ( ) =>
+	it( "should work in a promise chain with initialValue", async ( ) =>
 	{
 		const input = Promise.resolve( [ Promise.resolve( fooValue ), fooValue ] );
 		const initialValue = Promise.resolve( fooValue );
 
-		const reduced = await input.then( reduce( reduceAdd, initialValue ) )
+		const reduced = await input.then( reduce( reduceAdd, initialValue ) );
 
 		expect( reduced ).to.equal( fooValue + fooValue + fooValue );
 	} );
 
-	it( 'should handle reduce with different aggregate type', async ( ) =>
+	it( "should handle reduce with different aggregate type", async ( ) =>
 	{
 		const makeLessThan = async ( than: number ) =>
 		{
@@ -530,16 +528,16 @@ describe( 'reduce', ( ) =>
 				[ { a: 1 }, { a: 2 }, { a: 3 } ],
 				async ( prev, { a } ) =>
 				{
-					await foo( )
+					await foo( );
 					try
 					{
-						await foo( )
+						await foo( );
 					}
 					catch ( err )
 					{
-						return false
+						return false;
 					}
-					return prev && a < than
+					return prev && a < than;
 				},
 				true
 			);
@@ -550,11 +548,11 @@ describe( 'reduce', ( ) =>
 	} );
 } );
 
-describe( 'each', ( ) =>
+describe( "each", ( ) =>
 {
-	describe( 'with array', ( ) =>
+	describe( "with array", ( ) =>
 	{
-		it( 'should iterate empty array', async ( ) =>
+		it( "should iterate empty array", async ( ) =>
 		{
 			const input: Array< number > = [ ];
 			const spy = sinon.spy( );
@@ -566,7 +564,7 @@ describe( 'each', ( ) =>
 			expect( spy.callCount ).to.equal( 0 );
 		} );
 
-		it( 'should iterate single-value array', async ( ) =>
+		it( "should iterate single-value array", async ( ) =>
 		{
 			const input = [ fooValue ];
 			const spy = sinon.spy( );
@@ -578,7 +576,7 @@ describe( 'each', ( ) =>
 			expect( spy.args ).to.deep.equal( [ [ fooValue, 0, 1 ] ] );
 		} );
 
-		it( 'should iterate multi-value array', async ( ) =>
+		it( "should iterate multi-value array", async ( ) =>
 		{
 			const input = [ fooValue, barValue, fooValue ];
 			const spy = sinon.spy( );
@@ -594,7 +592,7 @@ describe( 'each', ( ) =>
 			] );
 		} );
 
-		it( 'should iterate empty array asynchronously', async ( ) =>
+		it( "should iterate empty array asynchronously", async ( ) =>
 		{
 			const order: Array< number > = [ ];
 			const input: Array< number > = [ ];
@@ -615,7 +613,7 @@ describe( 'each', ( ) =>
 			expect( order ).to.deep.equal( [ ] );
 		} );
 
-		it( 'should iterate single-value array asynchronously', async ( ) =>
+		it( "should iterate single-value array asynchronously", async ( ) =>
 		{
 			const order: Array< number > = [ ];
 			const input = [ fooValue ];
@@ -636,7 +634,7 @@ describe( 'each', ( ) =>
 			expect( order ).to.deep.equal( [ 0, 0 ] );
 		} );
 
-		it( 'should iterate multi-value array asynchronously', async ( ) =>
+		it( "should iterate multi-value array asynchronously", async ( ) =>
 		{
 			const order: Array< number > = [ ];
 			const input = [ fooValue, barValue, fooValue ];
@@ -662,9 +660,9 @@ describe( 'each', ( ) =>
 		} );
 	} );
 
-	describe( 'in promise chain', ( ) =>
+	describe( "in promise chain", ( ) =>
 	{
-		it( 'should iterate empty array', async ( ) =>
+		it( "should iterate empty array", async ( ) =>
 		{
 			const input = Promise.resolve( [ ] );
 			const spy = sinon.spy( );
@@ -676,7 +674,7 @@ describe( 'each', ( ) =>
 			expect( spy.callCount ).to.equal( 0 );
 		} );
 
-		it( 'should iterate single-value array', async ( ) =>
+		it( "should iterate single-value array", async ( ) =>
 		{
 			const input = Promise.resolve( [ fooValue ] );
 			const spy = sinon.spy( );
@@ -688,7 +686,7 @@ describe( 'each', ( ) =>
 			expect( spy.args ).to.deep.equal( [ [ fooValue, 0, 1 ] ] );
 		} );
 
-		it( 'should iterate multi-value array', async ( ) =>
+		it( "should iterate multi-value array", async ( ) =>
 		{
 			const input = Promise.resolve( [ fooValue, barValue, fooValue ] );
 			const spy = sinon.spy( );
@@ -704,7 +702,7 @@ describe( 'each', ( ) =>
 			] );
 		} );
 
-		it( 'should iterate empty array asynchronously', async ( ) =>
+		it( "should iterate empty array asynchronously", async ( ) =>
 		{
 			const order: Array< number > = [ ];
 			const input = Promise.resolve( [ ] );
@@ -725,7 +723,7 @@ describe( 'each', ( ) =>
 			expect( order ).to.deep.equal( [ ] );
 		} );
 
-		it( 'should iterate single-value array asynchronously', async ( ) =>
+		it( "should iterate single-value array asynchronously", async ( ) =>
 		{
 			const order: Array< number > = [ ];
 			const input = Promise.resolve( [ fooValue ] );
@@ -746,7 +744,7 @@ describe( 'each', ( ) =>
 			expect( order ).to.deep.equal( [ 0, 0 ] );
 		} );
 
-		it( 'should iterate multi-value array asynchronously', async ( ) =>
+		it( "should iterate multi-value array asynchronously", async ( ) =>
 		{
 			const order: Array< number > = [ ];
 			const input = Promise.resolve( [ fooValue, barValue, fooValue ] );
@@ -773,7 +771,7 @@ describe( 'each', ( ) =>
 	} );
 } );
 
-describe( 'some', ( ) =>
+describe( "some", ( ) =>
 {
 	function somePredNull( val: number )
 	{
@@ -785,12 +783,12 @@ describe( 'some', ( ) =>
 	}
 	function somePredIf( matched: number )
 	{
-		return function( val: number )
+		return ( val: number ) =>
 		{
 			if ( matched === val )
 				return { val };
 			return 0; // Falsy
-		}
+		};
 	}
 	function asyncSomePredNull( val: number )
 	{
@@ -802,18 +800,18 @@ describe( 'some', ( ) =>
 	}
 	function asyncSomePredIf( matched: number )
 	{
-		return function( val: number )
-		: Promise< { val: number; } | false >
+		return ( val: number )
+		: Promise< { val: number; } | false > =>
 		{
 			if ( matched === val )
 				return Promise.resolve( { val } );
 			return < Promise< false > >Promise.resolve( false ); // Falsy
-		}
+		};
 	}
 
-	describe( 'sync flat', ( ) =>
+	describe( "sync flat", ( ) =>
 	{
-		it( 'should be false on empty array', async ( ) =>
+		it( "should be false on empty array", async ( ) =>
 		{
 			const input: Array< number > = [ ];
 
@@ -822,7 +820,7 @@ describe( 'some', ( ) =>
 			expect( res ).to.be.false;
 		} );
 
-		it( 'should return false on unmatching single-value array', async ( ) =>
+		it( "should return false on unmatching single-value array", async ( ) =>
 		{
 			const input = [ fooValue ];
 
@@ -831,7 +829,7 @@ describe( 'some', ( ) =>
 			expect( res ).to.be.false;
 		} );
 
-		it( 'should return value on matching single-value array', async ( ) =>
+		it( "should return value on matching single-value array", async ( ) =>
 		{
 			const input = [ fooValue ];
 
@@ -840,7 +838,7 @@ describe( 'some', ( ) =>
 			expect( res ).to.deep.equal( { val: fooValue } );
 		} );
 
-		it( 'should return false on unmatching multi-value array', async ( ) =>
+		it( "should return false on unmatching multi-value array", async ( ) =>
 		{
 			const input = [ fooValue, fooValue + 1, fooValue + 2 ];
 
@@ -849,7 +847,7 @@ describe( 'some', ( ) =>
 			expect( res ).to.be.false;
 		} );
 
-		it( 'should return first match in multi-value array', async ( ) =>
+		it( "should return first match in multi-value array", async ( ) =>
 		{
 			const input = [ fooValue, fooValue + 1, fooValue + 2 ];
 
@@ -859,9 +857,9 @@ describe( 'some', ( ) =>
 		} );
 	} );
 
-	describe( 'sync in promise chain', ( ) =>
+	describe( "sync in promise chain", ( ) =>
 	{
-		it( 'should be false on empty array', async ( ) =>
+		it( "should be false on empty array", async ( ) =>
 		{
 			const res = await
 				Promise.resolve( [ ] )
@@ -870,7 +868,7 @@ describe( 'some', ( ) =>
 			expect( res ).to.be.false;
 		} );
 
-		it( 'should return false on unmatching single-value array', async ( ) =>
+		it( "should return false on unmatching single-value array", async ( ) =>
 		{
 			const res = await
 				Promise.resolve( [ fooValue ] )
@@ -879,7 +877,7 @@ describe( 'some', ( ) =>
 			expect( res ).to.be.false;
 		} );
 
-		it( 'should return value on matching single-value array', async ( ) =>
+		it( "should return value on matching single-value array", async ( ) =>
 		{
 			const res = await
 				Promise.resolve( [ fooValue ] )
@@ -888,7 +886,7 @@ describe( 'some', ( ) =>
 			expect( res ).to.deep.equal( { val: fooValue } );
 		} );
 
-		it( 'should return false on unmatching multi-value array', async ( ) =>
+		it( "should return false on unmatching multi-value array", async ( ) =>
 		{
 			const res = await
 				Promise.resolve( [ fooValue, fooValue + 1, fooValue + 2 ] )
@@ -897,7 +895,7 @@ describe( 'some', ( ) =>
 			expect( res ).to.be.false;
 		} );
 
-		it( 'should return first match in multi-value array', async ( ) =>
+		it( "should return first match in multi-value array", async ( ) =>
 		{
 			const res = await
 				Promise.resolve( [ fooValue, fooValue + 1, fooValue + 2 ] )
@@ -907,9 +905,9 @@ describe( 'some', ( ) =>
 		} );
 	} );
 
-	describe( 'async flat', ( ) =>
+	describe( "async flat", ( ) =>
 	{
-		it( 'should be false on empty array', async ( ) =>
+		it( "should be false on empty array", async ( ) =>
 		{
 			const input: Array< number > = [ ];
 
@@ -918,7 +916,7 @@ describe( 'some', ( ) =>
 			expect( res ).to.be.false;
 		} );
 
-		it( 'should return false on unmatching single-value array', async ( ) =>
+		it( "should return false on unmatching single-value array", async ( ) =>
 		{
 			const input = [ fooValue ];
 
@@ -927,7 +925,7 @@ describe( 'some', ( ) =>
 			expect( res ).to.be.false;
 		} );
 
-		it( 'should return value on matching single-value array', async ( ) =>
+		it( "should return value on matching single-value array", async ( ) =>
 		{
 			const input = [ fooValue ];
 
@@ -936,7 +934,7 @@ describe( 'some', ( ) =>
 			expect( res ).to.deep.equal( { val: fooValue } );
 		} );
 
-		it( 'should return false on unmatching multi-value array', async ( ) =>
+		it( "should return false on unmatching multi-value array", async ( ) =>
 		{
 			const input = [ fooValue, fooValue + 1, fooValue + 2 ];
 
@@ -945,7 +943,7 @@ describe( 'some', ( ) =>
 			expect( res ).to.be.false;
 		} );
 
-		it( 'should return first match in multi-value array', async ( ) =>
+		it( "should return first match in multi-value array", async ( ) =>
 		{
 			const input = [ fooValue, fooValue + 1, fooValue + 2 ];
 
@@ -955,9 +953,9 @@ describe( 'some', ( ) =>
 		} );
 	} );
 
-	describe( 'async in promise chain', ( ) =>
+	describe( "async in promise chain", ( ) =>
 	{
-		it( 'should be false on empty array', async ( ) =>
+		it( "should be false on empty array", async ( ) =>
 		{
 			const res = await
 				Promise.resolve( [ ] )
@@ -966,7 +964,7 @@ describe( 'some', ( ) =>
 			expect( res ).to.be.false;
 		} );
 
-		it( 'should return false on unmatching single-value array', async ( ) =>
+		it( "should return false on unmatching single-value array", async ( ) =>
 		{
 			const res = await
 				Promise.resolve( [ fooValue ] )
@@ -975,7 +973,7 @@ describe( 'some', ( ) =>
 			expect( res ).to.be.false;
 		} );
 
-		it( 'should return value on matching single-value array', async ( ) =>
+		it( "should return value on matching single-value array", async ( ) =>
 		{
 			const res = await
 				Promise.resolve( [ fooValue ] )
@@ -984,7 +982,7 @@ describe( 'some', ( ) =>
 			expect( res ).to.deep.equal( { val: fooValue } );
 		} );
 
-		it( 'should return false on unmatching multi-value array', async ( ) =>
+		it( "should return false on unmatching multi-value array", async ( ) =>
 		{
 			const res = await
 				Promise.resolve( [ fooValue, fooValue + 1, fooValue + 2 ] )
@@ -993,7 +991,7 @@ describe( 'some', ( ) =>
 			expect( res ).to.be.false;
 		} );
 
-		it( 'should return first match in multi-value array', async ( ) =>
+		it( "should return first match in multi-value array", async ( ) =>
 		{
 			const res = await
 				Promise.resolve( [ fooValue, fooValue + 1, fooValue + 2 ] )
@@ -1003,7 +1001,7 @@ describe( 'some', ( ) =>
 		} );
 	} );
 
-	describe( 'promise of lists and items', ( ) =>
+	describe( "promise of lists and items", ( ) =>
 	{
 		function promisifyList< T >( list: ReadonlyArray< T > )
 		{
@@ -1012,14 +1010,14 @@ describe( 'some', ( ) =>
 			);
 		}
 
-		it( 'should be false on empty array', async ( ) =>
+		it( "should be false on empty array", async ( ) =>
 		{
 			const res = await some( Promise.resolve( [ ] ), asyncSomePred );
 
 			expect( res ).to.be.false;
 		} );
 
-		it( 'should return false on unmatching single-value array', async ( ) =>
+		it( "should return false on unmatching single-value array", async ( ) =>
 		{
 			const input = promisifyList( [ fooValue ] );
 
@@ -1028,7 +1026,7 @@ describe( 'some', ( ) =>
 			expect( res ).to.be.false;
 		} );
 
-		it( 'should return value on matching single-value array', async ( ) =>
+		it( "should return value on matching single-value array", async ( ) =>
 		{
 			const input = promisifyList( [ fooValue ] );
 
@@ -1037,7 +1035,7 @@ describe( 'some', ( ) =>
 			expect( res ).to.deep.equal( { val: fooValue } );
 		} );
 
-		it( 'should return false on unmatching multi-value array', async ( ) =>
+		it( "should return false on unmatching multi-value array", async ( ) =>
 		{
 			const input =
 				promisifyList( [ fooValue, fooValue + 1, fooValue + 2 ] );
@@ -1047,7 +1045,7 @@ describe( 'some', ( ) =>
 			expect( res ).to.be.false;
 		} );
 
-		it( 'should return first match in multi-value array', async ( ) =>
+		it( "should return first match in multi-value array", async ( ) =>
 		{
 			const input =
 				promisifyList( [ fooValue, fooValue + 1, fooValue + 2 ] );
@@ -1059,9 +1057,9 @@ describe( 'some', ( ) =>
 	} );
 } );
 
-describe( 'defer', ( ) =>
+describe( "defer", ( ) =>
 {
-	it( 'should work with undefined and no resolve argument', async ( ) =>
+	it( "should work with undefined and no resolve argument", async ( ) =>
 	{
 		const deferred = defer( void 0 );
 
@@ -1071,7 +1069,7 @@ describe( 'defer', ( ) =>
 		expect( val ).to.be.undefined;
 	} );
 
-	it( 'should work with undefined and one resolve argument', async ( ) =>
+	it( "should work with undefined and one resolve argument", async ( ) =>
 	{
 		const deferred = defer( void 0 );
 
@@ -1081,7 +1079,7 @@ describe( 'defer', ( ) =>
 		expect( val ).to.be.undefined;
 	} );
 
-	it( 'should work with resolving', async ( ) =>
+	it( "should work with resolving", async ( ) =>
 	{
 		const deferred = defer< number >( );
 
@@ -1091,7 +1089,7 @@ describe( 'defer', ( ) =>
 		expect( val ).to.equal( fooValue );
 	} );
 
-	it( 'should work with rejecting', async ( ) =>
+	it( "should work with rejecting", async ( ) =>
 	{
 		const deferred = defer< number >( );
 
@@ -1110,9 +1108,9 @@ describe( 'defer', ( ) =>
 	} );
 } );
 
-describe( 'reflect', ( ) =>
+describe( "reflect", ( ) =>
 {
-	it( 'should work with resolved promises', async ( ) =>
+	it( "should work with resolved promises", async ( ) =>
 	{
 		const p = Promise.resolve( fooValue );
 
@@ -1126,7 +1124,7 @@ describe( 'reflect', ( ) =>
 		expect( error ).to.be.undefined;
 	} );
 
-	it( 'should work with not yet resolved promises', async ( ) =>
+	it( "should work with not yet resolved promises", async ( ) =>
 	{
 		const p = delay( 1, fooValue );
 
@@ -1140,7 +1138,7 @@ describe( 'reflect', ( ) =>
 		expect( error ).to.be.undefined;
 	} );
 
-	it( 'should work with rejected promises', async ( ) =>
+	it( "should work with rejected promises", async ( ) =>
 	{
 		const p = Promise.reject( fooError );
 
@@ -1154,7 +1152,7 @@ describe( 'reflect', ( ) =>
 		expect( error ).to.equal( fooError );
 	} );
 
-	it( 'should work with not yet rejected promises', async ( ) =>
+	it( "should work with not yet rejected promises", async ( ) =>
 	{
 		const p = delay( 1 ).then( ( ) => { throw fooError; } );
 
@@ -1169,9 +1167,9 @@ describe( 'reflect', ( ) =>
 	} );
 } );
 
-describe( 'inspect', ( ) =>
+describe( "inspect", ( ) =>
 {
-	it( 'should work with pending', async ( ) =>
+	it( "should work with pending", async ( ) =>
 	{
 		const deferred = defer< string >( );
 
@@ -1188,7 +1186,7 @@ describe( 'inspect', ( ) =>
 		return inspectable.promise;
 	} );
 
-	it( 'should work with resolving', async ( ) =>
+	it( "should work with resolving", async ( ) =>
 	{
 		const deferred = defer< string >( );
 
@@ -1205,7 +1203,7 @@ describe( 'inspect', ( ) =>
 		return inspectable.promise;
 	} );
 
-	it( 'should work with rejecting', async ( ) =>
+	it( "should work with rejecting", async ( ) =>
 	{
 		const deferred = defer< string >( );
 
@@ -1226,7 +1224,7 @@ describe( 'inspect', ( ) =>
 		return inspectable.promise.catch( err => { } );
 	} );
 
-	it( 'should be settled after {await}', async ( ) =>
+	it( "should be settled after {await}", async ( ) =>
 	{
 		const deferred = defer< string >( );
 
@@ -1242,9 +1240,9 @@ describe( 'inspect', ( ) =>
 	} );
 } );
 
-describe( 'try', ( ) =>
+describe( "try", ( ) =>
 {
-	it( 'should work without return value', async ( ) =>
+	it( "should work without return value", async ( ) =>
 	{
 		const ret = await (
 			Try( ( ) => { } )
@@ -1254,7 +1252,7 @@ describe( 'try', ( ) =>
 		expect( ret ).to.be.a( "undefined" );
 	} );
 
-	it( 'should work with return value', async ( ) =>
+	it( "should work with return value", async ( ) =>
 	{
 		const ret = await (
 			Try( ( ) => "foo" )
@@ -1265,7 +1263,7 @@ describe( 'try', ( ) =>
 		expect( ret ).to.equal( "foo" );
 	} );
 
-	it( 'should work with a throwing function', async ( ) =>
+	it( "should work with a throwing function", async ( ) =>
 	{
 		function fn( ): string
 		{
@@ -1287,7 +1285,7 @@ describe( 'try', ( ) =>
 	} );
 } );
 
-describe( 'specific', ( ) =>
+describe( "specific", ( ) =>
 {
 	function CustomErrorA( args?: any )
 	{
@@ -1311,14 +1309,14 @@ describe( 'specific', ( ) =>
 
 	function isMyError( err: Error )
 	{
-		return ( < any >err ).myError == true;
+		return ( < any >err ).myError === true;
 	}
 	function isNotMyError( err: Error )
 	{
 		return !( < any >err ).myError;
 	}
 
-	it( 'should treat nully as false', async ( ) =>
+	it( "should treat nully as false", async ( ) =>
 	{
 		const spy = sinon.spy( );
 
@@ -1332,7 +1330,7 @@ describe( 'specific', ( ) =>
 		sinon.assert.notCalled( spy );
 	} );
 
-	it( 'should treat invalid specific clauses as false', async ( ) =>
+	it( "should treat invalid specific clauses as false", async ( ) =>
 	{
 		const spy = sinon.spy( );
 
@@ -1346,7 +1344,7 @@ describe( 'specific', ( ) =>
 		sinon.assert.notCalled( spy );
 	} );
 
-	it( 'should filter single class', async ( ) =>
+	it( "should filter single class", async ( ) =>
 	{
 		const spy = sinon.spy( );
 
@@ -1359,7 +1357,7 @@ describe( 'specific', ( ) =>
 		sinon.assert.calledWith( spy, err );
 	} );
 
-	it( 'should filter two classes', async ( ) =>
+	it( "should filter two classes", async ( ) =>
 	{
 		const spy = sinon.spy( );
 
@@ -1372,7 +1370,7 @@ describe( 'specific', ( ) =>
 		sinon.assert.calledWith( spy, err );
 	} );
 
-	it( 'should skip two classes', async ( ) =>
+	it( "should skip two classes", async ( ) =>
 	{
 		const spy1 = sinon.spy( );
 		const spy2 = sinon.spy( );
@@ -1387,7 +1385,7 @@ describe( 'specific', ( ) =>
 		sinon.assert.calledWith( spy2, err );
 	} );
 
-	it( 'should filter one function', async ( ) =>
+	it( "should filter one function", async ( ) =>
 	{
 		const spy = sinon.spy( );
 
@@ -1401,7 +1399,7 @@ describe( 'specific', ( ) =>
 		sinon.assert.calledWith( spy, err );
 	} );
 
-	it( 'should filter two functions', async ( ) =>
+	it( "should filter two functions", async ( ) =>
 	{
 		const spy = sinon.spy( );
 
@@ -1415,7 +1413,7 @@ describe( 'specific', ( ) =>
 		sinon.assert.calledWith( spy, err );
 	} );
 
-	it( 'should skip two functions', async ( ) =>
+	it( "should skip two functions", async ( ) =>
 	{
 		const spy1 = sinon.spy( );
 		const spy2 = sinon.spy( );
@@ -1432,7 +1430,7 @@ describe( 'specific', ( ) =>
 		sinon.assert.calledWith( spy2, err );
 	} );
 
-	it( 'should filter one object', async ( ) =>
+	it( "should filter one object", async ( ) =>
 	{
 		const spy = sinon.spy( );
 
@@ -1446,7 +1444,7 @@ describe( 'specific', ( ) =>
 		sinon.assert.calledWith( spy, err );
 	} );
 
-	it( 'should filter two objects', async ( ) =>
+	it( "should filter two objects", async ( ) =>
 	{
 		const spy = sinon.spy( );
 
@@ -1455,12 +1453,12 @@ describe( 'specific', ( ) =>
 		err.myError = true;
 
 		await Promise.reject( err )
-		.catch( specific( [ { foo: 'bar' }, { myError: true } ], spy ) );
+		.catch( specific( [ { foo: "bar" }, { myError: true } ], spy ) );
 
 		sinon.assert.calledWith( spy, err );
 	} );
 
-	it( 'should skip two objects', async ( ) =>
+	it( "should skip two objects", async ( ) =>
 	{
 		const spy1 = sinon.spy( );
 		const spy2 = sinon.spy( );
@@ -1477,7 +1475,7 @@ describe( 'specific', ( ) =>
 		sinon.assert.calledWith( spy2, err );
 	} );
 
-	it( 'should handle promise-returning callback', async ( ) =>
+	it( "should handle promise-returning callback", async ( ) =>
 	{
 		interface I
 		{
@@ -1499,9 +1497,9 @@ describe( 'specific', ( ) =>
 	} );
 } );
 
-describe( 'rethrow', ( ) =>
+describe( "rethrow", ( ) =>
 {
-	it( 'should rethrow error on synchronous callback', async ( ) =>
+	it( "should rethrow error on synchronous callback", async ( ) =>
 	{
 		const spy1 = sinon.spy( );
 		const spy2 = sinon.spy( );
@@ -1516,7 +1514,7 @@ describe( 'rethrow', ( ) =>
 		sinon.assert.calledWith( spy2, err );
 	} );
 
-	it( 'should rethrow error on asynchronous callback', async ( ) =>
+	it( "should rethrow error on asynchronous callback", async ( ) =>
 	{
 		const spy1 = sinon.spy( );
 		const spy2 = sinon.spy( );
@@ -1542,7 +1540,7 @@ describe( 'rethrow', ( ) =>
 		sinon.assert.calledWith( spy2, err );
 	} );
 
-	it( 'should throw synchronous callback error', async ( ) =>
+	it( "should throw synchronous callback error", async ( ) =>
 	{
 		const err1 = new Error( "error" );
 		const err2 = new Error( "error" );
@@ -1563,7 +1561,7 @@ describe( 'rethrow', ( ) =>
 		sinon.assert.calledWith( spy2, err2 );
 	} );
 
-	it( 'should throw asynchronous callback error', async ( ) =>
+	it( "should throw asynchronous callback error", async ( ) =>
 	{
 		const err1 = new Error( "error" );
 		const err2 = new Error( "error" );
@@ -1586,19 +1584,25 @@ describe( 'rethrow', ( ) =>
 	} );
 } );
 
-describe( 'wrapFunction', ( ) =>
+describe( "wrapFunction", ( ) =>
 {
-	function makeSpy< Fun extends Function >( fun: Fun ): sinon.SinonSpy & Fun
+	function makeSpy0< W >( fun: ( ) => W )
+	: sinon.SinonSpy & ( ( ) => W )
 	{
-		return <sinon.SinonSpy & Fun>sinon.spy( fun )
+		return < sinon.SinonSpy & ( ( ) => W ) >sinon.spy( fun );
+	}
+	function makeSpy< T, W >( fun: ( t: T ) => W )
+	: sinon.SinonSpy & ( < T >( t: T ) => W )
+	{
+		return < sinon.SinonSpy & ( ( t: T ) => W ) >sinon.spy( fun );
 	}
 
-	describe( '(before, fn, after) combinations', ( ) =>
+	describe( "(before, fn, after) combinations", ( ) =>
 	{
-		it( 'sync sync sync noarg noreturn', ( ) =>
+		it( "sync sync sync noarg noreturn", ( ) =>
 		{
 			const after = makeSpy( ( ) => { } );
-			const before = makeSpy( ( ) => after );
+			const before = makeSpy0( ( ) => after );
 
 			expect(
 				wrapFunction( before )( ( ) => { } )
@@ -1608,10 +1612,10 @@ describe( 'wrapFunction', ( ) =>
 			expect( after.callCount ).to.equal( 1 );
 		} );
 
-		it( 'sync sync sync noarg', ( ) =>
+		it( "sync sync sync noarg", ( ) =>
 		{
 			const after = makeSpy( ( ) => { } );
-			const before = makeSpy( ( ) => after );
+			const before = makeSpy0( ( ) => after );
 
 			expect(
 				wrapFunction( before )( ( ) => 42 )
@@ -1621,7 +1625,7 @@ describe( 'wrapFunction', ( ) =>
 			expect( after.callCount ).to.equal( 1 );
 		} );
 
-		it( 'sync sync sync arg noreturn', ( ) =>
+		it( "sync sync sync arg noreturn", ( ) =>
 		{
 			const after = makeSpy( ( ) => { } );
 			const before = makeSpy( ( s: string ) => after );
@@ -1634,7 +1638,7 @@ describe( 'wrapFunction', ( ) =>
 			expect( after.callCount ).to.equal( 1 );
 		} );
 
-		it( 'sync sync sync arg', ( ) =>
+		it( "sync sync sync arg", ( ) =>
 		{
 			const after = makeSpy( ( ) => { } );
 			const before = makeSpy( ( s: string ) => after );
@@ -1648,10 +1652,10 @@ describe( 'wrapFunction', ( ) =>
 		} );
 
 
-		it( 'async sync sync noarg noreturn', async ( ) =>
+		it( "async sync sync noarg noreturn", async ( ) =>
 		{
 			const after = makeSpy( ( ) => { } );
-			const before = makeSpy( ( ) => Promise.resolve( after ) );
+			const before = makeSpy0( ( ) => Promise.resolve( after ) );
 
 			expect(
 				await wrapFunction( before )( ( ) => { } )
@@ -1661,10 +1665,10 @@ describe( 'wrapFunction', ( ) =>
 			expect( after.callCount ).to.equal( 1 );
 		} );
 
-		it( 'async sync sync noarg', async ( ) =>
+		it( "async sync sync noarg", async ( ) =>
 		{
 			const after = makeSpy( ( ) => { } );
-			const before = makeSpy( ( ) => Promise.resolve( after ) );
+			const before = makeSpy0( ( ) => Promise.resolve( after ) );
 
 			expect(
 				await wrapFunction( before )( ( ) => 42 )
@@ -1674,7 +1678,7 @@ describe( 'wrapFunction', ( ) =>
 			expect( after.callCount ).to.equal( 1 );
 		} );
 
-		it( 'async sync sync arg noreturn', async ( ) =>
+		it( "async sync sync arg noreturn", async ( ) =>
 		{
 			const after = makeSpy( ( ) => { } );
 			const before = makeSpy( ( s: string ) => Promise.resolve( after ) );
@@ -1687,7 +1691,7 @@ describe( 'wrapFunction', ( ) =>
 			expect( after.callCount ).to.equal( 1 );
 		} );
 
-		it( 'async sync sync arg', async ( ) =>
+		it( "async sync sync arg", async ( ) =>
 		{
 			const after = makeSpy( ( ) => { } );
 			const before = makeSpy( ( s: string ) => Promise.resolve( after ) );
@@ -1700,10 +1704,10 @@ describe( 'wrapFunction', ( ) =>
 			expect( after.callCount ).to.equal( 1 );
 		} );
 
-		it( 'sync async sync noarg noreturn', async ( ) =>
+		it( "sync async sync noarg noreturn", async ( ) =>
 		{
 			const after = makeSpy( ( ) => { } );
-			const before = makeSpy( ( ) => after );
+			const before = makeSpy0( ( ) => after );
 
 			expect(
 				await wrapFunction( before )( ( ) => Promise.resolve( ) )
@@ -1713,10 +1717,10 @@ describe( 'wrapFunction', ( ) =>
 			expect( after.callCount ).to.equal( 1 );
 		} );
 
-		it( 'sync async sync noarg', async ( ) =>
+		it( "sync async sync noarg", async ( ) =>
 		{
 			const after = makeSpy( ( ) => { } );
-			const before = makeSpy( ( ) => after );
+			const before = makeSpy0( ( ) => after );
 
 			expect(
 				await wrapFunction( before )( ( ) => Promise.resolve( 42 ) )
@@ -1726,7 +1730,7 @@ describe( 'wrapFunction', ( ) =>
 			expect( after.callCount ).to.equal( 1 );
 		} );
 
-		it( 'sync async sync arg noreturn', async ( ) =>
+		it( "sync async sync arg noreturn", async ( ) =>
 		{
 			const after = makeSpy( ( ) => { } );
 			const before = makeSpy( ( s: string ) => after );
@@ -1739,7 +1743,7 @@ describe( 'wrapFunction', ( ) =>
 			expect( after.callCount ).to.equal( 1 );
 		} );
 
-		it( 'sync async sync arg', async ( ) =>
+		it( "sync async sync arg", async ( ) =>
 		{
 			const after = makeSpy( ( ) => { } );
 			const before = makeSpy( ( s: string ) => after );
@@ -1753,10 +1757,10 @@ describe( 'wrapFunction', ( ) =>
 		} );
 
 
-		it( 'async async sync noarg', async ( ) =>
+		it( "async async sync noarg", async ( ) =>
 		{
 			const after = makeSpy( ( ) => { } );
-			const before = makeSpy( ( ) => Promise.resolve( after ) );
+			const before = makeSpy0( ( ) => Promise.resolve( after ) );
 
 			expect(
 				await wrapFunction( before )( ( ) => Promise.resolve( 42 ) )
@@ -1766,7 +1770,7 @@ describe( 'wrapFunction', ( ) =>
 			expect( after.callCount ).to.equal( 1 );
 		} );
 
-		it( 'async async sync arg', async ( ) =>
+		it( "async async sync arg", async ( ) =>
 		{
 			const after = makeSpy( ( ) => { } );
 			const before = makeSpy( ( s: string ) => Promise.resolve( after ) );
@@ -1779,10 +1783,10 @@ describe( 'wrapFunction', ( ) =>
 			expect( after.callCount ).to.equal( 1 );
 		} );
 
-		it( 'sync sync async noarg', async ( ) =>
+		it( "sync sync async noarg", async ( ) =>
 		{
 			const after = makeSpy( ( ) => Promise.resolve( ) );
-			const before = makeSpy( ( ) => after );
+			const before = makeSpy0( ( ) => after );
 
 			expect(
 				await wrapFunction( before )( ( ) => 42 )
@@ -1792,7 +1796,7 @@ describe( 'wrapFunction', ( ) =>
 			expect( after.callCount ).to.equal( 1 );
 		} );
 
-		it( 'sync sync async arg', async ( ) =>
+		it( "sync sync async arg", async ( ) =>
 		{
 			const after = makeSpy( ( ) => Promise.resolve( ) );
 			const before = makeSpy( ( s: string ) => after );
@@ -1806,10 +1810,10 @@ describe( 'wrapFunction', ( ) =>
 		} );
 
 
-		it( 'async sync async noarg noreturn', async ( ) =>
+		it( "async sync async noarg noreturn", async ( ) =>
 		{
 			const after = makeSpy( ( ) => Promise.resolve( ) );
-			const before = makeSpy( ( ) => Promise.resolve( after ) );
+			const before = makeSpy0( ( ) => Promise.resolve( after ) );
 
 			expect(
 				await wrapFunction( before )( ( ) => { } )
@@ -1819,10 +1823,10 @@ describe( 'wrapFunction', ( ) =>
 			expect( after.callCount ).to.equal( 1 );
 		} );
 
-		it( 'async sync async noarg', async ( ) =>
+		it( "async sync async noarg", async ( ) =>
 		{
 			const after = makeSpy( ( ) => Promise.resolve( ) );
-			const before = makeSpy( ( ) => Promise.resolve( after ) );
+			const before = makeSpy0( ( ) => Promise.resolve( after ) );
 
 			expect(
 				await wrapFunction( before )( ( ) => 42 )
@@ -1832,7 +1836,7 @@ describe( 'wrapFunction', ( ) =>
 			expect( after.callCount ).to.equal( 1 );
 		} );
 
-		it( 'async sync async arg noreturn', async ( ) =>
+		it( "async sync async arg noreturn", async ( ) =>
 		{
 			const after = makeSpy( ( ) => Promise.resolve( ) );
 			const before = makeSpy( ( s: string ) => Promise.resolve( after ) );
@@ -1845,7 +1849,7 @@ describe( 'wrapFunction', ( ) =>
 			expect( after.callCount ).to.equal( 1 );
 		} );
 
-		it( 'async sync async arg', async ( ) =>
+		it( "async sync async arg", async ( ) =>
 		{
 			const after = makeSpy( ( ) => Promise.resolve( ) );
 			const before = makeSpy( ( s: string ) => Promise.resolve( after ) );
@@ -1858,10 +1862,10 @@ describe( 'wrapFunction', ( ) =>
 			expect( after.callCount ).to.equal( 1 );
 		} );
 
-		it( 'sync async async noarg', async ( ) =>
+		it( "sync async async noarg", async ( ) =>
 		{
 			const after = makeSpy( ( ) => Promise.resolve( ) );
-			const before = makeSpy( ( ) => after );
+			const before = makeSpy0( ( ) => after );
 
 			expect(
 				await wrapFunction( before )( ( ) => Promise.resolve( 42 ) )
@@ -1871,7 +1875,7 @@ describe( 'wrapFunction', ( ) =>
 			expect( after.callCount ).to.equal( 1 );
 		} );
 
-		it( 'sync async async arg', async ( ) =>
+		it( "sync async async arg", async ( ) =>
 		{
 			const after = makeSpy( ( ) => Promise.resolve( ) );
 			const before = makeSpy( ( s: string ) => after );
@@ -1885,10 +1889,10 @@ describe( 'wrapFunction', ( ) =>
 		} );
 
 
-		it( 'async async async noarg', async ( ) =>
+		it( "async async async noarg", async ( ) =>
 		{
 			const after = makeSpy( ( ) => Promise.resolve( ) );
-			const before = makeSpy( ( ) => Promise.resolve( after ) );
+			const before = makeSpy0( ( ) => Promise.resolve( after ) );
 
 			expect(
 				await wrapFunction( before )( ( ) => Promise.resolve( 42 ) )
@@ -1898,7 +1902,7 @@ describe( 'wrapFunction', ( ) =>
 			expect( after.callCount ).to.equal( 1 );
 		} );
 
-		it( 'async async async arg', async ( ) =>
+		it( "async async async arg", async ( ) =>
 		{
 			const after = makeSpy( ( ) => Promise.resolve( ) );
 			const before = makeSpy( ( s: string ) => Promise.resolve( after ) );
@@ -1912,7 +1916,7 @@ describe( 'wrapFunction', ( ) =>
 		} );
 	} );
 
-	it( 'Invalid (missing) argument', async ( ) =>
+	it( "Invalid (missing) argument", async ( ) =>
 	{
 		const after = makeSpy( ( ) => Promise.resolve( ) );
 		const before = makeSpy( ( s: string ) => Promise.resolve( after ) );
@@ -1928,10 +1932,10 @@ describe( 'wrapFunction', ( ) =>
 			catch ( err )
 			{
 				expect( err.message ).to.equal(
-					'Invalid invocation, function requires 2 arguments'
+					"Invalid invocation, function requires 2 arguments"
 				);
 			}
-		} )( )
+		} )( );
 
 		expect( before.callCount ).to.equal( 0 );
 		expect( after.callCount ).to.equal( 0 );
@@ -1966,12 +1970,12 @@ describe( 'wrapFunction', ( ) =>
 					"Invalid return value in 'before' handler"
 				);
 			}
-		} )( )
+		} )( );
 
 		expect( before.args ).to.deep.equal( [ [ "foo" ] ] );
 	} );
 
-	describe( 'Cleanup on exceptions', ( ) =>
+	describe( "Cleanup on exceptions", ( ) =>
 	{
 		interface State { value: number; inc( ): void; dec( ): void; }
 		function makeState( ): State
@@ -1981,12 +1985,12 @@ describe( 'wrapFunction', ( ) =>
 				inc( ) { ++state.value; },
 				dec( ) { --state.value; },
 			};
-	
+
 			return state;
 		}
 
 		const throwSync: ( ) => void =
-			( ) => { throw new Error( "Foo" ); }
+			( ) => { throw new Error( "Foo" ); };
 		const throwAsync: ( ) => Promise< void > =
 			( ) => Promise.reject( new Error( "Foo" ) );
 
@@ -2024,7 +2028,7 @@ describe( 'wrapFunction', ( ) =>
 					} );
 		}
 
-		it( 'sync sync sync', async ( ) =>
+		it( "sync sync sync", async ( ) =>
 		{
 			const state = makeState( );
 			const wrapper = makeWrapper( state, true, true );
@@ -2032,9 +2036,9 @@ describe( 'wrapFunction', ( ) =>
 			await swallowException( ( ) => wrapper( throwSync ) );
 
 			expect( state.value ).to.equal( 0 );
-		} );	
+		} );
 
-		it( 'async sync sync', async ( ) =>
+		it( "async sync sync", async ( ) =>
 		{
 			const state = makeState( );
 			const wrapper = makeWrapper( state, false, true );
@@ -2042,9 +2046,9 @@ describe( 'wrapFunction', ( ) =>
 			await swallowException( ( ) => wrapper( throwSync ) );
 
 			expect( state.value ).to.equal( 0 );
-		} );	
+		} );
 
-		it( 'sync async sync', async ( ) =>
+		it( "sync async sync", async ( ) =>
 		{
 			const state = makeState( );
 			const wrapper = makeWrapper( state, true, true );
@@ -2052,9 +2056,9 @@ describe( 'wrapFunction', ( ) =>
 			await swallowException( ( ) => wrapper( throwAsync ) );
 
 			expect( state.value ).to.equal( 0 );
-		} );	
+		} );
 
-		it( 'async async sync', async ( ) =>
+		it( "async async sync", async ( ) =>
 		{
 			const state = makeState( );
 			const wrapper = makeWrapper( state, false, true );
@@ -2062,9 +2066,9 @@ describe( 'wrapFunction', ( ) =>
 			await swallowException( ( ) => wrapper( throwAsync ) );
 
 			expect( state.value ).to.equal( 0 );
-		} );	
+		} );
 
-		it( 'sync sync async', async ( ) =>
+		it( "sync sync async", async ( ) =>
 		{
 			const state = makeState( );
 			const wrapper = makeWrapper( state, true, false );
@@ -2072,9 +2076,9 @@ describe( 'wrapFunction', ( ) =>
 			await swallowException( ( ) => wrapper( throwSync ) );
 
 			expect( state.value ).to.equal( 0 );
-		} );	
+		} );
 
-		it( 'async sync async', async ( ) =>
+		it( "async sync async", async ( ) =>
 		{
 			const state = makeState( );
 			const wrapper = makeWrapper( state, false, false );
@@ -2082,9 +2086,9 @@ describe( 'wrapFunction', ( ) =>
 			await swallowException( ( ) => wrapper( throwSync ) );
 
 			expect( state.value ).to.equal( 0 );
-		} );	
+		} );
 
-		it( 'sync async async', async ( ) =>
+		it( "sync async async", async ( ) =>
 		{
 			const state = makeState( );
 			const wrapper = makeWrapper( state, true, false );
@@ -2092,9 +2096,9 @@ describe( 'wrapFunction', ( ) =>
 			await swallowException( ( ) => wrapper( throwAsync ) );
 
 			expect( state.value ).to.equal( 0 );
-		} );	
+		} );
 
-		it( 'async async async', async ( ) =>
+		it( "async async async", async ( ) =>
 		{
 			const state = makeState( );
 			const wrapper = makeWrapper( state, false, false );
@@ -2102,6 +2106,6 @@ describe( 'wrapFunction', ( ) =>
 			await swallowException( ( ) => wrapper( throwAsync ) );
 
 			expect( state.value ).to.equal( 0 );
-		} );	
+		} );
 	} );
 } );

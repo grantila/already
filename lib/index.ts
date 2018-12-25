@@ -1,27 +1,25 @@
-'use strict'
-
-import throat = require( 'throat' );
+import throat = require( "throat" );
 
 export default {
+	Finally,
+	Try,
+	defer,
 	delay,
 	delayChain,
-	finallyDelay,
-	finally: Finally,
-	Finally,
-	tap,
-	props,
-	filter,
-	map,
-	reduce,
 	each,
-	some,
-	defer,
+	filter,
+	finally: Finally,
+	finallyDelay,
 	inspect,
-	Try,
-	specific,
+	map,
+	props,
+	reduce,
 	rethrow,
+	some,
+	specific,
+	tap,
 	wrapFunction,
-}
+};
 
 export function delay( milliseconds: number ): Promise< void >;
 export function delay< T >( milliseconds: number, t: T ): Promise< T >;
@@ -72,11 +70,10 @@ export function Finally( fn: ( ) => ( void | PromiseLike< void > ) )
 export function tap<
 	U,
 	Fn extends ( t: U ) => ( void | PromiseLike< void > )
->
-( fn: Fn )
+>( fn: Fn )
 : ( u: U ) => Promise< U >
 {
-	return async function( t: U ): Promise< U >
+	return async ( t: U ): Promise< U > =>
 	{
 		await fn( t );
 		return t;
@@ -90,7 +87,7 @@ export function props( obj: any ): Promise< any >
 
 	const awaiters = [ ];
 
-	for ( let prop of Object.keys( obj ) )
+	for ( const prop of Object.keys( obj ) )
 		awaiters.push(
 			Promise.resolve( obj[ prop ] )
 			.then( val => { ret[ prop ] = val; } )
@@ -106,9 +103,9 @@ export interface ConcurrencyOptions
 export type FilterMapOptions = Partial< ConcurrencyOptions >;
 const defaultFilterMapOptions: FilterMapOptions = { concurrency: Infinity };
 
-export type MapArray< T > = 
+export type MapArray< T > =
 	Array< T | PromiseLike< T > > |
-	ReadonlyArray< T | PromiseLike< T > >
+	ReadonlyArray< T | PromiseLike< T > >;
 
 export type MapFn< T, U > =
 	( t: T, index: number, arr: MapArray< T > ) =>
@@ -122,12 +119,12 @@ export function filter< T >( opts: FilterMapOptions, filterFn: FilterFn< T > )
 export function filter< T >(
 	arr: ReadonlyArray< T | PromiseLike< T > >,
 	filterFn: FilterFn< T >
-) : Promise< Array< T > >;
+): Promise< Array< T > >;
 export function filter< T >(
 	arr: ReadonlyArray< T | PromiseLike< T > >,
 	opts: FilterMapOptions,
 	filterFn: FilterFn< T >
-) : Promise< Array< T > >;
+): Promise< Array< T > >;
 
 export function filter< T >(
 	arr: ReadonlyArray< T | PromiseLike< T > > | FilterFn< T > | FilterMapOptions,
@@ -140,19 +137,19 @@ export function filter< T >(
 {
 	if ( Array.isArray( arr ) )
 	{
-		if ( typeof opts === 'function' )
+		if ( typeof opts === "function" )
 		{
 			filterFn = opts;
 			opts = defaultFilterMapOptions;
 		}
 		const intermediate =
-			filter( < FilterMapOptions >opts, < FilterFn< T > >filterFn )
+			filter( < FilterMapOptions >opts, < FilterFn< T > >filterFn );
 		return intermediate( arr );
 	}
 
-	filterFn = typeof arr === 'function' ? arr : < FilterFn< T > >opts;
+	filterFn = typeof arr === "function" ? arr : < FilterFn< T > >opts;
 	opts =
-		typeof arr === 'function'
+		typeof arr === "function"
 		? defaultFilterMapOptions
 		: < FilterMapOptions >arr;
 
@@ -161,7 +158,7 @@ export function filter< T >(
 			Promise.resolve( ( < FilterFn< T > >filterFn )( val, index, arr ) )
 			.then( ok => ( { ok, val } ) );
 
-	return function( t: ReadonlyArray< T | PromiseLike< T > > ): Promise< T[] >
+	return ( t: ReadonlyArray< T | PromiseLike< T > > ): Promise< Array< T > > =>
 	{
 		return map( < FilterMapOptions >opts, wrappedFilterFn )( t )
 		.then( values =>
@@ -169,7 +166,7 @@ export function filter< T >(
 			.filter( ( { ok } ) => ok )
 			.map( ( { val } ) => val )
 		);
-	}
+	};
 }
 
 export function map< T, U >( mapFn: MapFn< T, U > )
@@ -179,12 +176,12 @@ export function map< T, U >( opts: FilterMapOptions, mapFn: MapFn< T, U > )
 export function map< T, U >(
 	arr: ReadonlyArray< T | PromiseLike< T > >,
 	mapFn: MapFn< T, U >
-) : Promise< Array< U > >;
+): Promise< Array< U > >;
 export function map< T, U >(
 	arr: ReadonlyArray< T | PromiseLike< T > >,
 	opts: FilterMapOptions,
 	mapFn: MapFn< T, U >
-) : Promise< Array< U > >;
+): Promise< Array< U > >;
 
 export function map< T, U >(
 	arr:
@@ -200,7 +197,7 @@ export function map< T, U >(
 {
 	if ( Array.isArray( arr ) )
 	{
-		if ( typeof opts === 'function' )
+		if ( typeof opts === "function" )
 		{
 			mapFn = opts;
 			opts = defaultFilterMapOptions;
@@ -208,9 +205,9 @@ export function map< T, U >(
 		return map( < FilterMapOptions >opts, < MapFn< T, U > >mapFn )( arr );
 	}
 
-	mapFn = typeof arr === 'function' ? arr : < MapFn< T, U > >opts;
+	mapFn = typeof arr === "function" ? arr : < MapFn< T, U > >opts;
 	opts =
-		typeof arr === 'function'
+		typeof arr === "function"
 		? defaultFilterMapOptions
 		: < FilterMapOptions >arr;
 
@@ -222,8 +219,8 @@ export function map< T, U >(
 
 	const throated = throat( concurrency );
 
-	return function( t: ReadonlyArray< T | PromiseLike< T > > )
-	: Promise< Array< U > >
+	return ( t: ReadonlyArray< T | PromiseLike< T > > )
+	: Promise< Array< U > > =>
 	{
 		return Promise.resolve( t )
 		.then( ( values: ReadonlyArray< T | PromiseLike< T > > ) =>
@@ -286,14 +283,14 @@ export function reduce< T, R >(
 		Promise< R | undefined >
 	)
 {
-	if ( typeof input === 'function' )
+	if ( typeof input === "function" )
 	{
 		initialValue = < R >reducer;
 		const _reducer = < ReduceFunction< T, R > >input;
-		return async function< U extends SyncReduceInput< T > >( input: U )
+		return async < U extends SyncReduceInput< T > >( input: U ) =>
 		{
 			return reduceImpl( input, _reducer, initialValue );
-		}
+		};
 	}
 
 	return reduceImpl(
@@ -316,7 +313,7 @@ async function reduceImpl< T, R >(
 	if ( _input.length === 0 )
 		return _initialValue;
 
-	const usingInitialValue = typeof _initialValue !== 'undefined';
+	const usingInitialValue = typeof _initialValue !== "undefined";
 
 	const length = _input.length;
 	let index = usingInitialValue ? 0 : 1;
@@ -343,7 +340,7 @@ export function each< T >( eachFn: EachFn< T > )
 export function each< T >(
 	arr: ReadonlyArray< T | PromiseLike< T > >,
 	eachFn: EachFn< T >
-) : Promise< Array< T > >;
+): Promise< Array< T > >;
 
 export function each< T >(
 	arr: ReadonlyArray< T | PromiseLike< T > > | EachFn< T >,
@@ -361,8 +358,8 @@ export function each< T >(
 export function eachImpl< T >( eachFn: EachFn< T > )
 : ( t: ReadonlyArray< T | PromiseLike< T > > ) => Promise< Array< T > >
 {
-	return async function( arr: ReadonlyArray< T | PromiseLike< T > > )
-	: Promise< Array< T > >
+	return async ( arr: ReadonlyArray< T | PromiseLike< T > > )
+	: Promise< Array< T > > =>
 	{
 		const length = arr.length;
 
@@ -372,7 +369,7 @@ export function eachImpl< T >( eachFn: EachFn< T > )
 			return t;
 		}
 		return map( arr, { concurrency: 1 }, iterator );
-	}
+	};
 }
 
 
@@ -402,7 +399,7 @@ export function some< T, R >(
 	|
 	( ( list: SomeArray< T > ) => SomeReturn< R > )
 {
-	if ( typeof list === 'function' )
+	if ( typeof list === "function" )
 	{
 		fn = list;
 		return ( list: SomeArray< T > ) =>
@@ -420,9 +417,9 @@ async function someImpl< T, R >(
 {
 	const _list = await list;
 
-	for ( let i = 0; i < _list.length; ++i )
+	for ( const val of _list )
 	{
-		const ret = await fn( await _list[ i ] );
+		const ret = await fn( await val );
 		if ( ret )
 			return ret;
 	}
@@ -469,14 +466,14 @@ export interface ResolvedReflection< T >
 	value: T;
 	isResolved: true;
 	isRejected: false;
-};
+}
 export interface RejectedReflection
 {
 	error: Error;
 	value?: void;
 	isResolved: false;
 	isRejected: true;
-};
+}
 
 export type Reflection< T > = ResolvedReflection< T > | RejectedReflection;
 
@@ -488,9 +485,9 @@ export function reflect< T >( promise: Promise< T > )
 	function handleResolution( value: T ): ResolvedReflection< T >
 	{
 		return {
-			value,
-			isResolved: true,
 			isRejected: false,
+			isResolved: true,
+			value,
 		};
 	}
 
@@ -498,8 +495,8 @@ export function reflect< T >( promise: Promise< T > )
 	{
 		return {
 			error,
-			isResolved: false,
 			isRejected: true,
+			isResolved: false,
 		};
 	}
 
@@ -515,13 +512,13 @@ export interface InspectablePromise< T >
 	isRejected: boolean;
 	isPending: boolean;
 }
-export function inspect< T >( promise: Promise< T > ) : InspectablePromise< T >
+export function inspect< T >( promise: Promise< T > ): InspectablePromise< T >
 {
 	const inspectable: InspectablePromise< T > = {
-		promise: < any >void 0,
-		isResolved: false,
-		isRejected: false,
 		isPending: true,
+		isRejected: false,
+		isResolved: false,
+		promise: < any >void 0,
 	};
 
 	inspectable.promise = promise.then( value =>
@@ -548,7 +545,10 @@ export async function Try< T >( cb: ( ) => T ): Promise< T >
 
 
 export type ErrorFilterFunction = ( err: Error ) => boolean;
-export type ErrorFilterObject = { [ key: string ]: any };
+export interface ErrorFilterObject
+{
+	[ key: string ]: any;
+}
 
 export type CatchFilter =
 	ErrorConstructor |
@@ -588,7 +588,7 @@ function catchFilter(
 			const obj = < ErrorFilterObject >filter;
 
 			for ( const key of Object.keys( obj ) )
-				if ( obj[ key ] != ( < any >err )[ key ] )
+				if ( obj[ key ] !== ( < any >err )[ key ] )
 					return false;
 			return true;
 		}
@@ -615,13 +615,13 @@ export function specific< T >(
 )
 : ( err: Error ) => ( T | Promise< T > )
 {
-	return function( err: Error )
+	return ( err: Error ) =>
 	{
 		if ( !catchFilter( filters, err ) )
 			throw err;
 
 		return handler( err );
-	}
+	};
 }
 
 
@@ -629,21 +629,21 @@ export function rethrow< T extends Error = any >(
 	fn: ( err?: T ) => ( void | PromiseLike< void > )
 )
 {
-	return async function( err: T )
+	return async ( err: T ) =>
 	{
 		await fn( err );
 		throw err;
-	}
+	};
 }
 
 export function wrapFunction< R extends void >(
 	wrap: ( ) => ( ) => R
 ): (
-	< U extends void,V extends Promise< U > | U >( cb: ( ) => V ) => V
+	< U extends void, V extends Promise< U > | U >( cb: ( ) => V ) => V
 ) & (
 	< U extends any, V extends Promise< U > | U >( cb: ( ) => V ) => V
 );
-export function wrapFunction< T extends {}, R extends void >(
+export function wrapFunction< T extends { }, R extends void >(
 	wrap: ( t: T ) => ( ) => R
 ): (
 	< U extends void, V extends Promise< U > | U >( t: T, cb: ( ) => V ) => V
@@ -669,25 +669,17 @@ export function wrapFunction< T, R extends void >(
 		Promise< U >
 );
 export function wrapFunction< R extends Promise< void > >(
-	wrap: ( ) => ( ) => R
+	wrap: ( ) => ( ( ) => R ) | Promise< ( ) => R >
 ): < U, V extends Promise< U > | U >( cb: ( ) => V ) => Promise< U >;
 export function wrapFunction< T, R extends Promise< void > >(
-	wrap: ( t: T ) => ( ) => R
-): < U, V extends Promise< U > | U >( t: T, cb: ( ) => V ) => Promise< U >;
-export function wrapFunction< R extends Promise< void > >(
-	wrap: ( ) => Promise< ( ) => R >
-): < U, V extends Promise< U > | U >( cb: ( ) => V ) => Promise< U >;
-export function wrapFunction< T, R extends Promise< void > >(
-	wrap: ( t: T ) => Promise< ( ) => R >
+	wrap: ( t: T ) => ( ( ) => R ) | Promise< ( ) => R >
 ): < U, V extends Promise< U > | U >( t: T, cb: ( ) => V ) => Promise< U >;
 
 export function wrapFunction< T, R extends Promise< void > | void >(
 	wrap:
-		( ( t: T ) => Promise< ( ) => R > ) |
-		( ( t: T ) => ( ) => R ) |
-		( ( ) => Promise< ( ) => R > ) |
-		( ( ) => ( ) => R )
- ):
+		( ( t: T ) => ( ( ) => R ) | Promise< ( ) => R > ) |
+		( ( ) => ( ( ) => R ) | Promise< ( ) => R > )
+):
 	( < U, V extends Promise< U > | U >( t: T, cb: ( ) => V ) => any )
 	|
 	(
@@ -695,6 +687,7 @@ export function wrapFunction< T, R extends Promise< void > | void >(
 			Promise< U > | U | V
 	)
 {
+	// tslint:disable-next-line
 	return function< U, V extends Promise< U > | U >(
 		t: T | ( ( ) => U ), cb: ( ) => V
 	)
@@ -712,9 +705,9 @@ export function wrapFunction< T, R extends Promise< void > | void >(
 
 		const anyCleanup = (<( t: T ) => any>wrap)( < T >t );
 
-		const callCleanup = < Fun extends Function >( cleanup: Fun ) =>
+		const callCleanup = < W >( cleanup?: ( ) => W ) =>
 		{
-			if ( typeof cleanup === 'function' )
+			if ( typeof cleanup === "function" )
 				return cleanup( );
 			else if ( cleanup != null )
 				// Allow 'before' to just return null/undefined, but non-empty
@@ -726,7 +719,7 @@ export function wrapFunction< T, R extends Promise< void > | void >(
 
 		if (
 			anyCleanup &&
-			typeof ( < Promise< ( ( ) => R ) > >anyCleanup ).then === 'function'
+			typeof ( < Promise< ( ( ) => R ) > >anyCleanup ).then === "function"
 		)
 		{
 			let doCleanup: ( ) => void;
@@ -756,7 +749,7 @@ export function wrapFunction< T, R extends Promise< void > | void >(
 
 				if (
 					cleanupRet &&
-					typeof ( < Promise< void > >cleanupRet ).then === 'function'
+					typeof ( < Promise< void > >cleanupRet ).then === "function"
 				)
 				{
 					return < Promise< U > >( < Promise< void > >cleanupRet )
@@ -767,7 +760,7 @@ export function wrapFunction< T, R extends Promise< void > | void >(
 			}
 
 			if (
-				cbRet && typeof ( < Promise< U > >cbRet ).then === 'function'
+				cbRet && typeof ( < Promise< U > >cbRet ).then === "function"
 			)
 			{
 				return < Promise< U > >( < Promise< U > >cbRet )
@@ -776,7 +769,7 @@ export function wrapFunction< T, R extends Promise< void > | void >(
 				const cleanupRet = callCleanup( cleanup );
 				if (
 					cleanupRet &&
-					typeof ( < Promise< void > >cleanupRet ).then === 'function'
+					typeof ( < Promise< void > >cleanupRet ).then === "function"
 				)
 				{
 					return < Promise< U > >( < Promise< void > >cleanupRet )
@@ -786,5 +779,5 @@ export function wrapFunction< T, R extends Promise< void > | void >(
 				}
 			}
 		}
-	}
+	};
 }

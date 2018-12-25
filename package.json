@@ -16,8 +16,9 @@
   "main": "./dist/index.js",
   "scripts": {
     "build": "scripts/build.sh",
+    "lint": "node_modules/.bin/tslint --project .",
     "mocha": "node_modules/.bin/mocha --bail --check-leaks",
-    "test": "node_modules/.bin/nyc npm run mocha",
+    "test": "npm run lint && node_modules/.bin/nyc npm run mocha",
     "buildtest": "npm run build && npm run test",
     "coverage": "node_modules/.bin/nyc report --reporter=html",
     "travis-deploy-once": "travis-deploy-once",
@@ -57,6 +58,7 @@
     "sinon": "7.x",
     "source-map-support": "0.x",
     "travis-deploy-once": "5.x",
+    "tslint": "5.x",
     "typescript": "3.x"
   },
   "dependencies": {
