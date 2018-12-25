@@ -32,6 +32,7 @@
     "promise",
     "extensions",
     "utilities",
+    "concurrent",
     "finally",
     "map",
     "filter",

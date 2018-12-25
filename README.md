@@ -2,6 +2,7 @@
 [![build status][travis-image]][travis-url]
 [![coverage status][coverage-image]][coverage-url]
 [![greenkeeper badge][greenkeeper-image]][greenkeeper-url]
+[![Language grade: JavaScript][lgtm-image]][lgtm-url]
 
 # Already
 
@@ -543,3 +544,5 @@ expect( ret ).to.equal( "yo" );
 [coverage-url]: https://coveralls.io/github/grantila/already?branch=master
 [greenkeeper-image]: https://badges.greenkeeper.io/grantila/already.svg
 [greenkeeper-url]: https://greenkeeper.io/
+[lgtm-image]: https://img.shields.io/lgtm/grade/javascript/g/grantila/already.svg?logo=lgtm&logoWidth=18
+[lgtm-url]: https://lgtm.com/projects/g/grantila/already/context:javascript
