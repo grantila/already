@@ -1975,6 +1975,29 @@ describe( "wrapFunction", ( ) =>
 		expect( before.args ).to.deep.equal( [ [ "foo" ] ] );
 	} );
 
+	it( 'Async throw in "before"', async ( ) =>
+	{
+		const before = makeSpy(
+			( s: string ) => Promise.reject( new Error( "foobar" ) )
+		);
+
+		await (async ( ) =>
+		{
+			try
+			{
+				await ( wrapFunction( before ) )
+					( "foo", ( ) => Promise.resolve( 42 ) );
+				expect( false ).to.be.true;
+			}
+			catch ( err )
+			{
+				expect( err.message ).to.equal( "foobar" );
+			}
+		} )( );
+
+		expect( before.args ).to.deep.equal( [ [ "foo" ] ] );
+	} );
+
 	describe( "Cleanup on exceptions", ( ) =>
 	{
 		interface State { value: number; inc( ): void; dec( ): void; }
