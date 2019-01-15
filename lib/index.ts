@@ -10,6 +10,7 @@ export default {
 	filter,
 	finally: Finally,
 	finallyDelay,
+	funnel,
 	inspect,
 	map,
 	props,
@@ -779,5 +780,140 @@ export function wrapFunction< T, R extends Promise< void > | void >(
 				}
 			}
 		}
+	};
+}
+
+
+export type FunnelShouldRetry = ( ) => boolean;
+export type FunnelRetry< T, U extends Promise< T > > = ( ) => U;
+
+export type FunnelFunction< T, U extends Promise< T > = Promise< T > > =
+	( shouldRetry: FunnelShouldRetry, retry: FunnelRetry< T, U > ) => U;
+
+export type Funnel< T, U extends Promise< T > > =
+	( funnelFunction: FunnelFunction< T, U > ) => U;
+
+export interface FunnelOptions
+{
+	onComplete: ( ) => void;
+	fifo: boolean;
+}
+
+interface FunnelStore< T >
+{
+	ret: T;
+	call: FunnelCall< T >;
+}
+
+type FunnelCall< T > = Array< FunnelStore< T > >;
+
+export function funnel< T, U extends Promise< T > = Promise< T > >(
+	opts: Partial< FunnelOptions > = { }
+)
+: Funnel< T, U >
+{
+	const { onComplete = ( ) => { }, fifo = true } = ( opts || { } );
+
+	const _onComplete = ( ) => onComplete && onComplete( );
+
+	const waiters: Array< FunnelStore< U > > = [ ];
+	const retryers = new WeakMap< FunnelStore< U >, ( ) => void >( );
+	const stores = new Set< FunnelStore< U > >( );
+
+	const waitFor = ( t: FunnelStore< U > ) =>
+	{
+		waiters.push( t );
+	};
+
+	const hasSiblingFirst = ( store: FunnelStore< U > ) =>
+	{
+		if ( waiters.length === 0 )
+			return false;
+		const firstStoreInCall = store.call[ 0 ];
+		return waiters[ 0 ] === firstStoreInCall;
+	};
+
+	const completeStore = ( store: FunnelStore< U > ) =>
+	{
+		const indexCall = store.call.indexOf( store );
+		store.call.splice( indexCall, 1 );
+
+		const indexWaiters = waiters.indexOf( store );
+		waiters.splice( indexWaiters, 1 );
+
+		stores.delete( store );
+
+		return store.call.length === 0;
+	};
+
+	const triggerWaiter = ( ) =>
+	{
+		if ( waiters.length === 0 && stores.size === 0 )
+			_onComplete( );
+		else
+		{
+			const first = waiters[ 0 ];
+			const nextRetryer = retryers.get( first );
+			nextRetryer && nextRetryer( );
+		}
+	};
+
+	const finalizeRetry = ( store: FunnelStore< U > ) =>
+	{
+		const completed = completeStore( store );
+		if ( completed )
+			triggerWaiter( );
+	};
+
+	const runner = ( fn: FunnelFunction< T, U >, call: FunnelCall< U > ) =>
+	{
+		const store: FunnelStore< U > = < FunnelStore< U > >{ call };
+		call.push( store );
+		stores.add( store );
+
+		const shouldRetry: FunnelShouldRetry = ( ) =>
+		{
+			const firstAndOnly = waiters.length === 0;
+			const firstInQueue = hasSiblingFirst( store );
+			const result = firstAndOnly || firstInQueue;
+
+			if ( result && !fifo )
+				waitFor( store );
+
+			if ( result )
+				// If first in queue, schedule waiting for the return promise
+				// to trigger the rest of the queue.
+				store.ret.then( ...Finally( ( ) => finalizeRetry( store ) ) );
+
+			return !result;
+		};
+
+		const retry: FunnelRetry< T, U > = ( ) =>
+		{
+			const deferred = defer< T >( );
+			const retryer = ( ) => deferred.resolve( runner( fn, call ) );
+
+			retryers.set( store, retryer );
+
+			if ( !fifo )
+				waitFor( store );
+
+			// When retrying, when the final result is finally complete, it's
+			// always first in queue.
+			deferred.promise.then( ...Finally( ( ) => finalizeRetry( store ) ) );
+
+			return < U >deferred.promise;
+		};
+
+		if ( fifo )
+			waitFor( store );
+
+		store.ret = fn( shouldRetry, retry );
+		return store.ret;
+	};
+
+	return ( fn: FunnelFunction< T, U > ) =>
+	{
+		return runner( fn, [ ] );
 	};
 }

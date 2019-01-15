@@ -30,6 +30,7 @@ This library is written in TypeScript but is exposed as ES7 (if imported as `alr
   * [specific](#specific)
   * [rethrow](#rethrow)
   * [wrapFunction](#wrapfunction)
+  * [funnel](#funnel)
 
 
 ## delay
@@ -534,6 +535,66 @@ expect( ret ).to.equal( "yo" );
 // useful
 // after
 ```
+
+
+## funnel
+
+Ensuring exclusive calls to a function can be implemented in multiple ways. With asynchrony, this gets quite complicated.
+
+Many problems can be generalized to testing whether the exlusive function should be called or not, and then exlusively calling it, and after having called it, still exclusively finish with (potentially asynchronous) work.
+
+For this, `funnel()` is extremely handy.
+
+Consider the following example
+
+```ts
+async function getConnection( )
+{
+    const conn = await getReusableConnection( );
+    if ( conn ) // We have a re-usable connection or will wait for one to be free
+        return conn;
+
+    // We can create (at least) 1 more connection, but maybe only 1
+    const conn = await connect( );
+    registerToConnectionPool( conn ); // This is now re-usable
+    return conn;
+}
+```
+
+The above is a connection pool, we might only want a certain number of connections. In this simple example, we can make a counter and check its value, but sometimes the counter isn't static, sometimes asynchronous "questions" must be asked in order to know whether to proceed or not.
+
+Is the above code safe? It isn't. Two synchronously immediate calls to `getConnection` will likely get the same answer from `getReusableConnection`, i.e. *falsy*. This means, they'll both call `connect`, although maybe just one should have done so, then `registerToConnectionPool` while the other should retry `getConnection` from scratch to see if a connection can be re-used.
+
+`funnel` makes this trivial. Wrap the function in a funnel, where the synchronization barrier is, possibly retry:
+
+```ts
+const connectionFunnel = funnel< Connection >( );
+// Or if pure JavaScript, just:
+// const connectionFunnel = funnel( );
+
+async function getConnection( )
+{
+    return connectionFunnel( async ( shouldRetry, retry ) =>
+    {
+        const conn = await getReusableConnection( );
+        if ( conn ) // We have a re-usable connection or will wait for one to be free
+            return conn;
+
+        if ( shouldRetry( ) ) // <-- this and
+            return retry( );  // <-- this, is the key
+
+        // We can create (at least) 1 more connection, but maybe only 1
+        const conn = await connect( );
+        registerToConnectionPool( conn ); // This is now re-usable
+        return conn;
+    } );
+}
+```
+
+When creating a funnel, an options object can be provided with two options:
+
+ * `onComplete` [`callback`]: will be called when the last concurrent has finished. This can be used for cleanup.
+ * `fifo` [`boolean`]: Specifies whether multiple calls to `shouldRetry` should flow through in the order they came in. (Defaults to `true`).
 
 
 [npm-image]: https://img.shields.io/npm/v/already.svg

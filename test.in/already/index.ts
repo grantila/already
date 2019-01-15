@@ -1921,7 +1921,7 @@ describe( "wrapFunction", ( ) =>
 		const after = makeSpy( ( ) => Promise.resolve( ) );
 		const before = makeSpy( ( s: string ) => Promise.resolve( after ) );
 
-		await (async ( ) =>
+		await ( async ( ) =>
 		{
 			try
 			{
@@ -1956,7 +1956,7 @@ describe( "wrapFunction", ( ) =>
 	{
 		const before = makeSpy( ( s: string ) => < ( ) => { } >< any >"bad" );
 
-		await (async ( ) =>
+		await ( async ( ) =>
 		{
 			try
 			{
@@ -1981,7 +1981,7 @@ describe( "wrapFunction", ( ) =>
 			( s: string ) => Promise.reject( new Error( "foobar" ) )
 		);
 
-		await (async ( ) =>
+		await ( async ( ) =>
 		{
 			try
 			{
