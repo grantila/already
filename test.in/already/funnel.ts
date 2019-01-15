@@ -5,23 +5,9 @@ import * as sinon from "sinon";
 import {
 	defer,
 	delay,
-	// each,
-	// filter,
-	// Finally,
-	// finallyDelay,
 	funnel,
 	FunnelFunction,
-	// inspect,
-	// map,
-	// props,
-	// reduce,
-	// reflect,
-	// rethrow,
-	// some,
-	// specific,
-	// tap,
-	// Try,
-	// wrapFunction,
+	Funnel,
 } from "../../";
 
 // tslint:disable:no-console
@@ -70,7 +56,8 @@ describe( "funnel", ( ) =>
 		it( "only one job", async ( ) =>
 		{
 			const onComplete = sinon.spy( );
-			const fun = funnel< number >( { fifo, onComplete } );
+			const fun: Funnel< number > =
+				funnel< number >( { fifo, onComplete } );
 
 			const value = await fun( async ( shouldRetry, retry ) =>
 			{

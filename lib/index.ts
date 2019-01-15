@@ -790,7 +790,7 @@ export type FunnelRetry< T, U extends Promise< T > > = ( ) => U;
 export type FunnelFunction< T, U extends Promise< T > = Promise< T > > =
 	( shouldRetry: FunnelShouldRetry, retry: FunnelRetry< T, U > ) => U;
 
-export type Funnel< T, U extends Promise< T > > =
+export type Funnel< T, U extends Promise< T > = Promise< T > > =
 	( funnelFunction: FunnelFunction< T, U > ) => U;
 
 export interface FunnelOptions
