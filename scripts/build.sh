@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 rm -rf dist es5 test
 
 node_modules/.bin/tsc -p . --module commonjs -t esnext --outDir dist
