@@ -4,6 +4,7 @@ import * as sinon from "sinon";
 
 import {
 	defer,
+	deferInspectable,
 	delay,
 	delayChain,
 	each,
@@ -26,6 +27,7 @@ import {
 const fooError = "foo error";
 const fooValue = 4711;
 const barValue = 17;
+
 
 describe( "finally", ( ) =>
 {
@@ -63,6 +65,7 @@ describe( "finally", ( ) =>
 		} );
 	} );
 } );
+
 
 describe( "finallyDelay", ( ) =>
 {
@@ -102,6 +105,7 @@ describe( "finallyDelay", ( ) =>
 		} );
 	} );
 } );
+
 
 describe( "tap", ( ) =>
 {
@@ -153,6 +157,7 @@ describe( "tap", ( ) =>
 	} );
 } );
 
+
 describe( "props", ( ) =>
 {
 	it( "should work as standalone call", async ( ) =>
@@ -171,6 +176,7 @@ describe( "props", ( ) =>
 		expect( val ).to.deep.equal( { a: 1, b: 2 } );
 	} );
 } );
+
 
 describe( "filter", ( ) =>
 {
@@ -298,6 +304,7 @@ describe( "filter", ( ) =>
 		expect( arr2 ).to.deep.equal( [ 2, 4 ] );
 	} );
 } );
+
 
 describe( "map", ( ) =>
 {
@@ -435,6 +442,7 @@ describe( "map", ( ) =>
 	} );
 } );
 
+
 describe( "reduce", ( ) =>
 {
 	function reduceAdd( acc: number, cur: number )
@@ -547,6 +555,7 @@ describe( "reduce", ( ) =>
 		expect( await makeLessThan( 4 ) ).to.equal( true );
 	} );
 } );
+
 
 describe( "each", ( ) =>
 {
@@ -770,6 +779,7 @@ describe( "each", ( ) =>
 		} );
 	} );
 } );
+
 
 describe( "some", ( ) =>
 {
@@ -1057,6 +1067,7 @@ describe( "some", ( ) =>
 	} );
 } );
 
+
 describe( "defer", ( ) =>
 {
 	it( "should work with undefined and no resolve argument", async ( ) =>
@@ -1107,6 +1118,7 @@ describe( "defer", ( ) =>
 		} );
 	} );
 } );
+
 
 describe( "reflect", ( ) =>
 {
@@ -1166,6 +1178,7 @@ describe( "reflect", ( ) =>
 		expect( error ).to.equal( fooError );
 	} );
 } );
+
 
 describe( "inspect", ( ) =>
 {
@@ -1240,6 +1253,122 @@ describe( "inspect", ( ) =>
 	} );
 } );
 
+
+describe( "deferInspectable", ( ) =>
+{
+	it( "should resolve and reject", async ( ) =>
+	{
+		const deferredRes = deferInspectable< string >( );
+		const deferredRej = deferInspectable< string >( );
+
+		expect( deferredRes.isPending ).to.be.true;
+		expect( deferredRes.isResolved ).to.be.false;
+		expect( deferredRes.isRejected ).to.be.false;
+		expect( deferredRej.isPending ).to.be.true;
+		expect( deferredRej.isResolved ).to.be.false;
+		expect( deferredRej.isRejected ).to.be.false;
+
+		deferredRes.resolve( "foo" );
+		deferredRej.reject( new Error( "err" ) );
+
+		expect( deferredRes.isPending ).to.be.false;
+		expect( deferredRes.isResolved ).to.be.true;
+		expect( deferredRes.isRejected ).to.be.false;
+		expect( deferredRej.isPending ).to.be.false;
+		expect( deferredRej.isResolved ).to.be.false;
+		expect( deferredRej.isRejected ).to.be.true;
+
+		expect( await deferredRes.promise ).to.equal( "foo" );
+		expect( await deferredRej.promise.catch( err => err.message ) )
+			.to.equal( "err" );
+	} );
+
+	it( "should not double-resolve or double-reject", async ( ) =>
+	{
+		const deferredRes = deferInspectable< string >( );
+		const deferredRej = deferInspectable< string >( );
+
+		expect( deferredRes.isPending ).to.be.true;
+		expect( deferredRes.isResolved ).to.be.false;
+		expect( deferredRes.isRejected ).to.be.false;
+		expect( deferredRej.isPending ).to.be.true;
+		expect( deferredRej.isResolved ).to.be.false;
+		expect( deferredRej.isRejected ).to.be.false;
+
+		deferredRes.resolve( "foo" );
+		deferredRes.resolve( "bar" );
+		deferredRej.reject( new Error( "err" ) );
+		deferredRej.reject( new Error( "bork" ) );
+
+		expect( deferredRes.isPending ).to.be.false;
+		expect( deferredRes.isResolved ).to.be.true;
+		expect( deferredRes.isRejected ).to.be.false;
+		expect( deferredRej.isPending ).to.be.false;
+		expect( deferredRej.isResolved ).to.be.false;
+		expect( deferredRej.isRejected ).to.be.true;
+
+		expect( await deferredRes.promise ).to.equal( "foo" );
+		expect( await deferredRej.promise.catch( err => err.message ) )
+			.to.equal( "err" );
+	} );
+
+/*
+	it( "should work with resolving", async ( ) =>
+	{
+		const deferred = deferInspectable< string >( );
+
+		const inspectable = inspect( deferred.promise );
+
+		deferred.resolve( "" );
+
+		await delay( 1 );
+
+		expect( inspectable.isPending ).to.be.false;
+		expect( inspectable.isResolved ).to.be.true;
+		expect( inspectable.isRejected ).to.be.false;
+
+		return inspectable.promise;
+	} );
+
+	it( "should work with rejecting", async ( ) =>
+	{
+		const deferred = deferInspectable< string >( );
+
+		const inspectable = inspect( deferred.promise );
+
+		// Register catch handler before asynchronously rejecting upstream
+		// to avoid erroneous nodejs warning about unhandled rejections.
+		inspectable.promise.catch( err => { } );
+
+		deferred.reject( new Error( ) );
+
+		await delay( 1 );
+
+		expect( inspectable.isPending ).to.be.false;
+		expect( inspectable.isResolved ).to.be.false;
+		expect( inspectable.isRejected ).to.be.true;
+
+		return inspectable.promise.catch( err => { } );
+	} );
+
+	it( "should be settled after {await}", async ( ) =>
+	{
+		const deferred = deferInspectable< string >( );
+
+		deferred.resolve( "" );
+
+		const inspectable = await inspect( deferred.promise );
+
+		expect( inspectable.isPending ).to.be.false;
+		expect( inspectable.isResolved ).to.be.true;
+		expect( inspectable.isRejected ).to.be.false;
+
+		return inspectable.promise;
+	} );
+*/
+} );
+
+
 describe( "try", ( ) =>
 {
 	it( "should work without return value", async ( ) =>
@@ -1284,6 +1413,7 @@ describe( "try", ( ) =>
 		}
 	} );
 } );
+
 
 describe( "specific", ( ) =>
 {
@@ -1497,6 +1627,7 @@ describe( "specific", ( ) =>
 	} );
 } );
 
+
 describe( "rethrow", ( ) =>
 {
 	it( "should rethrow error on synchronous callback", async ( ) =>
@@ -1583,6 +1714,7 @@ describe( "rethrow", ( ) =>
 		sinon.assert.calledWith( spy2, err2 );
 	} );
 } );
+
 
 describe( "wrapFunction", ( ) =>
 {

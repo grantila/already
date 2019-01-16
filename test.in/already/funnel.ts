@@ -278,6 +278,46 @@ describe( "funnel", ( ) =>
 		expect( args ).to.deep.equal( [ "2 a", "2 b", "1 a", "1 b", "2 c" ] );
 	} );
 
+	it( "two jobs, shortcut before retry", async ( ) =>
+	{
+		const parts = sinon.spy( );
+		const fun = funnel< number >( { onComplete: < any >null, fifo: false } );
+
+		const eventualValue1 =
+			fun( makePredicate< number >(
+				maker( parts, "1 a", 10 ),
+				maker( parts, "1 b", 5 ),
+				1
+			) );
+
+		const eventualValue2 =
+			fun( async ( shouldRetry, retry, shortcut ) =>
+			{
+				await delay( 1 );
+				parts( "2 a" );
+
+				shortcut( );
+
+				if ( shouldRetry( ) )
+					return retry( );
+
+				parts( "2 b" );
+				await delay( 1 );
+				parts( "2 c" );
+
+				return 2;
+			} );
+
+		const value1 = await eventualValue1;
+		const value2 = await eventualValue2;
+
+		const args = ( < Array< string > >[ ] ).concat( ...parts.args );
+
+		expect( value1 ).to.equal( 1 );
+		expect( value2 ).to.equal( 2 );
+		expect( args ).to.deep.equal( [ "2 a", "2 b", "2 c", "1 a", "1 b" ] );
+	} );
+
 	it( "two jobs, retry in sync", async ( ) =>
 	{
 		const parts = sinon.spy( );

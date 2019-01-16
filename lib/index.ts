@@ -428,7 +428,6 @@ async function someImpl< T, R >(
 	return false;
 }
 
-
 export interface Deferred< T >
 {
 	resolve: ( t: T | PromiseLike< T > ) => void;
@@ -536,6 +535,52 @@ export function inspect< T >( promise: Promise< T > ): InspectablePromise< T >
 	} );
 
 	return inspectable;
+}
+
+
+export type DeferredInspectable< T > =
+	InspectablePromise< T > & Deferred< T >;
+export type EmptyDeferredInspectable =
+	InspectablePromise< void > & EmptyDeferred;
+
+/**
+ * Creates a defer object used to pass around a promise and its resolver
+ */
+export function deferInspectable< T >( ): DeferredInspectable< T >;
+export function deferInspectable( v: void ): EmptyDeferredInspectable;
+
+export function deferInspectable< T = void >( ): DeferredInspectable< T >
+{
+	const deferred = defer< T >( );
+
+	const ret: DeferredInspectable< T > = {
+		isPending: true,
+		isRejected: false,
+		isResolved: false,
+		promise: deferred.promise,
+		resolve( t: T | PromiseLike< T > )
+		{
+			if ( !ret.isPending )
+				return;
+
+			deferred.resolve( t );
+			ret.isPending = false;
+			ret.isRejected = false;
+			ret.isResolved = true;
+		},
+		reject( err: Error )
+		{
+			if ( !ret.isPending )
+				return;
+
+			deferred.reject( err );
+			ret.isPending = false;
+			ret.isRejected = true;
+			ret.isResolved = false;
+		},
+	};
+
+	return ret;
 }
 
 

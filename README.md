@@ -355,6 +355,25 @@ const inspectable = await inspect( somePromise );
 ```
 
 
+## deferInspectable
+
+A combination of `defer` and `inspect` is sometimes useful, where `deferInspectable` comes in handy.
+
+```ts
+import { deferInspectable } from 'already'
+
+const deferred = deferInspectable( somePromise );
+deferred.promise    // The promise.
+deferred.resolve;   // The resolve function.
+deferred.reject;    // The reject function.
+deferred.isPending  // <boolean>
+deferred.isResolved // <boolean>
+deferred.isRejected // <boolean>
+```
+
+Unlike `inspect`, the values are immediately correct, no `await` is necessary to settle the values. Also, when `resolve()` and `reject()` are called, the `is*` booleans are synchronously set.
+
+
 ## Try
 
 The `Try` takes a callback function as argument and calls it. It guarantees to return a promise containing the value returned from the callback. If the function throws an exception, this will be caught and used to reject the promise with. `Try` can therefore never throw itself.
@@ -555,19 +574,21 @@ async function getConnection( )
         return conn;
 
     // We can create (at least) 1 more connection, but maybe only 1
-    const conn = await connect( );
-    registerToConnectionPool( conn ); // This is now re-usable
-    return conn;
+    const newConn = await connect( );
+    registerToConnectionPool( newConn ); // This is now re-usable
+    return newConn;
 }
 ```
 
 The above is a connection pool, we might only want a certain number of connections. In this simple example, we can make a counter and check its value, but sometimes the counter isn't static, sometimes asynchronous "questions" must be asked in order to know whether to proceed or not.
 
-Is the above code safe? It isn't. Two synchronously immediate calls to `getConnection` will likely get the same answer from `getReusableConnection`, i.e. *falsy*. This means, they'll both call `connect`, although maybe just one should have done so, then `registerToConnectionPool` while the other should retry `getConnection` from scratch to see if a connection can be re-used.
+Is the above code safe? It isn't. Two synchronously immediate calls to `getConnection` will likely get the same answer from `getReusableConnection`, i.e. *falsy*. This means, they'll both call `connect`, although maybe just one should have done so. Only one should have created a connection, then `registerToConnectionPool` while the other should wait until the first is complete, then retry `getConnection` from scratch to see if a connection can be re-used.
 
-`funnel` makes this trivial. Wrap the function in a funnel, where the synchronization barrier is, possibly retry:
+`funnel` makes this trivial. Wrap the function in a funnel, and where the synchronization barrier is possibly retry:
 
 ```ts
+import { funnel } from "already";
+
 const connectionFunnel = funnel< Connection >( );
 // Or if pure JavaScript, just:
 // const connectionFunnel = funnel( );
@@ -584,19 +605,45 @@ async function getConnection( )
             return retry( );  // <-- this, is the key
 
         // We can create (at least) 1 more connection, but maybe only 1
-        const conn = await connect( );
-        registerToConnectionPool( conn ); // This is now re-usable
-        return conn;
+        const newConn = await connect( );
+        registerToConnectionPool( newConn ); // This is now re-usable
+        return newConn;
     } );
 }
 ```
 
 When creating a funnel, an options object can be provided with two options:
 
- * `onComplete` [`callback`]: will be called when the last concurrent has finished. This can be used for cleanup.
- * `fifo` [`boolean`]: Specifies whether multiple calls to `shouldRetry` should flow through in the order they came in. (Defaults to `true`).
+ * `onComplete` [`callback`]: will be called when the last concurrent task has finished. This can be used for cleanup.
+ * `fifo` [`boolean`]: Specifies whether calls to `shouldRetry` should flow through in the order they came in. (Defaults to `true`).
 
-The callback function to the funnel can take a third argument after `shouldRetry` and `retry`, which is a function called `shortcut`. This can be used to signal that the function is complete (in terms of synchronization) earlier than when its returned promise is resolved.
+The callback function to the funnel can take a third argument after `shouldRetry` and `retry`, which is a function called `shortcut`. This can be used to signal that the function is complete (in terms of synchronization) earlier than when its returned promise is resolved:
+
+```ts
+import { funnel } from "already";
+
+const onComplete = ( ) => console.log( "Concurrent tasks finished" );
+const connectionFunnel = funnel( { onComplete } );
+
+async function getConnection( )
+{
+    return connectionFunnel( async ( shouldRetry, retry, shortcut ) =>
+    {
+        const conn = await getReusableConnection( );
+        if ( conn )
+            return conn;
+
+        if ( shouldRetry( ) )
+            return retry( );
+
+        const newConn = await connect( );
+        registerToConnectionPool( newConn );
+        shortcut( ); // This will signal that synchronization is complete,
+                     // let concurrent tasks (if any) retry immediately.
+        return decorateConnection( newConn ); // Maybe slow
+    } );
+}
+```
 
 
 [npm-image]: https://img.shields.io/npm/v/already.svg
