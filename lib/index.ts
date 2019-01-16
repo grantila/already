@@ -539,6 +539,8 @@ export function inspect< T >( promise: Promise< T > ): InspectablePromise< T >
 }
 
 
+export async function Try< T, U extends Promise< T > >( cb: ( ) => U ): Promise< T >;
+export async function Try< T >( cb: ( ) => T ): Promise< T >;
 export async function Try< T >( cb: ( ) => T ): Promise< T >
 {
 	return cb( );
