@@ -790,7 +790,11 @@ export type FunnelShouldRetry = ( ) => boolean;
 export type FunnelRetry< T, U extends Promise< T > > = ( ) => U;
 
 export type FunnelFunction< T, U extends Promise< T > = Promise< T > > =
-	( shouldRetry: FunnelShouldRetry, retry: FunnelRetry< T, U > ) => U;
+	(
+		shouldRetry: FunnelShouldRetry,
+		retry: FunnelRetry< T, U >,
+		shortcut: ( ) => void
+	) => U;
 
 export type Funnel< T, U extends Promise< T > = Promise< T > > =
 	( funnelFunction: FunnelFunction< T, U > ) => U;
@@ -869,9 +873,24 @@ export function funnel< T, U extends Promise< T > = Promise< T > >(
 
 	const runner = ( fn: FunnelFunction< T, U >, call: FunnelCall< U > ) =>
 	{
-		const store: FunnelStore< U > = < FunnelStore< U > >{ call };
+		const fnDeferred = defer< T >( );
+		const store: FunnelStore< U > = {
+			call,
+			ret: < U >fnDeferred.promise,
+		};
 		call.push( store );
 		stores.add( store );
+
+		let hasPassedRetry = false;
+		let hasFinalized = false;
+		const finalize = ( ) =>
+		{
+			if ( hasFinalized )
+				return;
+			hasFinalized = true;
+
+			finalizeRetry( store );
+		};
 
 		const shouldRetry: FunnelShouldRetry = ( ) =>
 		{
@@ -883,9 +902,12 @@ export function funnel< T, U extends Promise< T > = Promise< T > >(
 				waitFor( store );
 
 			if ( result )
+			{
+				hasPassedRetry = true;
 				// If first in queue, schedule waiting for the return promise
 				// to trigger the rest of the queue.
-				store.ret.then( ...Finally( ( ) => finalizeRetry( store ) ) );
+				store.ret.then( ...Finally( finalize ) );
+			}
 
 			return !result;
 		};
@@ -900,17 +922,27 @@ export function funnel< T, U extends Promise< T > = Promise< T > >(
 			if ( !fifo )
 				waitFor( store );
 
+			hasPassedRetry = true;
+
 			// When retrying, when the final result is finally complete, it's
 			// always first in queue.
-			deferred.promise.then( ...Finally( ( ) => finalizeRetry( store ) ) );
+			deferred.promise.then( ...Finally( finalize ) );
 
 			return < U >deferred.promise;
+		};
+
+		const shortcut = ( ) =>
+		{
+			if ( hasPassedRetry )
+				finalize( );
 		};
 
 		if ( fifo )
 			waitFor( store );
 
-		store.ret = fn( shouldRetry, retry );
+		( < U >Try( ( ) => fn( shouldRetry, retry, shortcut ) ) )
+		.then( fnDeferred.resolve, fnDeferred.reject );
+
 		return store.ret;
 	};
 

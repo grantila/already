@@ -596,6 +596,8 @@ When creating a funnel, an options object can be provided with two options:
  * `onComplete` [`callback`]: will be called when the last concurrent has finished. This can be used for cleanup.
  * `fifo` [`boolean`]: Specifies whether multiple calls to `shouldRetry` should flow through in the order they came in. (Defaults to `true`).
 
+The callback function to the funnel can take a third argument after `shouldRetry` and `retry`, which is a function called `shortcut`. This can be used to signal that the function is complete (in terms of synchronization) earlier than when its returned promise is resolved.
+
 
 [npm-image]: https://img.shields.io/npm/v/already.svg
 [npm-url]: https://npmjs.org/package/already
