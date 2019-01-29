@@ -573,6 +573,20 @@ describe( "each", ( ) =>
 			expect( spy.callCount ).to.equal( 0 );
 		} );
 
+		it( "should iterate single-value array (inferred type)", async ( ) =>
+		{
+			const input = [ fooValue ];
+			const spy = sinon.spy( );
+
+			const foo = ( n: number ) => { };
+
+			each( input, x => { foo( x ); } ); // Type safety test
+			const arr = await each( input, spy );
+
+			expect( arr ).to.deep.equal( input );
+			expect( spy.args ).to.deep.equal( [ [ fooValue, 0, 1 ] ] );
+		} );
+
 		it( "should iterate single-value array", async ( ) =>
 		{
 			const input = [ fooValue ];

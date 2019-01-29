@@ -22,6 +22,17 @@ export default {
 	wrapFunction,
 };
 
+
+function toReadonlyArray< T >( arr: ConcatArray< T > ): ReadonlyArray< T >
+{
+	/* istanbul ignore else */
+	if ( typeof ( < ReadonlyArray< T > >arr ).map === "function" )
+		return < ReadonlyArray< T > >arr;
+	else
+		return Array.from( arr );
+}
+
+
 export function delay( milliseconds: number ): Promise< void >;
 export function delay< T >( milliseconds: number, t: T ): Promise< T >;
 
@@ -106,7 +117,7 @@ const defaultFilterMapOptions: FilterMapOptions = { concurrency: Infinity };
 
 export type MapArray< T > =
 	Array< T | PromiseLike< T > > |
-	ReadonlyArray< T | PromiseLike< T > >;
+	ConcatArray< T | PromiseLike< T > >;
 
 export type MapFn< T, U > =
 	( t: T, index: number, arr: MapArray< T > ) =>
@@ -114,26 +125,26 @@ export type MapFn< T, U > =
 export type FilterFn< T > = MapFn< T, boolean >;
 
 export function filter< T >( filterFn: FilterFn< T > )
-: ( t: ReadonlyArray< T | PromiseLike< T > > ) => Promise< Array< T > >;
+: ( t: ConcatArray< T | PromiseLike< T > > ) => Promise< Array< T > >;
 export function filter< T >( opts: FilterMapOptions, filterFn: FilterFn< T > )
-: ( t: ReadonlyArray< T | PromiseLike< T > > ) => Promise< Array< T > >;
+: ( t: ConcatArray< T | PromiseLike< T > > ) => Promise< Array< T > >;
 export function filter< T >(
-	arr: ReadonlyArray< T | PromiseLike< T > >,
+	arr: ConcatArray< T | PromiseLike< T > >,
 	filterFn: FilterFn< T >
 ): Promise< Array< T > >;
 export function filter< T >(
-	arr: ReadonlyArray< T | PromiseLike< T > >,
+	arr: ConcatArray< T | PromiseLike< T > >,
 	opts: FilterMapOptions,
 	filterFn: FilterFn< T >
 ): Promise< Array< T > >;
 
 export function filter< T >(
-	arr: ReadonlyArray< T | PromiseLike< T > > | FilterFn< T > | FilterMapOptions,
+	arr: ConcatArray< T | PromiseLike< T > > | FilterFn< T > | FilterMapOptions,
 	opts?: FilterFn< T > | FilterMapOptions,
 	filterFn?: FilterFn< T >
 )
 :
-	( ( t: ReadonlyArray< T | PromiseLike< T > > ) => Promise< Array< T > > ) |
+	( ( t: ConcatArray< T | PromiseLike< T > > ) => Promise< Array< T > > ) |
 	( Promise< Array< T > > )
 {
 	if ( Array.isArray( arr ) )
@@ -159,7 +170,7 @@ export function filter< T >(
 			Promise.resolve( ( < FilterFn< T > >filterFn )( val, index, arr ) )
 			.then( ok => ( { ok, val } ) );
 
-	return ( t: ReadonlyArray< T | PromiseLike< T > > ): Promise< Array< T > > =>
+	return ( t: ConcatArray< T | PromiseLike< T > > ): Promise< Array< T > > =>
 	{
 		return map( < FilterMapOptions >opts, wrappedFilterFn )( t )
 		.then( values =>
@@ -171,29 +182,29 @@ export function filter< T >(
 }
 
 export function map< T, U >( mapFn: MapFn< T, U > )
-: ( t: ReadonlyArray< T | PromiseLike< T > > ) => Promise< Array< U > >;
+: ( t: ConcatArray< T | PromiseLike< T > > ) => Promise< Array< U > >;
 export function map< T, U >( opts: FilterMapOptions, mapFn: MapFn< T, U > )
-: ( t: ReadonlyArray< T | PromiseLike< T > > ) => Promise< Array< U > >;
+: ( t: ConcatArray< T | PromiseLike< T > > ) => Promise< Array< U > >;
 export function map< T, U >(
-	arr: ReadonlyArray< T | PromiseLike< T > >,
+	arr: ConcatArray< T | PromiseLike< T > >,
 	mapFn: MapFn< T, U >
 ): Promise< Array< U > >;
 export function map< T, U >(
-	arr: ReadonlyArray< T | PromiseLike< T > >,
+	arr: ConcatArray< T | PromiseLike< T > >,
 	opts: FilterMapOptions,
 	mapFn: MapFn< T, U >
 ): Promise< Array< U > >;
 
 export function map< T, U >(
 	arr:
-		ReadonlyArray< T | PromiseLike< T > > |
+		ConcatArray< T | PromiseLike< T > > |
 		MapFn< T, U > |
 		FilterMapOptions,
 	opts?: MapFn< T, U > | FilterMapOptions,
 	mapFn?: MapFn< T, U >
 )
 :
-	( ( t: ReadonlyArray< T | PromiseLike< T > > ) => Promise< Array< U > > ) |
+	( ( t: ConcatArray< T | PromiseLike< T > > ) => Promise< Array< U > > ) |
 	( Promise< Array< U > > )
 {
 	if ( Array.isArray( arr ) )
@@ -215,17 +226,17 @@ export function map< T, U >(
 	const { concurrency = Infinity } = opts;
 
 	const promiseMapFn =
-		( t: T, index: number, arr: ReadonlyArray< T | PromiseLike< T > > ) =>
+		( t: T, index: number, arr: ConcatArray< T | PromiseLike< T > > ) =>
 			Promise.resolve( ( < MapFn< T, U > >mapFn )( t, index, arr ) );
 
 	const throated = throat( concurrency );
 
-	return ( t: ReadonlyArray< T | PromiseLike< T > > )
+	return ( t: ConcatArray< T | PromiseLike< T > > )
 	: Promise< Array< U > > =>
 	{
 		return Promise.resolve( t )
-		.then( ( values: ReadonlyArray< T | PromiseLike< T > > ) =>
-			values.map(
+		.then( ( values: ConcatArray< T | PromiseLike< T > > ) =>
+			toReadonlyArray( values ).map(
 				( val, index, arr ) =>
 					throated( ( ) => Promise.resolve( val ) )
 					.then( ( val: T ) =>
@@ -337,18 +348,18 @@ export type EachFn< T > =
 	( t: T, index: number, length: number ) => void | Promise< void >;
 
 export function each< T >( eachFn: EachFn< T > )
-: ( t: ReadonlyArray< T | PromiseLike< T > > ) => Promise< Array< T > >;
+: ( t: ConcatArray< T | PromiseLike< T > > ) => Promise< Array< T > >;
 export function each< T >(
-	arr: ReadonlyArray< T | PromiseLike< T > >,
+	arr: ConcatArray< T | PromiseLike< T > >,
 	eachFn: EachFn< T >
 ): Promise< Array< T > >;
 
 export function each< T >(
-	arr: ReadonlyArray< T | PromiseLike< T > > | EachFn< T >,
+	arr: ConcatArray< T | PromiseLike< T > > | EachFn< T >,
 	eachFn?: EachFn< T >
 )
 :
-	( ( t: ReadonlyArray< T | PromiseLike< T > > ) => Promise< Array< T > > ) |
+	( ( t: ConcatArray< T | PromiseLike< T > > ) => Promise< Array< T > > ) |
 	( Promise< Array< T > > )
 {
 	if ( Array.isArray( arr ) )
@@ -357,9 +368,9 @@ export function each< T >(
 }
 
 export function eachImpl< T >( eachFn: EachFn< T > )
-: ( t: ReadonlyArray< T | PromiseLike< T > > ) => Promise< Array< T > >
+: ( t: ConcatArray< T | PromiseLike< T > > ) => Promise< Array< T > >
 {
-	return async ( arr: ReadonlyArray< T | PromiseLike< T > > )
+	return async ( arr: ConcatArray< T | PromiseLike< T > > )
 	: Promise< Array< T > > =>
 	{
 		const length = arr.length;
@@ -378,9 +389,9 @@ export type SomeReturn< R > = Promise< R | false >;
 export type SomeSyncReturn< R > = SomeReturn< R > | R | false;
 export type SomePredicate< T, R > = ( t: T ) => SomeSyncReturn< R >;
 export type SomeArray< T > =
-	ReadonlyArray< T | PromiseLike< T > >
+	ConcatArray< T | PromiseLike< T > >
 	|
-	PromiseLike< ReadonlyArray< T | PromiseLike< T > > >;
+	PromiseLike< ConcatArray< T | PromiseLike< T > > >;
 
 export function some< T, R >(
 	list: SomeArray< T >,
@@ -416,7 +427,7 @@ async function someImpl< T, R >(
 )
 : Promise< R | false >
 {
-	const _list = await list;
+	const _list = toReadonlyArray( await list );
 
 	for ( const val of _list )
 	{
@@ -605,7 +616,7 @@ export type CatchFilter =
 
 // This logic is taken from Bluebird
 function catchFilter(
-	filters: CatchFilter | Array< CatchFilter > | null,
+	filters: CatchFilter | ConcatArray< CatchFilter > | null,
 	err: Error
 )
 : boolean
@@ -646,19 +657,19 @@ function catchFilter(
 }
 
 export function specific< T, U extends Promise< T > >(
-	filters: CatchFilter | Array< CatchFilter > | null,
+	filters: CatchFilter | ConcatArray< CatchFilter > | null,
 	handler: ( err: Error ) => U
 )
 : ( err: Error ) => ( U );
 
 export function specific< T >(
-	filters: CatchFilter | Array< CatchFilter > | null,
+	filters: CatchFilter | ConcatArray< CatchFilter > | null,
 	handler: ( err: Error ) => T
 )
 : ( err: Error ) => ( T | Promise< T > );
 
 export function specific< T >(
-	filters: CatchFilter | Array< CatchFilter > | null,
+	filters: CatchFilter | ConcatArray< CatchFilter > | null,
 	handler: ( err: Error ) => T
 )
 : ( err: Error ) => ( T | Promise< T > )
