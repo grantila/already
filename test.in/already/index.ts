@@ -620,7 +620,7 @@ describe( "each", ( ) =>
 			const order: Array< number > = [ ];
 			const input: Array< number > = [ ];
 			const spy = sinon.spy(
-				async ( a: string, index: number ) =>
+				async ( a: number, index: number ) =>
 				{
 					order.push( index );
 					await delay( 5 );
@@ -641,7 +641,7 @@ describe( "each", ( ) =>
 			const order: Array< number > = [ ];
 			const input = [ fooValue ];
 			const spy = sinon.spy(
-				async ( a: string, index: number ) =>
+				async ( a: number, index: number ) =>
 				{
 					order.push( index );
 					await delay( 5 );
@@ -662,7 +662,7 @@ describe( "each", ( ) =>
 			const order: Array< number > = [ ];
 			const input = [ fooValue, barValue, fooValue ];
 			const spy = sinon.spy(
-				async ( a: string, index: number ) =>
+				async ( a: number, index: number ) =>
 				{
 					order.push( index );
 					await delay( 5 );
@@ -751,7 +751,7 @@ describe( "each", ( ) =>
 			const order: Array< number > = [ ];
 			const input = Promise.resolve( [ fooValue ] );
 			const spy = sinon.spy(
-				async ( a: string, index: number ) =>
+				async ( a: number, index: number ) =>
 				{
 					order.push( index );
 					await delay( 5 );
@@ -772,7 +772,7 @@ describe( "each", ( ) =>
 			const order: Array< number > = [ ];
 			const input = Promise.resolve( [ fooValue, barValue, fooValue ] );
 			const spy = sinon.spy(
-				async ( a: string, index: number ) =>
+				async ( a: number, index: number ) =>
 				{
 					order.push( index );
 					await delay( 5 );
@@ -1735,12 +1735,13 @@ describe( "wrapFunction", ( ) =>
 	function makeSpy0< W >( fun: ( ) => W )
 	: sinon.SinonSpy & ( ( ) => W )
 	{
-		return < sinon.SinonSpy & ( ( ) => W ) >sinon.spy( fun );
+		return < sinon.SinonSpy< any, W > & ( ( ) => W ) >sinon.spy( fun );
 	}
 	function makeSpy< T, W >( fun: ( t: T ) => W )
 	: sinon.SinonSpy & ( < T >( t: T ) => W )
 	{
-		return < sinon.SinonSpy & ( ( t: T ) => W ) >sinon.spy( fun );
+		return < sinon.SinonSpy< any, W > & ( ( t: T ) => W ) >
+			sinon.spy( fun );
 	}
 
 	describe( "(before, fn, after) combinations", ( ) =>
