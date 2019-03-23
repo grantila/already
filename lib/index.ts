@@ -13,6 +13,7 @@ export default {
 	funnel,
 	inspect,
 	map,
+	once,
 	props,
 	reduce,
 	rethrow,
@@ -438,6 +439,75 @@ async function someImpl< T, R >(
 
 	return false;
 }
+
+
+export type OnceRunnee< T extends ( void | Promise< void > ) > = ( ) => T;
+export type OnceRunner =
+	( < T extends ( void | Promise< void > ) >( fn: OnceRunnee< T > ) => T );
+
+export function once( ): OnceRunner;
+export function once< T extends ( void | Promise< void > ) >(
+	fn: OnceRunnee< T >
+): OnceRunnee< T >;
+export function once< T extends ( void | Promise< void > ) = void >(
+	fn?: OnceRunnee< T >
+): OnceRunner | OnceRunnee< T >
+{
+	if ( fn )
+	{
+		const _once = onceDynamic( );
+		return ( ) => _once( fn );
+	}
+	else
+		return onceDynamic( );
+}
+
+interface OnceState
+{
+	hasRun: boolean;
+	deferred?: EmptyDeferred;
+}
+
+function onceDynamic( ): OnceRunner
+{
+	const state = new WeakMap< any, OnceState >( );
+
+	const ensureState = ( fn: any ) =>
+	{
+		if ( !state.has( fn ) )
+			state.set( fn, { hasRun: false } );
+	};
+
+	return < T extends ( void | Promise< void > ) >( fn: OnceRunnee< T > ) =>
+	{
+		ensureState( fn );
+		const stateObject = < OnceState >state.get( fn );
+
+		if ( stateObject.hasRun )
+		{
+			if ( stateObject.deferred )
+				return stateObject.deferred.promise;
+			return;
+		}
+
+		stateObject.hasRun = true;
+		const ret = < Promise< any > >fn( );
+		if ( ret !== undefined && ret && typeof ret.then === "function" )
+		{
+			stateObject.deferred = defer( void 0 );
+			return < any >ret
+				.then(
+					stateObject.deferred.resolve,
+					rethrow( stateObject.deferred.reject )
+				)
+				.then( ...Finally( ( ) =>
+				{
+					stateObject.deferred = void 0;
+				} ) );
+		}
+	};
+}
+
 
 export interface Deferred< T >
 {

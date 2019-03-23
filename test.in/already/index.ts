@@ -13,6 +13,7 @@ import {
 	finallyDelay,
 	inspect,
 	map,
+	once,
 	props,
 	reduce,
 	reflect,
@@ -1077,6 +1078,114 @@ describe( "some", ( ) =>
 			const res = await some( input, asyncSomePredIf( fooValue + 1 ) );
 
 			expect( res ).to.deep.equal( { val: fooValue + 1 } );
+		} );
+	} );
+} );
+
+
+describe( "once", ( ) =>
+{
+	const delayedFunction = ( ) =>
+		< ( ) => Promise< void > >delayChain( 5 );
+
+	describe( "pre-defined function", ( ) =>
+	{
+		it( "should call synchronously once", ( ) =>
+		{
+			const spy = sinon.spy( );
+
+			const _once = once( spy );
+			expect( spy.callCount ).to.equal( 0 );
+			_once( );
+			expect( spy.callCount ).to.equal( 1 );
+			_once( );
+			expect( spy.callCount ).to.equal( 1 );
+		} );
+
+		it( "should call asynchronously once", async ( ) =>
+		{
+			const spy = sinon.spy( delayedFunction( ) );
+
+			const _once = once( spy );
+			expect( spy.callCount ).to.equal( 0 );
+			await _once( );
+			expect( spy.callCount ).to.equal( 1 );
+			await _once( );
+			expect( spy.callCount ).to.equal( 1 );
+		} );
+	} );
+
+	describe( "per-function uniqueness", ( ) =>
+	{
+		it( "should call synchronously once", ( ) =>
+		{
+			const _once = once( );
+
+			const spy1 = sinon.spy( );
+			const spy2 = sinon.spy( );
+
+			expect( spy1.callCount ).to.equal( 0 );
+			_once( spy1 );
+			expect( spy1.callCount ).to.equal( 1 );
+			_once( spy1 );
+			expect( spy1.callCount ).to.equal( 1 );
+
+			expect( spy2.callCount ).to.equal( 0 );
+			_once( spy2 );
+			expect( spy2.callCount ).to.equal( 1 );
+			_once( spy2 );
+			expect( spy2.callCount ).to.equal( 1 );
+
+			expect( spy1.callCount ).to.equal( 1 );
+		} );
+
+		it( "should call asynchronously once", async ( ) =>
+		{
+			const _once = once( );
+
+			const spy1 = sinon.spy( delayedFunction( ) );
+			const spy2 = sinon.spy( delayedFunction( ) );
+
+			expect( spy1.callCount ).to.equal( 0 );
+			await _once( spy1 );
+			expect( spy1.callCount ).to.equal( 1 );
+			await _once( spy1 );
+			expect( spy1.callCount ).to.equal( 1 );
+
+			expect( spy2.callCount ).to.equal( 0 );
+			await _once( spy2 );
+			expect( spy2.callCount ).to.equal( 1 );
+			await _once( spy2 );
+			expect( spy2.callCount ).to.equal( 1 );
+
+			expect( spy1.callCount ).to.equal( 1 );
+		} );
+
+		it( "should call asynchronously once (stressed)", async ( ) =>
+		{
+			const _once = once( );
+
+			const spy1 = sinon.spy( delayedFunction( ) );
+			const spy2 = sinon.spy( delayedFunction( ) );
+
+			expect( spy1.callCount ).to.equal( 0 );
+			const awaitOnce1 = _once( spy1 );
+			expect( spy1.callCount ).to.equal( 1 );
+			const awaitOnce2 = _once( spy1 );
+			expect( spy1.callCount ).to.equal( 1 );
+
+			expect( spy2.callCount ).to.equal( 0 );
+			const awaitOnce3 = _once( spy2 );
+			expect( spy2.callCount ).to.equal( 1 );
+			const awaitOnce4 = _once( spy2 );
+			expect( spy2.callCount ).to.equal( 1 );
+
+			expect( spy1.callCount ).to.equal( 1 );
+
+			await awaitOnce1;
+			await awaitOnce2;
+			await awaitOnce3;
+			await awaitOnce4;
 		} );
 	} );
 } );

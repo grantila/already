@@ -23,6 +23,7 @@ This library is written in TypeScript but is exposed as ES7 (if imported as `alr
   * [reduce](#reduce)
   * [each](#each)
   * [some](#some)
+  * [once](#once)
   * [defer](#defer)
   * [reflect](#reflect)
   * [inspect](#inspect)
@@ -278,6 +279,54 @@ async function pred( num: number ): Promise< string >
 
 const val = await some( arr, pred );
 // val is now either a string (the first truthy match) or false
+```
+
+
+## once
+
+To ensure a function is only called once, use `once()`. It handles both synchronous and asynchronous functions, in that you can await the wrapped function call. It also comes in two shapes:
+
+```ts
+import { once } from 'already'
+
+// Single function
+const once1 = once( myFunction ); // Wrap a function
+once1( ); // Will invoke myFunction
+once1( ); // Will do nothing
+
+// Multiple functions
+const once2 = once( ); // Make dynamic wrapper
+once2( myFunction1 ); // Will invoke myFunction1
+once2( myFunction2 ); // Will invoke myFunction2
+once2( myFunction1 ); // Will do nothing
+once2( myFunction2 ); // Will do nothing
+```
+
+The dynamic approach is achieved by calling `once( )` without arguments. The result wrapper can be called with different functions, and every unique function will only be invoked once.
+
+If the functions are asynchronous, just await the wrapper call:
+
+```ts
+// Single function
+const once1 = once( myFunction ); // Wrap a function
+await once1( ); // Will invoke myFunction
+await once1( ); // Will do nothing
+
+// Multiple functions
+const once2 = once( ); // Make dynamic wrapper
+await once2( myFunction1 ); // Will invoke myFunction1
+await once2( myFunction2 ); // Will invoke myFunction2
+await once2( myFunction1 ); // Will do nothing
+await once2( myFunction2 ); // Will do nothing
+```
+
+Even if the functions are invoked immediately after each other, they won't be invoked twice, but they will all wait for the wrapped function to complete:
+
+```ts
+async function myFunction( ) { ... }
+const once1 = once( myFunction );
+const promise = once1( ); // Will invoke myFunction
+await once1( ); // Will not invoke myFunction, but await its completion!
 ```
 
 
