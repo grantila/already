@@ -441,15 +441,14 @@ async function someImpl< T, R >(
 }
 
 
-export type OnceRunnee< T extends ( void | Promise< void > ) > = ( ) => T;
-export type OnceRunner =
-	( < T extends ( void | Promise< void > ) >( fn: OnceRunnee< T > ) => T );
+export type OnceRunnee< T > = ( ) => T;
+export type OnceRunner = < T >( fn: OnceRunnee< T > ) => T;
 
 export function once( ): OnceRunner;
-export function once< T extends ( void | Promise< void > ) >(
+export function once< T >(
 	fn: OnceRunnee< T >
 ): OnceRunnee< T >;
-export function once< T extends ( void | Promise< void > ) = void >(
+export function once< T >(
 	fn?: OnceRunnee< T >
 ): OnceRunner | OnceRunnee< T >
 {
@@ -462,15 +461,16 @@ export function once< T extends ( void | Promise< void > ) = void >(
 		return onceDynamic( );
 }
 
-interface OnceState
+interface OnceState< T >
 {
 	hasRun: boolean;
-	deferred?: EmptyDeferred;
+	returnValue?: T;
+	deferred?: EmptyDeferred | Deferred< T >;
 }
 
 function onceDynamic( ): OnceRunner
 {
-	const state = new WeakMap< any, OnceState >( );
+	const state = new WeakMap< any, OnceState< any > >( );
 
 	const ensureState = ( fn: any ) =>
 	{
@@ -478,33 +478,35 @@ function onceDynamic( ): OnceRunner
 			state.set( fn, { hasRun: false } );
 	};
 
-	return < T extends ( void | Promise< void > ) >( fn: OnceRunnee< T > ) =>
+	return < T >( fn: OnceRunnee< T > ) =>
 	{
 		ensureState( fn );
-		const stateObject = < OnceState >state.get( fn );
+		const stateObject = < OnceState< T > >state.get( fn );
 
 		if ( stateObject.hasRun )
 		{
 			if ( stateObject.deferred )
 				return stateObject.deferred.promise;
-			return;
+			return stateObject.returnValue;
 		}
 
 		stateObject.hasRun = true;
-		const ret = < Promise< any > >fn( );
-		if ( ret !== undefined && ret && typeof ret.then === "function" )
+		const ret = fn( );
+		const pret = < Promise< T > >< any >ret;
+		if ( pret !== undefined && pret && typeof pret.then === "function" )
 		{
 			stateObject.deferred = defer( void 0 );
-			return < any >ret
+			return < any >pret
 				.then(
 					stateObject.deferred.resolve,
 					rethrow( stateObject.deferred.reject )
 				)
-				.then( ...Finally( ( ) =>
-				{
-					stateObject.deferred = void 0;
-				} ) );
+				.then( ( ) =>
+					( < Deferred< T > >stateObject.deferred ).promise
+				);
 		}
+		stateObject.returnValue = ret;
+		return ret;
 	};
 }
 

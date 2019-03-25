@@ -1086,7 +1086,8 @@ describe( "some", ( ) =>
 describe( "once", ( ) =>
 {
 	const delayedFunction = ( ) =>
-		< ( ) => Promise< void > >delayChain( 5 );
+		( ) =>
+			delay( 5 ).then( ( ) => 42 );
 
 	describe( "pre-defined function", ( ) =>
 	{
@@ -1111,6 +1112,30 @@ describe( "once", ( ) =>
 			await _once( );
 			expect( spy.callCount ).to.equal( 1 );
 			await _once( );
+			expect( spy.callCount ).to.equal( 1 );
+		} );
+
+		it( "should call synchronously once with value", ( ) =>
+		{
+			const spy = sinon.spy( ( ) => 42 );
+
+			const _once = once( spy );
+			expect( spy.callCount ).to.equal( 0 );
+			expect( _once( ) ).to.equal( 42 );
+			expect( spy.callCount ).to.equal( 1 );
+			expect( _once( ) ).to.equal( 42 );
+			expect( spy.callCount ).to.equal( 1 );
+		} );
+
+		it( "should call asynchronously once with value", async ( ) =>
+		{
+			const spy = sinon.spy( delayedFunction( ) );
+
+			const _once = once( spy );
+			expect( spy.callCount ).to.equal( 0 );
+			expect( await _once( ) ).to.equal( 42 );
+			expect( spy.callCount ).to.equal( 1 );
+			expect( await _once( ) ).to.equal( 42 );
 			expect( spy.callCount ).to.equal( 1 );
 		} );
 	} );

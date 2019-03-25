@@ -284,15 +284,16 @@ const val = await some( arr, pred );
 
 ## once
 
-To ensure a function is only called once, use `once()`. It handles both synchronous and asynchronous functions, in that you can await the wrapped function call. It also comes in two shapes:
+To ensure a function is only called once, use `once()`. It handles both synchronous and asynchronous functions, in that you can await the wrapped function call. It will return the value returned from the wrapped function, every time the wrapper is called. It also comes in two shapes:
 
 ```ts
 import { once } from 'already'
 
 // Single function
 const once1 = once( myFunction ); // Wrap a function
-once1( ); // Will invoke myFunction
-once1( ); // Will do nothing
+const ret1 = once1( ); // Will invoke myFunction
+const ret2 = once1( ); // Will do nothing
+// ret1 === ret2
 
 // Multiple functions
 const once2 = once( ); // Make dynamic wrapper
