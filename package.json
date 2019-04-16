@@ -52,7 +52,7 @@
     "coveralls": "3.x",
     "cz-conventional-changelog": "2.x",
     "mocha": "6.x",
-    "nyc": "13.x",
+    "nyc": "^14.0.0",
     "pre-commit": "1.x",
     "semantic-release": "15.x",
     "sinon": "7.x",
