@@ -885,7 +885,9 @@ export function wrapFunction< T, R extends Promise< void > | void >(
 				{
 					return < Promise< U > >( < Promise< void > >cleanupRet )
 						.then( ( ) => { throw err; } );
-				} else {
+				}
+				else
+				{
 					throw err;
 				}
 			}
@@ -896,7 +898,9 @@ export function wrapFunction< T, R extends Promise< void > | void >(
 			{
 				return < Promise< U > >( < Promise< U > >cbRet )
 					.then( ...Finally( ( ) => callCleanup( cleanup ) ) );
-			} else {
+			}
+			else
+			{
 				const cleanupRet = callCleanup( cleanup );
 				if (
 					cleanupRet &&
@@ -905,7 +909,9 @@ export function wrapFunction< T, R extends Promise< void > | void >(
 				{
 					return < Promise< U > >( < Promise< void > >cleanupRet )
 						.then( ( ) => cbRet );
-				} else {
+				}
+				else
+				{
 					return cbRet;
 				}
 			}

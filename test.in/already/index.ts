@@ -2156,6 +2156,24 @@ describe( "wrapFunction", ( ) =>
 			expect( after.callCount ).to.equal( 1 );
 		} );
 
+		it( "sync async async noarg timing", async ( ) =>
+		{
+			const after = makeSpy( ( ) => delay( 10 ) );
+			const before = makeSpy0( ( ) => after );
+
+			const startAt = Date.now( );
+			expect(
+				await wrapFunction( before )(
+					( ) => delay( 10 ).then( ( ) => 42 )
+				)
+			).to.equal( 42 );
+			const diff = Date.now( ) - startAt;
+			expect( diff ).to.be.gte( 20 );
+
+			expect( before.callCount ).to.equal( 1 );
+			expect( after.callCount ).to.equal( 1 );
+		} );
+
 		it( "sync async async arg", async ( ) =>
 		{
 			const after = makeSpy( ( ) => Promise.resolve( ) );
