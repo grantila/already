@@ -12,6 +12,10 @@ The functions are standalone and depends on no particular Promise implementation
 
 This library is written in TypeScript but is exposed as ES7 (if imported as `already`) and ES5 (if imported as `already/es5`). Typings are provided too, so any TypeScript project using this library will automatically get full type safety of all the functions.
 
+# Types
+  * [PromiseOf\<P\>](#PromiseOf)
+  * [PromiseElement\<P\>](#PromiseElement)
+
 # Functions
 
   * [delay](#delay)
@@ -33,6 +37,27 @@ This library is written in TypeScript but is exposed as ES7 (if imported as `alr
   * [wrapFunction](#wrapfunction)
   * [funnel](#funnel)
 
+---
+
+# Types
+
+## PromiseOf
+
+`PromiseOf< P >` returns the Promise wrapped value of `P`, unless it's already a promise, where the promise itself is returned instead.
+
+  * For `P` (being `Promise< E >`), it returns `P`
+  * For non-promise `P`, it returns `Promise< P >`
+
+
+## PromiseElement
+
+`PromiseElement< P >` returns the element type of a promise, or the type itself if it isn't wrapped in a promise.
+
+  * For `P` (being `Promise< E >`), it returns `E`
+  * For non-promise `P`, it returns `P`
+
+
+# Functions
 
 ## delay
 

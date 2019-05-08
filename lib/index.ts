@@ -24,6 +24,25 @@ export default {
 };
 
 
+/**
+ * Returns the Promise wrapped value of P, unless it's already a promise, where
+ * the promise itself is returned instead.
+ *
+ * For P being Promise<E>, it returns P
+ * For non-promise P, it returns Promise<P>
+ */
+export type PromiseOf< P > = P extends Promise< infer U > ? P : Promise< P >;
+
+/**
+ * Returns the element type of a promise, or the type itself if it isn't
+ * wrapped in a promise.
+ *
+ * For P being Promise<E>, it returns E
+ * For non-promise P, it returns P
+ */
+export type PromiseElement< P > = P extends Promise< infer U > ? U : P;
+
+
 function toReadonlyArray< T >( arr: ConcatArray< T > ): ReadonlyArray< T >
 {
 	/* istanbul ignore else */
