@@ -28,6 +28,7 @@ This library is written in TypeScript but is exposed as ES7 (if imported as `alr
   * [each](#each)
   * [some](#some)
   * [once](#once)
+  * [retry](#retry)
   * [defer](#defer)
   * [reflect](#reflect)
   * [inspect](#inspect)
@@ -353,6 +354,41 @@ async function myFunction( ) { ... }
 const once1 = once( myFunction );
 const promise = once1( ); // Will invoke myFunction
 await once1( ); // Will not invoke myFunction, but await its completion!
+```
+
+
+## retry
+
+The `retry( )` function can be used to call a function and "retry" (call it again) if it threw an exception, or returned a rejected promise.
+
+The `retry( times, fn [, retryable ] )` function takes a number for maximum number of retries as first argument, and the function to call as the second argument. If `times` is 1, it will **retry** once, i.e. potentially calling `fn` two times.
+
+The return value of `retry` is the same as that of `fn` as it will return the result of a *successful* call to `fn( )`.
+
+The function is transparently handling callback functions (`fn`) returning *values* or *promises*.
+
+The third and optional argument is a predicate function taking the error thrown/rejected from `fn`. It should return `true` if the error is *retryable*, and `false` if the error is not retryable and should propagate out of `retry` immediately.
+
+Synchronous example:
+
+```ts
+function tryOpenFileSync( ) { /* ... */ } // Might throw
+
+// Only retry ENOENT errors
+const fd = retry(
+    Infinity,
+    tryOpenFileSync,
+    err => err.code === 'ENOENT'
+);
+```
+
+Asynchronous example:
+
+```ts
+async function sendMessage( ) { /* ... */ } // Might return a rejected promise
+
+// Try sending 3 times. NOTE: await
+const anything = await retry( 3, sendMessage );
 ```
 
 

@@ -18,6 +18,7 @@ import {
 	reduce,
 	reflect,
 	rethrow,
+	retry,
 	some,
 	specific,
 	tap,
@@ -26,6 +27,7 @@ import {
 } from "../../";
 
 const fooError = "foo error";
+const testError = new Error( fooError );
 const fooValue = 4711;
 const barValue = 17;
 
@@ -1211,6 +1213,140 @@ describe( "once", ( ) =>
 			await awaitOnce2;
 			await awaitOnce3;
 			await awaitOnce4;
+		} );
+	} );
+} );
+
+
+describe( "retry", ( ) =>
+{
+	const allTimes = [ 0, 1, 2, 3 ];
+	const times = ( < Array< Array< number > > >[ ] ).concat(
+		...allTimes.map( times1 =>
+			allTimes.map( times2 => [ times1, times2 ] )
+		)
+	);
+
+	describe( "sync", ( ) =>
+	{
+		const throwFirst = < R >( times: number, returnValue: R ) =>
+		{
+			return ( ): R =>
+			{
+				if ( --times < 0 )
+					return returnValue;
+				throw testError;
+			};
+		};
+
+		times.forEach( ( [ returnAfter, retryTimes ] ) =>
+		{
+			const shouldThrow = returnAfter > retryTimes && returnAfter > 0;
+
+			const msg = `should ${shouldThrow ? "" : "not "}throw ` +
+				`after ${retryTimes} retries ` +
+				`when returning after ${returnAfter} times`;
+
+			it( msg, ( ) =>
+			{
+				if ( shouldThrow )
+				{
+					const thrower = throwFirst( returnAfter, 42 );
+
+					expect( ( ) => retry( retryTimes, thrower ) ).to.throw( testError );
+				}
+				else
+				{
+					const thrower = throwFirst( returnAfter, 42 );
+
+					expect( retry( retryTimes, thrower ) ).to.equal( 42 );
+				}
+			} );
+		} );
+
+		it( "should rethrow on immediately false predicate", ( ) =>
+		{
+			const thrower = throwFirst( 5, 42 );
+
+			expect( ( ) => retry( 10, thrower, ( ) => false ) )
+				.to.throw( testError );
+		} );
+
+		it( "should rethrow on eventually false predicate", ( ) =>
+		{
+			const thrower = throwFirst( 5, 42 );
+
+			let i = 2;
+
+			expect( ( ) => retry( 10, thrower, ( ) => --i > 0 ) )
+				.to.throw( testError );
+		} );
+	} );
+
+	describe( "async", ( ) =>
+	{
+		const throwFirst = < R >( times: number, returnValue: R ) =>
+		{
+			return async ( ): Promise< R > =>
+			{
+				await delay( 1 );
+
+				if ( --times < 0 )
+					return returnValue;
+				throw testError;
+			};
+		};
+
+		times.forEach( ( [ returnAfter, retryTimes ] ) =>
+		{
+			const shouldThrow = returnAfter > retryTimes && returnAfter > 0;
+
+			const msg = `should ${shouldThrow ? "" : "not "}throw ` +
+				`after ${retryTimes} retries ` +
+				`when returning after ${returnAfter} times`;
+
+			it( msg, async ( ) =>
+			{
+				if ( shouldThrow )
+				{
+					const thrower = throwFirst( returnAfter, 42 );
+
+					const result =
+						await reflect( retry( retryTimes, thrower ) );
+					expect( result.isRejected ).to.be.true;
+					expect( result.error ).to.equal( testError );
+					}
+				else
+				{
+					const thrower = throwFirst( returnAfter, 42 );
+
+					expect( await retry( retryTimes, thrower ) ).to.equal( 42 );
+				}
+			} );
+		} );
+
+		it( "should rethrow on immediately false predicate", async ( ) =>
+		{
+			const thrower = throwFirst( 5, 42 );
+
+			const result =
+				await reflect( retry( 10, thrower, ( ) => false ) );
+
+			expect( result.isRejected ).to.be.true;
+			expect( result.error ).to.equal( testError );
+		} );
+
+		it( "should rethrow on eventually false predicate", async ( ) =>
+		{
+			const thrower = throwFirst( 5, 42 );
+
+			let i = 2;
+
+			const result =
+				await reflect( retry( 10, thrower, ( ) => --i > 0 ) );
+
+			expect( result.isRejected ).to.be.true;
+			expect( result.error ).to.equal( testError );
 		} );
 	} );
 } );

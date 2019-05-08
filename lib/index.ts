@@ -17,6 +17,7 @@ export default {
 	props,
 	reduce,
 	rethrow,
+	retry,
 	some,
 	specific,
 	tap,
@@ -527,6 +528,70 @@ function onceDynamic( ): OnceRunner
 		stateObject.returnValue = ret;
 		return ret;
 	};
+}
+
+
+export function retry< R >(
+	times: number,
+	fn: ( ) => R,
+	retryable: ( err: Error ) => boolean = ( ) => true
+)
+: R
+{
+	type I = PromiseElement< R >;
+
+	const retryAsync = ( promise: Promise< I > ): Promise< I > =>
+		promise
+		.catch( ( err: Error ) =>
+		{
+			if ( --times < 0 || !retryable( err ) )
+				throw err;
+
+			return retryAsync( < any >fn( ) );
+		} );
+
+	const retrySync = ( _err: Error ): R =>
+	{
+		while ( --times >= 0 )
+		{
+			try
+			{
+				return < R >fn( );
+			}
+			catch ( err )
+			{
+				if ( !retryable( err ) )
+					throw err;
+
+				_err = err;
+			}
+		}
+
+		throw _err;
+	};
+
+	try
+	{
+		const ret = fn( );
+
+		if (
+			ret &&
+			typeof ret === "object" &&
+			typeof ( < any >ret ).then === "function"
+		)
+		{
+			return < any >retryAsync( < any >ret );
+		}
+
+		return < R >ret;
+	}
+	catch ( err )
+	{
+		if ( !retryable( err ) )
+			throw err;
+
+		return retrySync( err );
+	}
 }
 
 
