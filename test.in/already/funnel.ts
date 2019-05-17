@@ -6,8 +6,9 @@ import {
 	defer,
 	delay,
 	funnel,
-	FunnelFunction,
 	Funnel,
+	FunnelFunction,
+	reflect,
 } from "../../";
 
 // tslint:disable:no-console
@@ -48,6 +49,8 @@ const maker = (
 		await delay( millis );
 		reporter( val );
 	};
+
+const testError = ( ) => new Error( "foo" );
 
 describe( "funnel", ( ) =>
 {
@@ -349,5 +352,59 @@ describe( "funnel", ( ) =>
 		expect( value1 ).to.equal( 1 );
 		expect( value2 ).to.equal( 2 );
 		expect( args ).to.deep.equal( [ "2 a", "1 a", "1 b" ] );
+	} );
+
+	describe( "exceptions", ( ) =>
+	{
+		const throwFun = ( ) => { throw testError( ); };
+		const rejectFun = async ( ) => { throw testError( ); };
+
+		const runs = [
+			{ name: "sync", type: "throw", predicate: throwFun },
+			{ name: "async", type: "reject", predicate: rejectFun },
+		];
+
+		runs.forEach( ( { type, name, predicate } ) =>
+		{
+			it( `should be able to ${type} before shouldRetry (${name})`,
+				async ( ) =>
+			{
+				const fun = funnel< number >( );
+
+				const thrower = async ( ) =>
+					reflect(
+						fun( makePredicate< number >(
+							predicate,
+							( ) => { },
+							42
+						) )
+					);
+
+				const reflection = await thrower( );
+				expect( reflection.isRejected ).to.be.true;
+				expect( ( < Error >reflection.error ).message )
+					.to.equal( "foo" );
+			} );
+
+			it( `should be able to ${type} after shouldRetry (${name})`,
+				async ( ) =>
+			{
+				const fun = funnel< number >( );
+
+				const thrower = async ( ) =>
+					reflect(
+						fun( makePredicate< number >(
+							( ) => { },
+							predicate,
+							42
+						) )
+					);
+
+				const reflection = await thrower( );
+				expect( reflection.isRejected ).to.be.true;
+				expect( ( < Error >reflection.error ).message )
+					.to.equal( "foo" );
+			} );
+		} );
 	} );
 } );

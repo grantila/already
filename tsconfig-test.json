@@ -2,7 +2,8 @@
 	"extends": "./tsconfig.json",
 	"compilerOptions": {
 		"outDir": "test/already",
-		"target": "es5"
+		"target": "esnext",
+		"module": "commonjs"
 	},
 	"include": [
 		"test.in/already"
