@@ -62,7 +62,7 @@
     "typescript": "3.x"
   },
   "dependencies": {
-    "throat": "4.x"
+    "throat": "^5.0.0"
   },
   "config": {
     "commitizen": {
