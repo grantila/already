@@ -1,4 +1,5 @@
 [![npm version][npm-image]][npm-url]
+[![downloads][downloads-image]][npm-url]
 [![build status][travis-image]][travis-url]
 [![coverage status][coverage-image]][coverage-url]
 [![greenkeeper badge][greenkeeper-image]][greenkeeper-url]
@@ -47,7 +48,9 @@ This library is written in TypeScript but is exposed as ES7 (if imported as `alr
 `PromiseOf< P >` returns the Promise wrapped value of `P`, unless it's already a promise, where the promise itself is returned instead.
 
   * For `P` (being `Promise< E >`), it returns `P`
+    * E.g. `Promise< string >` ⇒ `Promise< string >`
   * For non-promise `P`, it returns `Promise< P >`
+    * E.g. `string` ⇒ `Promise< string >`
 
 
 ## PromiseElement
@@ -55,7 +58,9 @@ This library is written in TypeScript but is exposed as ES7 (if imported as `alr
 `PromiseElement< P >` returns the element type of a promise, or the type itself if it isn't wrapped in a promise.
 
   * For `P` (being `Promise< E >`), it returns `E`
+    * E.g. `Promise< string >` ⇒ `string`
   * For non-promise `P`, it returns `P`
+    * E.g. `string` ⇒ `string`
 
 
 # Functions
@@ -759,6 +764,7 @@ async function getConnection( )
 
 [npm-image]: https://img.shields.io/npm/v/already.svg
 [npm-url]: https://npmjs.org/package/already
+[downloads-image]: https://img.shields.io/npm/dm/already.svg
 [travis-image]: https://img.shields.io/travis/grantila/already/master.svg
 [travis-url]: https://travis-ci.org/grantila/already
 [coverage-image]: https://coveralls.io/repos/github/grantila/already/badge.svg?branch=master
