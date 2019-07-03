@@ -1,4 +1,4 @@
-import throat = require( "throat" );
+import throat from "throat";
 
 export default {
 	Finally,
