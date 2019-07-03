@@ -31,6 +31,7 @@ This library is written in TypeScript but is exposed as ES7 (if imported as `alr
   * [once](#once)
   * [retry](#retry)
   * [defer](#defer)
+  * [deferSet](#deferset)
   * [reflect](#reflect)
   * [inspect](#inspect)
   * [Try](#try)
@@ -419,6 +420,50 @@ To create a defer object backed by a `Promise< void >`, creating it through `def
 ```ts
 const deferred = defer( void 0 );
 deferred.resolve( ); // This is now legal, typewise
+```
+
+
+## deferSet
+
+Instead of creating a lot of defer objects, e.g. in unit tests to trigger asynchrony in a certain order, `deferSet` is a cleaner way.
+
+A *"defer set"* is a dynamically growable set of indexes (numbers) which can be awaited, resolved or rejected at any time.
+
+`deferSet( )` returns an object (of a class `OrderedAsynchrony`). This has the helper functions:
+
+ * `wait( index | [indices...] ) -> Promise< void >`
+ * `resolve( index | [indices...] ) -> Promise< void >`
+ * `reject( index | [indices...] ) -> Promise< void >`
+
+```ts
+import { deferSet } from 'already'
+
+const order = deferSet( );
+
+order.resolve( 0 ); // Resolve index 0
+await order.wait( 0 ); // Wait for promise 0 (which was resolved above)
+```
+
+The above will work fine, it's basically creating a `defer`, resolving it and then awaiting its promise. This will deadlock:
+
+```ts
+await order.wait( 0 ); // Will wait forever
+order.resolve( 0 );
+```
+
+It's possible to wait, resolve and reject multiple indices at once, by specifying an array instead. And `wait` can take an optional index (or array of indices) to resolve, as well as an optional index (or array of indices) to reject.
+
+The return value of `wait( )`, `resolve( )` and `reject( )` is a promise *and* the defer set itself.
+
+```ts
+// Do stuff, and eventually trigger certain index resolutions.
+doFoo( ).then( ( ) => { order.resolve( 0 ); } ); // Eventually resolves index 0
+doBar( ).then( ( ) => { order.resolve( [ 1, 3 ] ); } ); // Eventually resolves index 1 and 3
+// etc.
+
+await order.wait( [ 0, 1, 3 ], 2 ); // Await index 0, 1 and 3, resolve index 2.
+order.reject( 4 ); // Will reject index 4 with an error.
+await order.wait( 4 ); // Will (asynchronously) throw.
 ```
 
 

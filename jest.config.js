@@ -9,9 +9,10 @@ module.exports = {
   modulePathIgnorePatterns: [
     ".*\.d\.ts"
   ],
-  collectCoverageFrom: ["<rootDir>/lib/**", "index.ts"],
+  collectCoverageFrom: ["<rootDir>/dist/**/*.js"],
   coverageReporters: ["lcov", "text", "html"],
   setupFiles: [
     "trace-unhandled/register",
   ],
+  maxConcurrency: Infinity,
 };

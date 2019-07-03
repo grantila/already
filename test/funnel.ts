@@ -1,5 +1,6 @@
 import {
 	defer,
+	deferSet,
 	delay,
 	funnel,
 	Funnel,
@@ -36,11 +37,14 @@ const makePredicate = < T >(
 const maker = (
 	reporter: ( val: string ) => void,
 	val: string,
-	millis: number = 0
+	millis: number | ( ( ) => Promise< void > ) = 0
 ) =>
 	async ( ) =>
 	{
-		await delay( millis );
+		if ( typeof millis === "number" || typeof millis === "bigint" )
+			await delay( millis );
+		else
+			await millis( );
 		reporter( val );
 	};
 
@@ -50,7 +54,7 @@ describe( "funnel", ( ) =>
 {
 	[ true, false ].forEach( fifo => describe( `fifo = ${fifo}`, ( ) =>
 	{
-		it( "only one job", async ( ) =>
+		it.concurrent( "only one job", async ( ) =>
 		{
 			const onComplete = jest.fn( );
 			const fun: Funnel< number > =
@@ -71,26 +75,31 @@ describe( "funnel", ( ) =>
 			expect( onComplete.mock.calls.length ).toBe( 1 );
 		} );
 
-		it( "two jobs", async ( ) =>
+		it.concurrent( "two jobs", async ( ) =>
 		{
 			const deferred = defer( void 0 );
 			const onComplete = jest.fn( deferred.resolve );
 			const parts = jest.fn( );
 			const fun = funnel< number >( { fifo, onComplete } );
+			const order = deferSet( );
 
 			const eventualValue1 =
 				fun( makePredicate< number >(
-					maker( parts, "1 a", 0 ),
-					maker( parts, "1 b", 5 ),
+					maker( parts, "1 a", ( ) => order.wait( 0 ) ),
+					maker( parts, "1 b", ( ) => order.wait( 1 ) ),
 					1
 				) );
 
 			const eventualValue2 =
 				fun( makePredicate< number >(
-					maker( parts, "2 a", 0 ),
-					maker( parts, "2 b", 5 ),
+					maker( parts, "2 a", ( ) => order.wait( 0 ) ),
+					maker( parts, "2 b", ( ) => order.wait( 1 ) ),
 					2
 				) );
+
+			order.resolve( 0 )
+			.then( ( ) => delay( 10 ) )
+			.then( ( ) => order.resolve( 1 ) );
 
 			const value1 = await eventualValue1;
 			const value2 = await eventualValue2;
@@ -107,26 +116,29 @@ describe( "funnel", ( ) =>
 			expect( onComplete.mock.calls.length ).toBe( 1 );
 		} );
 
-		it( "two jobs, first slower", async ( ) =>
+		it.concurrent( "two jobs, first slower", async ( ) =>
 		{
 			const deferred = defer( void 0 );
 			const onComplete = jest.fn( deferred.resolve );
 			const parts = jest.fn( );
 			const fun = funnel< number >( { fifo, onComplete } );
+			const order = deferSet( );
 
 			const eventualValue1 =
 				fun( makePredicate< number >(
-					maker( parts, "1 a", 10 ),
-					maker( parts, "1 b", 5 ),
+					maker( parts, "1 a", ( ) => order.wait( 0 ).wait( 1 ) ),
+					maker( parts, "1 b", ( ) => order.wait( 0 ) ),
 					1
 				) );
 
 			const eventualValue2 =
 				fun( makePredicate< number >(
-					maker( parts, "2 a", 0 ),
-					maker( parts, "2 b", 5 ),
+					maker( parts, "2 a", ( ) => order.resolve( 0 ) ),
+					maker( parts, "2 b", ( ) => order.resolve( 0 ) ),
 					2
 				) );
+
+			await delay( 20 ); order.resolve( 1 );
 
 			const value1 = await eventualValue1;
 			const value2 = await eventualValue2;
@@ -146,24 +158,30 @@ describe( "funnel", ( ) =>
 		} );
 	} ) );
 
-	it( "two jobs, first slower, no arg", async ( ) =>
+	it.concurrent( "two jobs, first slower, no arg", async ( ) =>
 	{
 		const parts = jest.fn( );
 		const fun = funnel< number >( );
+		const order = deferSet( );
 
 		const eventualValue1 =
 			fun( makePredicate< number >(
-				maker( parts, "1 a", 10 ),
-				maker( parts, "1 b", 5 ),
+				maker( parts, "1 a", ( ) => order.wait( 1 ) ),
+				maker( parts, "1 b", ( ) => order.wait( 2 ) ),
 				1
 			) );
 
 		const eventualValue2 =
 			fun( makePredicate< number >(
-				maker( parts, "2 a", 0 ),
-				maker( parts, "2 b", 5 ),
+				maker( parts, "2 a", ( ) => order.wait( 0 ) ),
+				maker( parts, "2 b", ( ) => order.wait( 3 ) ),
 				2
 			) );
+
+		order.resolve( 0 ); await delay( 1 );
+		order.resolve( 1 ); await delay( 1 );
+		order.resolve( 2 ); await delay( 1 );
+		order.resolve( 3 ); await delay( 1 );
 
 		const value1 = await eventualValue1;
 		const value2 = await eventualValue2;
@@ -177,24 +195,30 @@ describe( "funnel", ( ) =>
 		);
 	} );
 
-	it( "two jobs, first slower, arg = null", async ( ) =>
+	it.concurrent( "two jobs, first slower, arg = null", async ( ) =>
 	{
 		const parts = jest.fn( );
 		const fun = funnel< number >( < any >null );
+		const order = deferSet( );
 
 		const eventualValue1 =
 			fun( makePredicate< number >(
-				maker( parts, "1 a", 10 ),
-				maker( parts, "1 b", 5 ),
+				maker( parts, "1 a", ( ) => order.wait( 1 ) ),
+				maker( parts, "1 b", ( ) => order.wait( 2 ) ),
 				1
 			) );
 
 		const eventualValue2 =
 			fun( makePredicate< number >(
-				maker( parts, "2 a", 0 ),
-				maker( parts, "2 b", 5 ),
+				maker( parts, "2 a", ( ) => order.wait( 0 ) ),
+				maker( parts, "2 b", ( ) => order.wait( 3 ) ),
 				2
 			) );
+
+		order.resolve( 0 ); await delay( 1 );
+		order.resolve( 1 ); await delay( 1 );
+		order.resolve( 2 ); await delay( 1 );
+		order.resolve( 3 ); await delay( 1 );
 
 		const value1 = await eventualValue1;
 		const value2 = await eventualValue2;
@@ -208,24 +232,30 @@ describe( "funnel", ( ) =>
 		);
 	} );
 
-	it( "two jobs, first slower, onComplete = null", async ( ) =>
+	it.concurrent( "two jobs, first slower, onComplete = null", async ( ) =>
 	{
 		const parts = jest.fn( );
 		const fun = funnel< number >( { onComplete: < any >null } );
+		const order = deferSet( );
 
 		const eventualValue1 =
 			fun( makePredicate< number >(
-				maker( parts, "1 a", 10 ),
-				maker( parts, "1 b", 5 ),
+				maker( parts, "1 a", ( ) => order.wait( 1 ) ),
+				maker( parts, "1 b", ( ) => order.wait( 2 ) ),
 				1
 			) );
 
 		const eventualValue2 =
 			fun( makePredicate< number >(
-				maker( parts, "2 a", 0 ),
-				maker( parts, "2 b", 5 ),
+				maker( parts, "2 a", ( ) => order.wait( 0 ) ),
+				maker( parts, "2 b", ( ) => order.wait( 3 ) ),
 				2
 			) );
+
+		order.resolve( 0 ); await delay( 1 );
+		order.resolve( 1 ); await delay( 1 );
+		order.resolve( 2 ); await delay( 1 );
+		order.resolve( 3 ); await delay( 1 );
 
 		const value1 = await eventualValue1;
 		const value2 = await eventualValue2;
@@ -239,30 +269,32 @@ describe( "funnel", ( ) =>
 		);
 	} );
 
-	it( "two jobs, shortcut", async ( ) =>
+	it.concurrent( "two jobs, shortcut", async ( ) =>
 	{
 		const parts = jest.fn( );
 		const fun = funnel< number >( { onComplete: < any >null, fifo: false } );
+		const order = deferSet( );
 
 		const eventualValue1 =
 			fun( makePredicate< number >(
-				maker( parts, "1 a", 10 ),
-				maker( parts, "1 b", 5 ),
+				maker( parts, "1 a", ( ) => order.wait( 0 ) ),
+				maker( parts, "1 b", ( ) => order.wait( 0 ).resolve( 1 ) ),
 				1
 			) );
 
 		const eventualValue2 =
 			fun( async ( shouldRetry, retry, shortcut ) =>
 			{
-				await delay( 1 );
 				parts( "2 a" );
+
+				await order.resolve( 0 );
 
 				if ( shouldRetry( ) )
 					return retry( );
 
 				parts( "2 b" );
 				shortcut( );
-				await delay( 50 );
+				await order.wait( 1 );
 				parts( "2 c" );
 
 				return 2;
@@ -278,15 +310,16 @@ describe( "funnel", ( ) =>
 		expect( args ).toEqual( [ "2 a", "2 b", "1 a", "1 b", "2 c" ] );
 	} );
 
-	it( "two jobs, shortcut before retry", async ( ) =>
+	it.concurrent( "two jobs, shortcut before retry", async ( ) =>
 	{
 		const parts = jest.fn( );
 		const fun = funnel< number >( { onComplete: < any >null, fifo: false } );
+		const order = deferSet( );
 
 		const eventualValue1 =
 			fun( makePredicate< number >(
-				maker( parts, "1 a", 10 ),
-				maker( parts, "1 b", 5 ),
+				maker( parts, "1 a", ( ) => order.wait( 0 ) ),
+				maker( parts, "1 b", 0 ),
 				1
 			) );
 
@@ -305,6 +338,8 @@ describe( "funnel", ( ) =>
 				await delay( 1 );
 				parts( "2 c" );
 
+				order.resolve( 0 );
+
 				return 2;
 			} );
 
@@ -318,15 +353,16 @@ describe( "funnel", ( ) =>
 		expect( args ).toEqual( [ "2 a", "2 b", "2 c", "1 a", "1 b" ] );
 	} );
 
-	it( "two jobs, retry in sync", async ( ) =>
+	it.concurrent( "two jobs, retry in sync", async ( ) =>
 	{
 		const parts = jest.fn( );
 		const fun = funnel< number >( { onComplete: < any >null, fifo: false } );
+		const order = deferSet( );
 
 		const eventualValue1 =
 			fun( makePredicate< number >(
-				maker( parts, "1 a", 10 ),
-				maker( parts, "1 b", 5 ),
+				maker( parts, "1 a", ( ) => order.wait( 0 ) ),
+				maker( parts, "1 b", 0 ),
 				1
 			) );
 
@@ -337,6 +373,7 @@ describe( "funnel", ( ) =>
 					return retry( );
 
 				parts( "2 a" );
+				order.resolve( 0 );
 
 				return 2;
 			} );
@@ -363,7 +400,7 @@ describe( "funnel", ( ) =>
 
 		runs.forEach( ( { type, name, predicate } ) =>
 		{
-			it( `should be able to ${type} before shouldRetry (${name})`,
+			it.concurrent( `should be able to ${type} before shouldRetry (${name})`,
 				async ( ) =>
 			{
 				const fun = funnel< number >( );
@@ -383,7 +420,7 @@ describe( "funnel", ( ) =>
 					.toBe( "foo" );
 			} );
 
-			it( `should be able to ${type} after shouldRetry (${name})`,
+			it.concurrent( `should be able to ${type} after shouldRetry (${name})`,
 				async ( ) =>
 			{
 				const fun = funnel< number >( );

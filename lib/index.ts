@@ -4,6 +4,7 @@ export default {
 	Finally,
 	Try,
 	defer,
+	deferSet,
 	delay,
 	delayChain,
 	each,
@@ -1171,4 +1172,119 @@ export function funnel< T, U extends Promise< T > = Promise< T > >(
 	{
 		return runner( fn, [ ] );
 	};
+}
+
+
+export class OrderedAsynchrony
+{
+	private deferrals: Array< EmptyDeferred > = [ ];
+
+	public wait(
+		waitForIndex: number | ConcatArray< number >,
+		resolveIndex?: number | ConcatArray< number > | undefined | null,
+		rejectIndex?: number | ConcatArray< number > | undefined | null
+	)
+	: Promise< void > & this
+	{
+		this.ensureDeferral( [
+			...( ( < Array< number > >[ ] ).concat( waitForIndex ) ),
+			...(
+				resolveIndex == null ? [ ] :
+				( < Array< number > >[ ] ).concat( resolveIndex )
+			),
+			...(
+				rejectIndex == null ? [ ] :
+				( < Array< number > >[ ] ).concat( rejectIndex )
+			),
+		] );
+
+		return this.decorate(
+			Promise.all(
+				( < Array< number > >[ ] ).concat( waitForIndex )
+				.map( index => this.deferrals[ index ].promise )
+			)
+			.then( ( ) =>
+				Promise.all( [
+					resolveIndex == null
+						? void 0
+						: this.resolve( resolveIndex ),
+					rejectIndex == null
+						? void 0
+						: this.reject( rejectIndex ),
+				] )
+				.then( ( ) => { } )
+			)
+		);
+	}
+
+	public resolve( index: number | ConcatArray< number > )
+	: Promise< void > & this
+	{
+		this.ensureDeferral( index );
+
+		return this.decorate( delay( 0 ).then( ( ) =>
+		{
+			( < Array< number > >[ ] ).concat( index )
+			.forEach( index =>
+			{
+				this.deferrals[ index ].resolve( );
+			} );
+		} ) );
+	}
+
+	public reject(
+		index: number | ConcatArray< number >,
+		error = new Error( "OrderedAsynchrony rejection" )
+	)
+	: Promise< void > & this
+	{
+		this.ensureDeferral( index );
+
+		return this.decorate( delay( 0 ).then( ( ) =>
+		{
+			( < Array< number > >[ ] ).concat( index )
+			.forEach( index =>
+			{
+				this.deferrals[ index ].reject( error );
+			} );
+		} ) );
+	}
+
+	private ensureDeferral( index: number | ConcatArray< number > ): this
+	{
+		const indices = ( < Array< number > >[ ] )
+			.concat( index )
+			.sort( ( a, b ) => b - a );
+
+		const highest = indices[ 0 ];
+
+		for ( let i = this.deferrals.length; i <= highest; ++i )
+			this.deferrals.push( defer( void 0 ) );
+
+		return this;
+	}
+
+	private decorate( promise: Promise< void > )
+	: Promise< void > & this
+	{
+		// tslint:disable-next-line:variable-name
+		const This = {
+			decorate: this.decorate.bind( this ),
+			deferrals: this.deferrals,
+			ensureDeferral: this.ensureDeferral.bind( this ),
+			reject: this.reject.bind( this ),
+			resolve: this.resolve.bind( this ),
+			wait: this.wait.bind( this ),
+		} as unknown as this;
+
+		return Object.assign(
+			promise,
+			This
+		);
+	}
+}
+
+export function deferSet( )
+{
+	return new OrderedAsynchrony( );
 }
