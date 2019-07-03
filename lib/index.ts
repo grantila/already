@@ -1124,7 +1124,10 @@ export function funnel< T, U extends Promise< T > = Promise< T > >(
 				hasPassedRetry = true;
 				// If first in queue, schedule waiting for the return promise
 				// to trigger the rest of the queue.
-				store.ret.then( ...Finally( finalize ) );
+				store.ret
+					.then( ...Finally( finalize ) )
+					// Ingore errors here, they're handled elsewhere
+					.catch( err => { } );
 			}
 
 			return !result;
