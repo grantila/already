@@ -1,7 +1,3 @@
-import { expect } from "chai";
-import "mocha";
-import * as sinon from "sinon";
-
 import {
 	defer,
 	delay,
@@ -9,9 +5,7 @@ import {
 	Funnel,
 	FunnelFunction,
 	reflect,
-} from "../../";
-
-// tslint:disable:no-console
+} from "../";
 
 
 type AnyFunctionWoArgs< T > =
@@ -58,7 +52,7 @@ describe( "funnel", ( ) =>
 	{
 		it( "only one job", async ( ) =>
 		{
-			const onComplete = sinon.spy( );
+			const onComplete = jest.fn( );
 			const fun: Funnel< number > =
 				funnel< number >( { fifo, onComplete } );
 
@@ -72,15 +66,16 @@ describe( "funnel", ( ) =>
 				return 4;
 			} );
 
-			expect( value ).to.equal( 4 );
-			expect( onComplete.callCount ).to.equal( 1 );
+			expect( value ).toBe( 4 );
+			await delay( 0 ); // Allow onComplete to settle
+			expect( onComplete.mock.calls.length ).toBe( 1 );
 		} );
 
 		it( "two jobs", async ( ) =>
 		{
 			const deferred = defer( void 0 );
-			const onComplete = sinon.spy( deferred.resolve );
-			const parts = sinon.spy( );
+			const onComplete = jest.fn( deferred.resolve );
+			const parts = jest.fn( );
 			const fun = funnel< number >( { fifo, onComplete } );
 
 			const eventualValue1 =
@@ -101,21 +96,22 @@ describe( "funnel", ( ) =>
 			const value2 = await eventualValue2;
 			await deferred.promise;
 
-			const args = ( < Array< string > >[ ] ).concat( ...parts.args );
+			const args = ( < Array< string > >[ ] )
+				.concat( ...parts.mock.calls );
 
-			expect( value1 ).to.equal( 1 );
-			expect( value2 ).to.equal( 2 );
-			expect( args ).to.deep.equal(
+			expect( value1 ).toBe( 1 );
+			expect( value2 ).toBe( 2 );
+			expect( args ).toEqual(
 				[ "1 a", "2 a", "1 b", "2 a", "2 b" ]
 			);
-			expect( onComplete.callCount ).to.equal( 1 );
+			expect( onComplete.mock.calls.length ).toBe( 1 );
 		} );
 
 		it( "two jobs, first slower", async ( ) =>
 		{
 			const deferred = defer( void 0 );
-			const onComplete = sinon.spy( deferred.resolve );
-			const parts = sinon.spy( );
+			const onComplete = jest.fn( deferred.resolve );
+			const parts = jest.fn( );
 			const fun = funnel< number >( { fifo, onComplete } );
 
 			const eventualValue1 =
@@ -136,22 +132,23 @@ describe( "funnel", ( ) =>
 			const value2 = await eventualValue2;
 			await deferred.promise;
 
-			const args = ( < Array< string > >[ ] ).concat( ...parts.args );
+			const args = ( < Array< string > >[ ] )
+				.concat( ...parts.mock.calls );
 
-			expect( value1 ).to.equal( 1 );
-			expect( value2 ).to.equal( 2 );
-			expect( args ).to.deep.equal(
+			expect( value1 ).toBe( 1 );
+			expect( value2 ).toBe( 2 );
+			expect( args ).toEqual(
 				fifo
 				? [ "2 a", "1 a", "1 b", "2 a", "2 b" ]
 				: [ "2 a", "2 b", "1 a", "1 b" ]
 			);
-			expect( onComplete.callCount ).to.equal( 1 );
+			expect( onComplete.mock.calls.length ).toBe( 1 );
 		} );
 	} ) );
 
 	it( "two jobs, first slower, no arg", async ( ) =>
 	{
-		const parts = sinon.spy( );
+		const parts = jest.fn( );
 		const fun = funnel< number >( );
 
 		const eventualValue1 =
@@ -171,18 +168,18 @@ describe( "funnel", ( ) =>
 		const value1 = await eventualValue1;
 		const value2 = await eventualValue2;
 
-		const args = ( < Array< string > >[ ] ).concat( ...parts.args );
+		const args = ( < Array< string > >[ ] ).concat( ...parts.mock.calls );
 
-		expect( value1 ).to.equal( 1 );
-		expect( value2 ).to.equal( 2 );
-		expect( args ).to.deep.equal(
+		expect( value1 ).toBe( 1 );
+		expect( value2 ).toBe( 2 );
+		expect( args ).toEqual(
 			[ "2 a", "1 a", "1 b", "2 a", "2 b" ]
 		);
 	} );
 
 	it( "two jobs, first slower, arg = null", async ( ) =>
 	{
-		const parts = sinon.spy( );
+		const parts = jest.fn( );
 		const fun = funnel< number >( < any >null );
 
 		const eventualValue1 =
@@ -202,18 +199,18 @@ describe( "funnel", ( ) =>
 		const value1 = await eventualValue1;
 		const value2 = await eventualValue2;
 
-		const args = ( < Array< string > >[ ] ).concat( ...parts.args );
+		const args = ( < Array< string > >[ ] ).concat( ...parts.mock.calls );
 
-		expect( value1 ).to.equal( 1 );
-		expect( value2 ).to.equal( 2 );
-		expect( args ).to.deep.equal(
+		expect( value1 ).toBe( 1 );
+		expect( value2 ).toBe( 2 );
+		expect( args ).toEqual(
 			[ "2 a", "1 a", "1 b", "2 a", "2 b" ]
 		);
 	} );
 
 	it( "two jobs, first slower, onComplete = null", async ( ) =>
 	{
-		const parts = sinon.spy( );
+		const parts = jest.fn( );
 		const fun = funnel< number >( { onComplete: < any >null } );
 
 		const eventualValue1 =
@@ -233,18 +230,18 @@ describe( "funnel", ( ) =>
 		const value1 = await eventualValue1;
 		const value2 = await eventualValue2;
 
-		const args = ( < Array< string > >[ ] ).concat( ...parts.args );
+		const args = ( < Array< string > >[ ] ).concat( ...parts.mock.calls );
 
-		expect( value1 ).to.equal( 1 );
-		expect( value2 ).to.equal( 2 );
-		expect( args ).to.deep.equal(
+		expect( value1 ).toBe( 1 );
+		expect( value2 ).toBe( 2 );
+		expect( args ).toEqual(
 			[ "2 a", "1 a", "1 b", "2 a", "2 b" ]
 		);
 	} );
 
 	it( "two jobs, shortcut", async ( ) =>
 	{
-		const parts = sinon.spy( );
+		const parts = jest.fn( );
 		const fun = funnel< number >( { onComplete: < any >null, fifo: false } );
 
 		const eventualValue1 =
@@ -274,16 +271,16 @@ describe( "funnel", ( ) =>
 		const value1 = await eventualValue1;
 		const value2 = await eventualValue2;
 
-		const args = ( < Array< string > >[ ] ).concat( ...parts.args );
+		const args = ( < Array< string > >[ ] ).concat( ...parts.mock.calls );
 
-		expect( value1 ).to.equal( 1 );
-		expect( value2 ).to.equal( 2 );
-		expect( args ).to.deep.equal( [ "2 a", "2 b", "1 a", "1 b", "2 c" ] );
+		expect( value1 ).toBe( 1 );
+		expect( value2 ).toBe( 2 );
+		expect( args ).toEqual( [ "2 a", "2 b", "1 a", "1 b", "2 c" ] );
 	} );
 
 	it( "two jobs, shortcut before retry", async ( ) =>
 	{
-		const parts = sinon.spy( );
+		const parts = jest.fn( );
 		const fun = funnel< number >( { onComplete: < any >null, fifo: false } );
 
 		const eventualValue1 =
@@ -314,16 +311,16 @@ describe( "funnel", ( ) =>
 		const value1 = await eventualValue1;
 		const value2 = await eventualValue2;
 
-		const args = ( < Array< string > >[ ] ).concat( ...parts.args );
+		const args = ( < Array< string > >[ ] ).concat( ...parts.mock.calls );
 
-		expect( value1 ).to.equal( 1 );
-		expect( value2 ).to.equal( 2 );
-		expect( args ).to.deep.equal( [ "2 a", "2 b", "2 c", "1 a", "1 b" ] );
+		expect( value1 ).toBe( 1 );
+		expect( value2 ).toBe( 2 );
+		expect( args ).toEqual( [ "2 a", "2 b", "2 c", "1 a", "1 b" ] );
 	} );
 
 	it( "two jobs, retry in sync", async ( ) =>
 	{
-		const parts = sinon.spy( );
+		const parts = jest.fn( );
 		const fun = funnel< number >( { onComplete: < any >null, fifo: false } );
 
 		const eventualValue1 =
@@ -347,11 +344,11 @@ describe( "funnel", ( ) =>
 		const value1 = await eventualValue1;
 		const value2 = await eventualValue2;
 
-		const args = ( < Array< string > >[ ] ).concat( ...parts.args );
+		const args = ( < Array< string > >[ ] ).concat( ...parts.mock.calls );
 
-		expect( value1 ).to.equal( 1 );
-		expect( value2 ).to.equal( 2 );
-		expect( args ).to.deep.equal( [ "2 a", "1 a", "1 b" ] );
+		expect( value1 ).toBe( 1 );
+		expect( value2 ).toBe( 2 );
+		expect( args ).toEqual( [ "2 a", "1 a", "1 b" ] );
 	} );
 
 	describe( "exceptions", ( ) =>
@@ -381,9 +378,9 @@ describe( "funnel", ( ) =>
 					);
 
 				const reflection = await thrower( );
-				expect( reflection.isRejected ).to.be.true;
+				expect( reflection.isRejected ).toBe( true );
 				expect( ( < Error >reflection.error ).message )
-					.to.equal( "foo" );
+					.toBe( "foo" );
 			} );
 
 			it( `should be able to ${type} after shouldRetry (${name})`,
@@ -401,9 +398,9 @@ describe( "funnel", ( ) =>
 					);
 
 				const reflection = await thrower( );
-				expect( reflection.isRejected ).to.be.true;
+				expect( reflection.isRejected ).toBe( true );
 				expect( ( < Error >reflection.error ).message )
-					.to.equal( "foo" );
+					.toBe( "foo" );
 			} );
 		} );
 	} );

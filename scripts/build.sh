@@ -2,10 +2,11 @@
 
 set -e
 
-rm -rf dist es5 test
+OUTDIR=$1
+shift
+TSCONFIG=$1
+shift
 
-node_modules/.bin/tsc -p . --module commonjs -t esnext --outDir dist
-node_modules/.bin/tsc -p . -t es5 --outDir es5
-
-cp -r test.in test
-node_modules/.bin/tsc -p ./tsconfig-test.json
+node_modules/.bin/rimraf $OUTDIR
+mkdir $OUTDIR
+node_modules/.bin/tsc -p $TSCONFIG --outDir $OUTDIR $@

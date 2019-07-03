@@ -3,6 +3,12 @@
 		"allowJs": false,
 		"declaration": true,
 		"lib": [ "es2015", "es2017", "dom" ],
+		"types": [
+			"node",
+			"jest"
+		],
+		"target": "es6",
+		"module": "commonjs",
 		"moduleResolution": "node",
 		"noImplicitAny": true,
 		"noUnusedLocals": true,
@@ -13,6 +19,7 @@
 		"allowSyntheticDefaultImports": true
 	},
 	"include": [
-		"lib"
+		"lib",
+		"test"
 	]
 }

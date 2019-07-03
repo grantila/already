@@ -1,7 +1,3 @@
-import { expect } from "chai";
-import "mocha";
-import * as sinon from "sinon";
-
 import {
 	defer,
 	deferInspectable,
@@ -24,7 +20,7 @@ import {
 	tap,
 	Try,
 	wrapFunction,
-} from "../../";
+} from "../";
 
 const fooError = "foo error";
 const testError = new Error( fooError );
@@ -84,7 +80,7 @@ describe( "finallyDelay", ( ) =>
 		.then( async num =>
 		{
 			await delay( 25 );
-			expect( value ).to.equal( 2 );
+			expect( value ).toBe( 2 );
 		} );
 	} );
 
@@ -104,7 +100,7 @@ describe( "finallyDelay", ( ) =>
 		.catch( async err =>
 		{
 			await delay( 25 );
-			expect( value ).to.equal( 2 );
+			expect( value ).toBe( 2 );
 		} );
 	} );
 } );
@@ -167,7 +163,7 @@ describe( "props", ( ) =>
 	{
 		const val = await props( { a: 1, b: delay( 10 ).then( ( ) => 2 ) } );
 
-		expect( val ).to.deep.equal( { a: 1, b: 2 } );
+		expect( val ).toEqual( { a: 1, b: 2 } );
 	} );
 
 	it( "should work in a promise chain as function reference", async ( ) =>
@@ -176,7 +172,7 @@ describe( "props", ( ) =>
 			Promise.resolve( { a: 1, b: delay( 10 ).then( ( ) => 2 ) } )
 			.then( props );
 
-		expect( val ).to.deep.equal( { a: 1, b: 2 } );
+		expect( val ).toEqual( { a: 1, b: 2 } );
 	} );
 } );
 
@@ -216,9 +212,8 @@ describe( "filter", ( ) =>
 			( val: number ) => val % 2 === 0
 		);
 
-		expect( values ).to.deep.equal( [ 2, 4 ] );
-		expect( concurrencies ).to.deep.equal(
-			[ 1, 2, 3, 4, 5, 4, 3, 2, 1, 0 ] );
+		expect( values ).toEqual( [ 2, 4 ] );
+		expect( concurrencies ).toEqual( [ 1, 2, 3, 4, 5, 4, 3, 2, 1, 0 ] );
 	} );
 
 	it( "concurrency 1 should be correct", async ( ) =>
@@ -229,9 +224,8 @@ describe( "filter", ( ) =>
 			( val: number ) => val % 2 === 0
 		);
 
-		expect( values ).to.deep.equal( [ 2, 4 ] );
-		expect( concurrencies ).to.deep.equal(
-			[ 1, 0, 1, 0, 1, 0, 1, 0, 1, 0 ] );
+		expect( values ).toEqual( [ 2, 4 ] );
+		expect( concurrencies ).toEqual( [ 1, 0, 1, 0, 1, 0, 1, 0, 1, 0 ] );
 	} );
 
 	it( "concurrency 2 should be correct", async ( ) =>
@@ -242,11 +236,11 @@ describe( "filter", ( ) =>
 			( val: number ) => val % 2 === 0
 		);
 
-		expect( values ).to.deep.equal( [ 2, 4, 6, 8 ] );
+		expect( values ).toEqual( [ 2, 4, 6, 8 ] );
 		const last = concurrencies.pop( );
-		expect( last ).to.equal( 0 );
-		expect( concurrencies ).to.not.include( 0 );
-		expect( concurrencies ).to.include( 2 );
+		expect( last ).toBe( 0 );
+		expect( concurrencies ).not.toContain( 0 );
+		expect( concurrencies ).toContain( 2 );
 	} );
 
 	it( "concurrency 3 should be correct", async ( ) =>
@@ -257,11 +251,11 @@ describe( "filter", ( ) =>
 			( val: number ) => val % 2 === 0
 		);
 
-		expect( values ).to.deep.equal( [ 2, 4, 6, 8 ] );
+		expect( values ).toEqual( [ 2, 4, 6, 8 ] );
 		const last = concurrencies.pop( );
-		expect( last ).to.equal( 0 );
-		expect( concurrencies ).to.not.include( 0 );
-		expect( concurrencies ).to.include( 3 );
+		expect( last ).toBe( 0 );
+		expect( concurrencies ).not.toContain( 0 );
+		expect( concurrencies ).toContain( 3 );
 	} );
 
 	it( "should work without options", async ( ) =>
@@ -275,7 +269,7 @@ describe( "filter", ( ) =>
 				: t % 2 === 0
 		) );
 
-		expect( arr2 ).to.deep.equal( [ 2, 4 ] );
+		expect( arr2 ).toEqual( [ 2, 4 ] );
 	} );
 
 	it( "should work as a free function", async ( ) =>
@@ -290,7 +284,7 @@ describe( "filter", ( ) =>
 				: t % 2 === 0
 		);
 
-		expect( arr2 ).to.deep.equal( [ 2, 4 ] );
+		expect( arr2 ).toEqual( [ 2, 4 ] );
 	} );
 
 	it( "should work as a free function without options", async ( ) =>
@@ -304,7 +298,7 @@ describe( "filter", ( ) =>
 				: t % 2 === 0
 		);
 
-		expect( arr2 ).to.deep.equal( [ 2, 4 ] );
+		expect( arr2 ).toEqual( [ 2, 4 ] );
 	} );
 } );
 
@@ -344,10 +338,9 @@ describe( "map", ( ) =>
 			( val: number ) => "" + ( val * 2 )
 		);
 
-		expect( values[ 0 ] ).to.be.a( "string" );
-		expect( values ).to.deep.equal( [ "2", "4", "6", "8", "10" ] );
-		expect( concurrencies ).to.deep.equal(
-			[ 1, 2, 3, 4, 5, 4, 3, 2, 1, 0 ] );
+		expect( typeof values[ 0 ] ).toBe( "string" );
+		expect( values ).toEqual( [ "2", "4", "6", "8", "10" ] );
+		expect( concurrencies ).toEqual( [ 1, 2, 3, 4, 5, 4, 3, 2, 1, 0 ] );
 	} );
 
 	it( "concurrency 1 should be correct", async ( ) =>
@@ -358,10 +351,9 @@ describe( "map", ( ) =>
 			( val: number ) => "" + ( val * 2 )
 		);
 
-		expect( values[ 0 ] ).to.be.a( "string" );
-		expect( values ).to.deep.equal( [ "2", "4", "6", "8", "10" ] );
-		expect( concurrencies ).to.deep.equal(
-			[ 1, 0, 1, 0, 1, 0, 1, 0, 1, 0 ] );
+		expect( typeof values[ 0 ] ).toBe( "string" );
+		expect( values ).toEqual( [ "2", "4", "6", "8", "10" ] );
+		expect( concurrencies ).toEqual( [ 1, 0, 1, 0, 1, 0, 1, 0, 1, 0 ] );
 	} );
 
 	it( "concurrency 2 should be correct", async ( ) =>
@@ -372,13 +364,13 @@ describe( "map", ( ) =>
 			( val: number ) => "" + ( val * 2 )
 		);
 
-		expect( values[ 0 ] ).to.be.a( "string" );
-		expect( values ).to.deep.equal(
+		expect( typeof values[ 0 ] ).toBe( "string" );
+		expect( values ).toEqual(
 			[ "2", "4", "6", "8", "10", "12", "14", "16", "18" ] );
 		const last = concurrencies.pop( );
-		expect( last ).to.equal( 0 );
-		expect( concurrencies ).to.not.include( 0 );
-		expect( concurrencies ).to.include( 2 );
+		expect( last ).toBe( 0 );
+		expect( concurrencies ).not.toContain( 0 );
+		expect( concurrencies ).toContain( 2 );
 	} );
 
 	it( "concurrency 3 should be correct", async ( ) =>
@@ -389,13 +381,13 @@ describe( "map", ( ) =>
 			( val: number ) => "" + ( val * 2 )
 		);
 
-		expect( values[ 0 ] ).to.be.a( "string" );
-		expect( values ).to.deep.equal(
+		expect( typeof values[ 0 ] ).toBe( "string" );
+		expect( values ).toEqual(
 			[ "2", "4", "6", "8", "10", "12", "14", "16", "18" ] );
 		const last = concurrencies.pop( );
-		expect( last ).to.equal( 0 );
-		expect( concurrencies ).to.not.include( 0 );
-		expect( concurrencies ).to.include( 3 );
+		expect( last ).toBe( 0 );
+		expect( concurrencies ).not.toContain( 0 );
+		expect( concurrencies ).toContain( 3 );
 	} );
 
 	it( "should work without options", async ( ) =>
@@ -410,7 +402,7 @@ describe( "map", ( ) =>
 		) );
 		const arr3 = arr2.map( ( { t } ) => t );
 
-		expect( arr3 ).to.deep.equal( [ 1, 2, 3, 4, 5 ] );
+		expect( arr3 ).toEqual( [ 1, 2, 3, 4, 5 ] );
 	} );
 
 	it( "should work as a free function", async ( ) =>
@@ -426,7 +418,7 @@ describe( "map", ( ) =>
 		);
 		const arr3 = arr2.map( ( { t } ) => t );
 
-		expect( arr3 ).to.deep.equal( [ 1, 2, 3, 4, 5 ] );
+		expect( arr3 ).toEqual( [ 1, 2, 3, 4, 5 ] );
 	} );
 
 	it( "should work as a free function without options", async ( ) =>
@@ -441,7 +433,7 @@ describe( "map", ( ) =>
 		);
 		const arr3 = arr2.map( ( { t } ) => t );
 
-		expect( arr3 ).to.deep.equal( [ 1, 2, 3, 4, 5 ] );
+		expect( arr3 ).toEqual( [ 1, 2, 3, 4, 5 ] );
 	} );
 } );
 
@@ -460,7 +452,7 @@ describe( "reduce", ( ) =>
 
 		const reduced = await reduce( input, reduceAdd, initialValue );
 
-		expect( reduced ).to.equal( fooValue );
+		expect( reduced ).toBe( fooValue );
 	} );
 
 	it( "should reduce single-value array without initialValue", async ( ) =>
@@ -469,7 +461,7 @@ describe( "reduce", ( ) =>
 
 		const reduced = await reduce( input, reduceAdd );
 
-		expect( reduced ).to.equal( fooValue );
+		expect( reduced ).toBe( fooValue );
 	} );
 
 	it( "should reduce single-value array with initialValue", async ( ) =>
@@ -479,7 +471,7 @@ describe( "reduce", ( ) =>
 
 		const reduced = await reduce( input, reduceAdd, initialValue );
 
-		expect( reduced ).to.equal( fooValue + fooValue );
+		expect( reduced ).toBe( fooValue + fooValue );
 	} );
 
 	it( "should reduce multi-value array without initialValue", async ( ) =>
@@ -488,7 +480,7 @@ describe( "reduce", ( ) =>
 
 		const reduced = await reduce( input, reduceAdd );
 
-		expect( reduced ).to.equal( fooValue + fooValue );
+		expect( reduced ).toBe( fooValue + fooValue );
 	} );
 
 	it( "should reduce multi-value array with initialValue", async ( ) =>
@@ -498,7 +490,7 @@ describe( "reduce", ( ) =>
 
 		const reduced = await reduce( input, reduceAdd, initialValue );
 
-		expect( reduced ).to.equal( fooValue + fooValue + fooValue );
+		expect( reduced ).toBe( fooValue + fooValue + fooValue );
 	} );
 
 	it( "should handle future array and future values", async ( ) =>
@@ -508,7 +500,7 @@ describe( "reduce", ( ) =>
 
 		const reduced = await reduce( input, reduceAdd, initialValue );
 
-		expect( reduced ).to.equal( fooValue + fooValue + fooValue );
+		expect( reduced ).toBe( fooValue + fooValue + fooValue );
 	} );
 
 	it( "should work in a promise chain without initialValue", async ( ) =>
@@ -517,7 +509,7 @@ describe( "reduce", ( ) =>
 
 		const reduced = await input.then( reduce( reduceAdd ) );
 
-		expect( reduced ).to.equal( fooValue + fooValue );
+		expect( reduced ).toBe( fooValue + fooValue );
 	} );
 
 	it( "should work in a promise chain with initialValue", async ( ) =>
@@ -527,7 +519,7 @@ describe( "reduce", ( ) =>
 
 		const reduced = await input.then( reduce( reduceAdd, initialValue ) );
 
-		expect( reduced ).to.equal( fooValue + fooValue + fooValue );
+		expect( reduced ).toBe( fooValue + fooValue + fooValue );
 	} );
 
 	it( "should handle reduce with different aggregate type", async ( ) =>
@@ -554,8 +546,8 @@ describe( "reduce", ( ) =>
 			);
 		};
 
-		expect( await makeLessThan( 3 ) ).to.equal( false );
-		expect( await makeLessThan( 4 ) ).to.equal( true );
+		expect( await makeLessThan( 3 ) ).toBe( false );
+		expect( await makeLessThan( 4 ) ).toBe( true );
 	} );
 } );
 
@@ -567,51 +559,51 @@ describe( "each", ( ) =>
 		it( "should iterate empty array", async ( ) =>
 		{
 			const input: Array< number > = [ ];
-			const spy = sinon.spy( );
+			const spy = jest.fn( );
 
 			each( input, ( x: number ) => { } ); // Type safety test
 			const arr = await each( input, spy );
 
-			expect( arr ).to.deep.equal( input );
-			expect( spy.callCount ).to.equal( 0 );
+			expect( arr ).toEqual( input );
+			expect( spy.mock.calls.length ).toBe( 0 );
 		} );
 
 		it( "should iterate single-value array (inferred type)", async ( ) =>
 		{
 			const input = [ fooValue ];
-			const spy = sinon.spy( );
+			const spy = jest.fn( );
 
 			const foo = ( n: number ) => { };
 
 			each( input, x => { foo( x ); } ); // Type safety test
 			const arr = await each( input, spy );
 
-			expect( arr ).to.deep.equal( input );
-			expect( spy.args ).to.deep.equal( [ [ fooValue, 0, 1 ] ] );
+			expect( arr ).toEqual( input );
+			expect( spy.mock.calls ).toEqual( [ [ fooValue, 0, 1 ] ] );
 		} );
 
 		it( "should iterate single-value array", async ( ) =>
 		{
 			const input = [ fooValue ];
-			const spy = sinon.spy( );
+			const spy = jest.fn( );
 
 			each( input, ( x: number ) => { } ); // Type safety test
 			const arr = await each( input, spy );
 
-			expect( arr ).to.deep.equal( input );
-			expect( spy.args ).to.deep.equal( [ [ fooValue, 0, 1 ] ] );
+			expect( arr ).toEqual( input );
+			expect( spy.mock.calls ).toEqual( [ [ fooValue, 0, 1 ] ] );
 		} );
 
 		it( "should iterate multi-value array", async ( ) =>
 		{
 			const input = [ fooValue, barValue, fooValue ];
-			const spy = sinon.spy( );
+			const spy = jest.fn( );
 
 			each( input, ( x: number ) => { } ); // Type safety test
 			const arr = await each( input, spy );
 
-			expect( arr ).to.deep.equal( input );
-			expect( spy.args ).to.deep.equal( [
+			expect( arr ).toEqual( input );
+			expect( spy.mock.calls ).toEqual( [
 				[ fooValue, 0, 3 ],
 				[ barValue, 1, 3 ],
 				[ fooValue, 2, 3 ],
@@ -622,7 +614,7 @@ describe( "each", ( ) =>
 		{
 			const order: Array< number > = [ ];
 			const input: Array< number > = [ ];
-			const spy = sinon.spy(
+			const spy = jest.fn(
 				async ( a: number, index: number ) =>
 				{
 					order.push( index );
@@ -634,16 +626,16 @@ describe( "each", ( ) =>
 			each( input, async ( x: number ) => { } ); // Type safety test
 			const arr = await each( input, spy );
 
-			expect( arr ).to.deep.equal( input );
-			expect( spy.callCount ).to.equal( 0 );
-			expect( order ).to.deep.equal( [ ] );
+			expect( arr ).toEqual( input );
+			expect( spy.mock.calls.length ).toBe( 0 );
+			expect( order ).toEqual( [ ] );
 		} );
 
 		it( "should iterate single-value array asynchronously", async ( ) =>
 		{
 			const order: Array< number > = [ ];
 			const input = [ fooValue ];
-			const spy = sinon.spy(
+			const spy = jest.fn(
 				async ( a: number, index: number ) =>
 				{
 					order.push( index );
@@ -655,16 +647,16 @@ describe( "each", ( ) =>
 			each( input, async ( x: number ) => { } ); // Type safety test
 			const arr = await each( input, spy );
 
-			expect( arr ).to.deep.equal( input );
-			expect( spy.args ).to.deep.equal( [ [ fooValue, 0, 1 ] ] );
-			expect( order ).to.deep.equal( [ 0, 0 ] );
+			expect( arr ).toEqual( input );
+			expect( spy.mock.calls ).toEqual( [ [ fooValue, 0, 1 ] ] );
+			expect( order ).toEqual( [ 0, 0 ] );
 		} );
 
 		it( "should iterate multi-value array asynchronously", async ( ) =>
 		{
 			const order: Array< number > = [ ];
 			const input = [ fooValue, barValue, fooValue ];
-			const spy = sinon.spy(
+			const spy = jest.fn(
 				async ( a: number, index: number ) =>
 				{
 					order.push( index );
@@ -676,13 +668,13 @@ describe( "each", ( ) =>
 			each( input, async ( x: number ) => { } ); // Type safety test
 			const arr = await each( input, spy );
 
-			expect( arr ).to.deep.equal( input );
-			expect( spy.args ).to.deep.equal( [
+			expect( arr ).toEqual( input );
+			expect( spy.mock.calls ).toEqual( [
 				[ fooValue, 0, 3 ],
 				[ barValue, 1, 3 ],
 				[ fooValue, 2, 3 ],
 			] );
-			expect( order ).to.deep.equal( [ 0, 0, 1, 1, 2, 2 ] );
+			expect( order ).toEqual( [ 0, 0, 1, 1, 2, 2 ] );
 		} );
 	} );
 
@@ -691,37 +683,37 @@ describe( "each", ( ) =>
 		it( "should iterate empty array", async ( ) =>
 		{
 			const input = Promise.resolve( [ ] );
-			const spy = sinon.spy( );
+			const spy = jest.fn( );
 
 			input.then( each( ( x: number ) => { } ) ); // Type safety test
 			const arr = await input.then( each( spy ) );
 
-			expect( arr ).to.deep.equal( await input );
-			expect( spy.callCount ).to.equal( 0 );
+			expect( arr ).toEqual( await input );
+			expect( spy.mock.calls.length ).toBe( 0 );
 		} );
 
 		it( "should iterate single-value array", async ( ) =>
 		{
 			const input = Promise.resolve( [ fooValue ] );
-			const spy = sinon.spy( );
+			const spy = jest.fn( );
 
 			input.then( each( ( x: number ) => { } ) ); // Type safety test
 			const arr = await input.then( each( spy ) );
 
-			expect( arr ).to.deep.equal( await input );
-			expect( spy.args ).to.deep.equal( [ [ fooValue, 0, 1 ] ] );
+			expect( arr ).toEqual( await input );
+			expect( spy.mock.calls ).toEqual( [ [ fooValue, 0, 1 ] ] );
 		} );
 
 		it( "should iterate multi-value array", async ( ) =>
 		{
 			const input = Promise.resolve( [ fooValue, barValue, fooValue ] );
-			const spy = sinon.spy( );
+			const spy = jest.fn( );
 
 			input.then( each( ( x: number ) => { } ) ); // Type safety test
 			const arr = await input.then( each( spy ) );
 
-			expect( arr ).to.deep.equal( await input );
-			expect( spy.args ).to.deep.equal( [
+			expect( arr ).toEqual( await input );
+			expect( spy.mock.calls ).toEqual( [
 				[ fooValue, 0, 3 ],
 				[ barValue, 1, 3 ],
 				[ fooValue, 2, 3 ],
@@ -732,7 +724,7 @@ describe( "each", ( ) =>
 		{
 			const order: Array< number > = [ ];
 			const input = Promise.resolve( [ ] );
-			const spy = sinon.spy(
+			const spy = jest.fn(
 				async ( a: string, index: number ) =>
 				{
 					order.push( index );
@@ -744,16 +736,16 @@ describe( "each", ( ) =>
 			input.then( each( async ( x: number ) => { } ) ); // TS test
 			const arr = await input.then( each( spy ) );
 
-			expect( arr ).to.deep.equal( await input );
-			expect( spy.callCount ).to.equal( 0 );
-			expect( order ).to.deep.equal( [ ] );
+			expect( arr ).toEqual( await input );
+			expect( spy.mock.calls.length ).toBe( 0 );
+			expect( order ).toEqual( [ ] );
 		} );
 
 		it( "should iterate single-value array asynchronously", async ( ) =>
 		{
 			const order: Array< number > = [ ];
 			const input = Promise.resolve( [ fooValue ] );
-			const spy = sinon.spy(
+			const spy = jest.fn(
 				async ( a: number, index: number ) =>
 				{
 					order.push( index );
@@ -765,16 +757,16 @@ describe( "each", ( ) =>
 			input.then( each( async ( x: number ) => { } ) ); // TS test
 			const arr = await input.then( each( spy ) );
 
-			expect( arr ).to.deep.equal( await input );
-			expect( spy.args ).to.deep.equal( [ [ fooValue, 0, 1 ] ] );
-			expect( order ).to.deep.equal( [ 0, 0 ] );
+			expect( arr ).toEqual( await input );
+			expect( spy.mock.calls ).toEqual( [ [ fooValue, 0, 1 ] ] );
+			expect( order ).toEqual( [ 0, 0 ] );
 		} );
 
 		it( "should iterate multi-value array asynchronously", async ( ) =>
 		{
 			const order: Array< number > = [ ];
 			const input = Promise.resolve( [ fooValue, barValue, fooValue ] );
-			const spy = sinon.spy(
+			const spy = jest.fn(
 				async ( a: number, index: number ) =>
 				{
 					order.push( index );
@@ -786,13 +778,13 @@ describe( "each", ( ) =>
 			input.then( each( async ( x: number ) => { } ) ); // TS test
 			const arr = await input.then( each( spy ) );
 
-			expect( arr ).to.deep.equal( await input );
-			expect( spy.args ).to.deep.equal( [
+			expect( arr ).toEqual( await input );
+			expect( spy.mock.calls ).toEqual( [
 				[ fooValue, 0, 3 ],
 				[ barValue, 1, 3 ],
 				[ fooValue, 2, 3 ],
 			] );
-			expect( order ).to.deep.equal( [ 0, 0, 1, 1, 2, 2 ] );
+			expect( order ).toEqual( [ 0, 0, 1, 1, 2, 2 ] );
 		} );
 	} );
 } );
@@ -844,7 +836,7 @@ describe( "some", ( ) =>
 
 			const res = await some( input, somePred );
 
-			expect( res ).to.be.false;
+			expect( res ).toBe( false );
 		} );
 
 		it( "should return false on unmatching single-value array", async ( ) =>
@@ -853,7 +845,7 @@ describe( "some", ( ) =>
 
 			const res = await some( input, somePredNull );
 
-			expect( res ).to.be.false;
+			expect( res ).toBe( false );
 		} );
 
 		it( "should return value on matching single-value array", async ( ) =>
@@ -862,7 +854,7 @@ describe( "some", ( ) =>
 
 			const res = await some( input, somePred );
 
-			expect( res ).to.deep.equal( { val: fooValue } );
+			expect( res ).toEqual( { val: fooValue } );
 		} );
 
 		it( "should return false on unmatching multi-value array", async ( ) =>
@@ -871,7 +863,7 @@ describe( "some", ( ) =>
 
 			const res = await some( input, somePredNull );
 
-			expect( res ).to.be.false;
+			expect( res ).toBe( false );
 		} );
 
 		it( "should return first match in multi-value array", async ( ) =>
@@ -880,7 +872,7 @@ describe( "some", ( ) =>
 
 			const res = await some( input, somePredIf( fooValue + 1 ) );
 
-			expect( res ).to.deep.equal( { val: fooValue + 1 } );
+			expect( res ).toEqual( { val: fooValue + 1 } );
 		} );
 	} );
 
@@ -892,7 +884,7 @@ describe( "some", ( ) =>
 				Promise.resolve( [ ] )
 				.then( some( somePred ) );
 
-			expect( res ).to.be.false;
+			expect( res ).toBe( false );
 		} );
 
 		it( "should return false on unmatching single-value array", async ( ) =>
@@ -901,7 +893,7 @@ describe( "some", ( ) =>
 				Promise.resolve( [ fooValue ] )
 				.then( some( somePredNull ) );
 
-			expect( res ).to.be.false;
+			expect( res ).toBe( false );
 		} );
 
 		it( "should return value on matching single-value array", async ( ) =>
@@ -910,7 +902,7 @@ describe( "some", ( ) =>
 				Promise.resolve( [ fooValue ] )
 				.then( some( somePred ) );
 
-			expect( res ).to.deep.equal( { val: fooValue } );
+			expect( res ).toEqual( { val: fooValue } );
 		} );
 
 		it( "should return false on unmatching multi-value array", async ( ) =>
@@ -919,7 +911,7 @@ describe( "some", ( ) =>
 				Promise.resolve( [ fooValue, fooValue + 1, fooValue + 2 ] )
 				.then( some( somePredNull ) );
 
-			expect( res ).to.be.false;
+			expect( res ).toBe( false );
 		} );
 
 		it( "should return first match in multi-value array", async ( ) =>
@@ -928,7 +920,7 @@ describe( "some", ( ) =>
 				Promise.resolve( [ fooValue, fooValue + 1, fooValue + 2 ] )
 				.then( some( somePredIf( fooValue + 1 ) ) );
 
-			expect( res ).to.deep.equal( { val: fooValue + 1 } );
+			expect( res ).toEqual( { val: fooValue + 1 } );
 		} );
 	} );
 
@@ -940,7 +932,7 @@ describe( "some", ( ) =>
 
 			const res = await some( input, asyncSomePred );
 
-			expect( res ).to.be.false;
+			expect( res ).toBe( false );
 		} );
 
 		it( "should return false on unmatching single-value array", async ( ) =>
@@ -949,7 +941,7 @@ describe( "some", ( ) =>
 
 			const res = await some( input, asyncSomePredNull );
 
-			expect( res ).to.be.false;
+			expect( res ).toBe( false );
 		} );
 
 		it( "should return value on matching single-value array", async ( ) =>
@@ -958,7 +950,7 @@ describe( "some", ( ) =>
 
 			const res = await some( input, asyncSomePred );
 
-			expect( res ).to.deep.equal( { val: fooValue } );
+			expect( res ).toEqual( { val: fooValue } );
 		} );
 
 		it( "should return false on unmatching multi-value array", async ( ) =>
@@ -967,7 +959,7 @@ describe( "some", ( ) =>
 
 			const res = await some( input, asyncSomePredNull );
 
-			expect( res ).to.be.false;
+			expect( res ).toBe( false );
 		} );
 
 		it( "should return first match in multi-value array", async ( ) =>
@@ -976,7 +968,7 @@ describe( "some", ( ) =>
 
 			const res = await some( input, asyncSomePredIf( fooValue + 1 ) );
 
-			expect( res ).to.deep.equal( { val: fooValue + 1 } );
+			expect( res ).toEqual( { val: fooValue + 1 } );
 		} );
 	} );
 
@@ -988,7 +980,7 @@ describe( "some", ( ) =>
 				Promise.resolve( [ ] )
 				.then( some( asyncSomePred ) );
 
-			expect( res ).to.be.false;
+			expect( res ).toBe( false );
 		} );
 
 		it( "should return false on unmatching single-value array", async ( ) =>
@@ -997,7 +989,7 @@ describe( "some", ( ) =>
 				Promise.resolve( [ fooValue ] )
 				.then( some( asyncSomePredNull ) );
 
-			expect( res ).to.be.false;
+			expect( res ).toBe( false );
 		} );
 
 		it( "should return value on matching single-value array", async ( ) =>
@@ -1006,7 +998,7 @@ describe( "some", ( ) =>
 				Promise.resolve( [ fooValue ] )
 				.then( some( asyncSomePred ) );
 
-			expect( res ).to.deep.equal( { val: fooValue } );
+			expect( res ).toEqual( { val: fooValue } );
 		} );
 
 		it( "should return false on unmatching multi-value array", async ( ) =>
@@ -1015,7 +1007,7 @@ describe( "some", ( ) =>
 				Promise.resolve( [ fooValue, fooValue + 1, fooValue + 2 ] )
 				.then( some( asyncSomePredNull ) );
 
-			expect( res ).to.be.false;
+			expect( res ).toBe( false );
 		} );
 
 		it( "should return first match in multi-value array", async ( ) =>
@@ -1024,7 +1016,7 @@ describe( "some", ( ) =>
 				Promise.resolve( [ fooValue, fooValue + 1, fooValue + 2 ] )
 				.then( some( asyncSomePredIf( fooValue + 1 ) ) );
 
-			expect( res ).to.deep.equal( { val: fooValue + 1 } );
+			expect( res ).toEqual( { val: fooValue + 1 } );
 		} );
 	} );
 
@@ -1041,7 +1033,7 @@ describe( "some", ( ) =>
 		{
 			const res = await some( Promise.resolve( [ ] ), asyncSomePred );
 
-			expect( res ).to.be.false;
+			expect( res ).toBe( false );
 		} );
 
 		it( "should return false on unmatching single-value array", async ( ) =>
@@ -1050,7 +1042,7 @@ describe( "some", ( ) =>
 
 			const res = await some( input, asyncSomePredNull );
 
-			expect( res ).to.be.false;
+			expect( res ).toBe( false );
 		} );
 
 		it( "should return value on matching single-value array", async ( ) =>
@@ -1059,7 +1051,7 @@ describe( "some", ( ) =>
 
 			const res = await some( input, asyncSomePred );
 
-			expect( res ).to.deep.equal( { val: fooValue } );
+			expect( res ).toEqual( { val: fooValue } );
 		} );
 
 		it( "should return false on unmatching multi-value array", async ( ) =>
@@ -1069,7 +1061,7 @@ describe( "some", ( ) =>
 
 			const res = await some( input, asyncSomePredNull );
 
-			expect( res ).to.be.false;
+			expect( res ).toBe( false );
 		} );
 
 		it( "should return first match in multi-value array", async ( ) =>
@@ -1079,7 +1071,7 @@ describe( "some", ( ) =>
 
 			const res = await some( input, asyncSomePredIf( fooValue + 1 ) );
 
-			expect( res ).to.deep.equal( { val: fooValue + 1 } );
+			expect( res ).toEqual( { val: fooValue + 1 } );
 		} );
 	} );
 } );
@@ -1095,50 +1087,50 @@ describe( "once", ( ) =>
 	{
 		it( "should call synchronously once", ( ) =>
 		{
-			const spy = sinon.spy( );
+			const spy = jest.fn( );
 
 			const _once = once( spy );
-			expect( spy.callCount ).to.equal( 0 );
+			expect( spy.mock.calls.length ).toBe( 0 );
 			_once( );
-			expect( spy.callCount ).to.equal( 1 );
+			expect( spy.mock.calls.length ).toBe( 1 );
 			_once( );
-			expect( spy.callCount ).to.equal( 1 );
+			expect( spy.mock.calls.length ).toBe( 1 );
 		} );
 
 		it( "should call asynchronously once", async ( ) =>
 		{
-			const spy = sinon.spy( delayedFunction( ) );
+			const spy = jest.fn( delayedFunction( ) );
 
 			const _once = once( spy );
-			expect( spy.callCount ).to.equal( 0 );
+			expect( spy.mock.calls.length ).toBe( 0 );
 			await _once( );
-			expect( spy.callCount ).to.equal( 1 );
+			expect( spy.mock.calls.length ).toBe( 1 );
 			await _once( );
-			expect( spy.callCount ).to.equal( 1 );
+			expect( spy.mock.calls.length ).toBe( 1 );
 		} );
 
 		it( "should call synchronously once with value", ( ) =>
 		{
-			const spy = sinon.spy( ( ) => 42 );
+			const spy = jest.fn( ( ) => 42 );
 
 			const _once = once( spy );
-			expect( spy.callCount ).to.equal( 0 );
-			expect( _once( ) ).to.equal( 42 );
-			expect( spy.callCount ).to.equal( 1 );
-			expect( _once( ) ).to.equal( 42 );
-			expect( spy.callCount ).to.equal( 1 );
+			expect( spy.mock.calls.length ).toBe( 0 );
+			expect( _once( ) ).toBe( 42 );
+			expect( spy.mock.calls.length ).toBe( 1 );
+			expect( _once( ) ).toBe( 42 );
+			expect( spy.mock.calls.length ).toBe( 1 );
 		} );
 
 		it( "should call asynchronously once with value", async ( ) =>
 		{
-			const spy = sinon.spy( delayedFunction( ) );
+			const spy = jest.fn( delayedFunction( ) );
 
 			const _once = once( spy );
-			expect( spy.callCount ).to.equal( 0 );
-			expect( await _once( ) ).to.equal( 42 );
-			expect( spy.callCount ).to.equal( 1 );
-			expect( await _once( ) ).to.equal( 42 );
-			expect( spy.callCount ).to.equal( 1 );
+			expect( spy.mock.calls.length ).toBe( 0 );
+			expect( await _once( ) ).toBe( 42 );
+			expect( spy.mock.calls.length ).toBe( 1 );
+			expect( await _once( ) ).toBe( 42 );
+			expect( spy.mock.calls.length ).toBe( 1 );
 		} );
 	} );
 
@@ -1148,66 +1140,66 @@ describe( "once", ( ) =>
 		{
 			const _once = once( );
 
-			const spy1 = sinon.spy( );
-			const spy2 = sinon.spy( );
+			const spy1 = jest.fn( );
+			const spy2 = jest.fn( );
 
-			expect( spy1.callCount ).to.equal( 0 );
+			expect( spy1.mock.calls.length ).toBe( 0 );
 			_once( spy1 );
-			expect( spy1.callCount ).to.equal( 1 );
+			expect( spy1.mock.calls.length ).toBe( 1 );
 			_once( spy1 );
-			expect( spy1.callCount ).to.equal( 1 );
+			expect( spy1.mock.calls.length ).toBe( 1 );
 
-			expect( spy2.callCount ).to.equal( 0 );
+			expect( spy2.mock.calls.length ).toBe( 0 );
 			_once( spy2 );
-			expect( spy2.callCount ).to.equal( 1 );
+			expect( spy2.mock.calls.length ).toBe( 1 );
 			_once( spy2 );
-			expect( spy2.callCount ).to.equal( 1 );
+			expect( spy2.mock.calls.length ).toBe( 1 );
 
-			expect( spy1.callCount ).to.equal( 1 );
+			expect( spy1.mock.calls.length ).toBe( 1 );
 		} );
 
 		it( "should call asynchronously once", async ( ) =>
 		{
 			const _once = once( );
 
-			const spy1 = sinon.spy( delayedFunction( ) );
-			const spy2 = sinon.spy( delayedFunction( ) );
+			const spy1 = jest.fn( delayedFunction( ) );
+			const spy2 = jest.fn( delayedFunction( ) );
 
-			expect( spy1.callCount ).to.equal( 0 );
+			expect( spy1.mock.calls.length ).toBe( 0 );
 			await _once( spy1 );
-			expect( spy1.callCount ).to.equal( 1 );
+			expect( spy1.mock.calls.length ).toBe( 1 );
 			await _once( spy1 );
-			expect( spy1.callCount ).to.equal( 1 );
+			expect( spy1.mock.calls.length ).toBe( 1 );
 
-			expect( spy2.callCount ).to.equal( 0 );
+			expect( spy2.mock.calls.length ).toBe( 0 );
 			await _once( spy2 );
-			expect( spy2.callCount ).to.equal( 1 );
+			expect( spy2.mock.calls.length ).toBe( 1 );
 			await _once( spy2 );
-			expect( spy2.callCount ).to.equal( 1 );
+			expect( spy2.mock.calls.length ).toBe( 1 );
 
-			expect( spy1.callCount ).to.equal( 1 );
+			expect( spy1.mock.calls.length ).toBe( 1 );
 		} );
 
 		it( "should call asynchronously once (stressed)", async ( ) =>
 		{
 			const _once = once( );
 
-			const spy1 = sinon.spy( delayedFunction( ) );
-			const spy2 = sinon.spy( delayedFunction( ) );
+			const spy1 = jest.fn( delayedFunction( ) );
+			const spy2 = jest.fn( delayedFunction( ) );
 
-			expect( spy1.callCount ).to.equal( 0 );
+			expect( spy1.mock.calls.length ).toBe( 0 );
 			const awaitOnce1 = _once( spy1 );
-			expect( spy1.callCount ).to.equal( 1 );
+			expect( spy1.mock.calls.length ).toBe( 1 );
 			const awaitOnce2 = _once( spy1 );
-			expect( spy1.callCount ).to.equal( 1 );
+			expect( spy1.mock.calls.length ).toBe( 1 );
 
-			expect( spy2.callCount ).to.equal( 0 );
+			expect( spy2.mock.calls.length ).toBe( 0 );
 			const awaitOnce3 = _once( spy2 );
-			expect( spy2.callCount ).to.equal( 1 );
+			expect( spy2.mock.calls.length ).toBe( 1 );
 			const awaitOnce4 = _once( spy2 );
-			expect( spy2.callCount ).to.equal( 1 );
+			expect( spy2.mock.calls.length ).toBe( 1 );
 
-			expect( spy1.callCount ).to.equal( 1 );
+			expect( spy1.mock.calls.length ).toBe( 1 );
 
 			await awaitOnce1;
 			await awaitOnce2;
@@ -1253,13 +1245,14 @@ describe( "retry", ( ) =>
 				{
 					const thrower = throwFirst( returnAfter, 42 );
 
-					expect( ( ) => retry( retryTimes, thrower ) ).to.throw( testError );
+					expect( ( ) => retry( retryTimes, thrower ) )
+						.toThrow( testError );
 				}
 				else
 				{
 					const thrower = throwFirst( returnAfter, 42 );
 
-					expect( retry( retryTimes, thrower ) ).to.equal( 42 );
+					expect( retry( retryTimes, thrower ) ).toBe( 42 );
 				}
 			} );
 		} );
@@ -1269,7 +1262,7 @@ describe( "retry", ( ) =>
 			const thrower = throwFirst( 5, 42 );
 
 			expect( ( ) => retry( 10, thrower, ( ) => false ) )
-				.to.throw( testError );
+				.toThrow( testError );
 		} );
 
 		it( "should rethrow on eventually false predicate", ( ) =>
@@ -1279,7 +1272,7 @@ describe( "retry", ( ) =>
 			let i = 2;
 
 			expect( ( ) => retry( 10, thrower, ( ) => --i > 0 ) )
-				.to.throw( testError );
+				.toThrow( testError );
 		} );
 	} );
 
@@ -1313,14 +1306,14 @@ describe( "retry", ( ) =>
 
 					const result =
 						await reflect( retry( retryTimes, thrower ) );
-					expect( result.isRejected ).to.be.true;
-					expect( result.error ).to.equal( testError );
+					expect( result.isRejected ).toBe( true );
+					expect( result.error ).toBe( testError );
 					}
 				else
 				{
 					const thrower = throwFirst( returnAfter, 42 );
 
-					expect( await retry( retryTimes, thrower ) ).to.equal( 42 );
+					expect( await retry( retryTimes, thrower ) ).toBe( 42 );
 				}
 			} );
 		} );
@@ -1332,8 +1325,8 @@ describe( "retry", ( ) =>
 			const result =
 				await reflect( retry( 10, thrower, ( ) => false ) );
 
-			expect( result.isRejected ).to.be.true;
-			expect( result.error ).to.equal( testError );
+			expect( result.isRejected ).toBe( true );
+			expect( result.error ).toBe( testError );
 		} );
 
 		it( "should rethrow on eventually false predicate", async ( ) =>
@@ -1345,8 +1338,8 @@ describe( "retry", ( ) =>
 			const result =
 				await reflect( retry( 10, thrower, ( ) => --i > 0 ) );
 
-			expect( result.isRejected ).to.be.true;
-			expect( result.error ).to.equal( testError );
+			expect( result.isRejected ).toBe( true );
+			expect( result.error ).toBe( testError );
 		} );
 	} );
 } );
@@ -1361,7 +1354,7 @@ describe( "defer", ( ) =>
 		deferred.resolve( );
 
 		const val = await deferred.promise;
-		expect( val ).to.be.undefined;
+		expect( val ).toBe( void 0 );
 	} );
 
 	it( "should work with undefined and one resolve argument", async ( ) =>
@@ -1371,7 +1364,7 @@ describe( "defer", ( ) =>
 		deferred.resolve( void 0 );
 
 		const val = await deferred.promise;
-		expect( val ).to.be.undefined;
+		expect( val ).toBe( void 0 );
 	} );
 
 	it( "should work with resolving", async ( ) =>
@@ -1381,7 +1374,7 @@ describe( "defer", ( ) =>
 		deferred.resolve( fooValue );
 
 		const val = await deferred.promise;
-		expect( val ).to.equal( fooValue );
+		expect( val ).toBe( fooValue );
 	} );
 
 	it( "should work with rejecting", async ( ) =>
@@ -1414,10 +1407,10 @@ describe( "reflect", ( ) =>
 
 		const { value, error, isResolved, isRejected } = reflected;
 
-		expect( isResolved ).to.be.true;
-		expect( isRejected ).to.be.false;
-		expect( value ).to.equal( fooValue );
-		expect( error ).to.be.undefined;
+		expect( isResolved ).toBe( true );
+		expect( isRejected ).toBe( false );
+		expect( value ).toBe( fooValue );
+		expect( error ).toBe( void 0 );
 	} );
 
 	it( "should work with not yet resolved promises", async ( ) =>
@@ -1428,10 +1421,10 @@ describe( "reflect", ( ) =>
 
 		const { value, error, isResolved, isRejected } = reflected;
 
-		expect( isResolved ).to.be.true;
-		expect( isRejected ).to.be.false;
-		expect( value ).to.equal( fooValue );
-		expect( error ).to.be.undefined;
+		expect( isResolved ).toBe( true );
+		expect( isRejected ).toBe( false );
+		expect( value ).toBe( fooValue );
+		expect( error ).toBe( void 0 );
 	} );
 
 	it( "should work with rejected promises", async ( ) =>
@@ -1442,10 +1435,10 @@ describe( "reflect", ( ) =>
 
 		const { value, error, isResolved, isRejected } = reflected;
 
-		expect( isResolved ).to.be.false;
-		expect( isRejected ).to.be.true;
-		expect( value ).to.be.undefined;
-		expect( error ).to.equal( fooError );
+		expect( isResolved ).toBe( false );
+		expect( isRejected ).toBe( true );
+		expect( value ).toBe( void 0 );
+		expect( error ).toBe( fooError );
 	} );
 
 	it( "should work with not yet rejected promises", async ( ) =>
@@ -1456,10 +1449,10 @@ describe( "reflect", ( ) =>
 
 		const { value, error, isResolved, isRejected } = reflected;
 
-		expect( isResolved ).to.be.false;
-		expect( isRejected ).to.be.true;
-		expect( value ).to.be.undefined;
-		expect( error ).to.equal( fooError );
+		expect( isResolved ).toBe( false );
+		expect( isRejected ).toBe( true );
+		expect( value ).toBe( void 0 );
+		expect( error ).toBe( fooError );
 	} );
 } );
 
@@ -1474,9 +1467,9 @@ describe( "inspect", ( ) =>
 
 		await delay( 1 );
 
-		expect( inspectable.isPending ).to.be.true;
-		expect( inspectable.isResolved ).to.be.false;
-		expect( inspectable.isRejected ).to.be.false;
+		expect( inspectable.isPending ).toBe( true );
+		expect( inspectable.isResolved ).toBe( false );
+		expect( inspectable.isRejected ).toBe( false );
 
 		deferred.resolve( "" );
 
@@ -1493,9 +1486,9 @@ describe( "inspect", ( ) =>
 
 		await delay( 1 );
 
-		expect( inspectable.isPending ).to.be.false;
-		expect( inspectable.isResolved ).to.be.true;
-		expect( inspectable.isRejected ).to.be.false;
+		expect( inspectable.isPending ).toBe( false );
+		expect( inspectable.isResolved ).toBe( true );
+		expect( inspectable.isRejected ).toBe( false );
 
 		return inspectable.promise;
 	} );
@@ -1514,9 +1507,9 @@ describe( "inspect", ( ) =>
 
 		await delay( 1 );
 
-		expect( inspectable.isPending ).to.be.false;
-		expect( inspectable.isResolved ).to.be.false;
-		expect( inspectable.isRejected ).to.be.true;
+		expect( inspectable.isPending ).toBe( false );
+		expect( inspectable.isResolved ).toBe( false );
+		expect( inspectable.isRejected ).toBe( true );
 
 		return inspectable.promise.catch( err => { } );
 	} );
@@ -1529,9 +1522,9 @@ describe( "inspect", ( ) =>
 
 		const inspectable = await inspect( deferred.promise );
 
-		expect( inspectable.isPending ).to.be.false;
-		expect( inspectable.isResolved ).to.be.true;
-		expect( inspectable.isRejected ).to.be.false;
+		expect( inspectable.isPending ).toBe( false );
+		expect( inspectable.isResolved ).toBe( true );
+		expect( inspectable.isRejected ).toBe( false );
 
 		return inspectable.promise;
 	} );
@@ -1545,26 +1538,26 @@ describe( "deferInspectable", ( ) =>
 		const deferredRes = deferInspectable< string >( );
 		const deferredRej = deferInspectable< string >( );
 
-		expect( deferredRes.isPending ).to.be.true;
-		expect( deferredRes.isResolved ).to.be.false;
-		expect( deferredRes.isRejected ).to.be.false;
-		expect( deferredRej.isPending ).to.be.true;
-		expect( deferredRej.isResolved ).to.be.false;
-		expect( deferredRej.isRejected ).to.be.false;
+		expect( deferredRes.isPending ).toBe( true );
+		expect( deferredRes.isResolved ).toBe( false );
+		expect( deferredRes.isRejected ).toBe( false );
+		expect( deferredRej.isPending ).toBe( true );
+		expect( deferredRej.isResolved ).toBe( false );
+		expect( deferredRej.isRejected ).toBe( false );
 
 		deferredRes.resolve( "foo" );
 		deferredRej.reject( new Error( "err" ) );
 
-		expect( deferredRes.isPending ).to.be.false;
-		expect( deferredRes.isResolved ).to.be.true;
-		expect( deferredRes.isRejected ).to.be.false;
-		expect( deferredRej.isPending ).to.be.false;
-		expect( deferredRej.isResolved ).to.be.false;
-		expect( deferredRej.isRejected ).to.be.true;
+		expect( deferredRes.isPending ).toBe( false );
+		expect( deferredRes.isResolved ).toBe( true );
+		expect( deferredRes.isRejected ).toBe( false );
+		expect( deferredRej.isPending ).toBe( false );
+		expect( deferredRej.isResolved ).toBe( false );
+		expect( deferredRej.isRejected ).toBe( true );
 
-		expect( await deferredRes.promise ).to.equal( "foo" );
+		expect( await deferredRes.promise ).toBe( "foo" );
 		expect( await deferredRej.promise.catch( err => err.message ) )
-			.to.equal( "err" );
+			.toBe( "err" );
 	} );
 
 	it( "should not double-resolve or double-reject", async ( ) =>
@@ -1572,84 +1565,82 @@ describe( "deferInspectable", ( ) =>
 		const deferredRes = deferInspectable< string >( );
 		const deferredRej = deferInspectable< string >( );
 
-		expect( deferredRes.isPending ).to.be.true;
-		expect( deferredRes.isResolved ).to.be.false;
-		expect( deferredRes.isRejected ).to.be.false;
-		expect( deferredRej.isPending ).to.be.true;
-		expect( deferredRej.isResolved ).to.be.false;
-		expect( deferredRej.isRejected ).to.be.false;
+		expect( deferredRes.isPending ).toBe( true );
+		expect( deferredRes.isResolved ).toBe( false );
+		expect( deferredRes.isRejected ).toBe( false );
+		expect( deferredRej.isPending ).toBe( true );
+		expect( deferredRej.isResolved ).toBe( false );
+		expect( deferredRej.isRejected ).toBe( false );
 
 		deferredRes.resolve( "foo" );
 		deferredRes.resolve( "bar" );
 		deferredRej.reject( new Error( "err" ) );
 		deferredRej.reject( new Error( "bork" ) );
 
-		expect( deferredRes.isPending ).to.be.false;
-		expect( deferredRes.isResolved ).to.be.true;
-		expect( deferredRes.isRejected ).to.be.false;
-		expect( deferredRej.isPending ).to.be.false;
-		expect( deferredRej.isResolved ).to.be.false;
-		expect( deferredRej.isRejected ).to.be.true;
+		expect( deferredRes.isPending ).toBe( false );
+		expect( deferredRes.isResolved ).toBe( true );
+		expect( deferredRes.isRejected ).toBe( false );
+		expect( deferredRej.isPending ).toBe( false );
+		expect( deferredRej.isResolved ).toBe( false );
+		expect( deferredRej.isRejected ).toBe( true );
 
-		expect( await deferredRes.promise ).to.equal( "foo" );
+		expect( await deferredRes.promise ).toBe( "foo" );
 		expect( await deferredRej.promise.catch( err => err.message ) )
-			.to.equal( "err" );
+			.toBe( "err" );
 	} );
 
-/*
-	it( "should work with resolving", async ( ) =>
-	{
-		const deferred = deferInspectable< string >( );
+	// it( "should work with resolving", async ( ) =>
+	// {
+	// 	const deferred = deferInspectable< string >( );
 
-		const inspectable = inspect( deferred.promise );
+	// 	const inspectable = inspect( deferred.promise );
 
-		deferred.resolve( "" );
+	// 	deferred.resolve( "" );
 
-		await delay( 1 );
+	// 	await delay( 1 );
 
-		expect( inspectable.isPending ).to.be.false;
-		expect( inspectable.isResolved ).to.be.true;
-		expect( inspectable.isRejected ).to.be.false;
+	// 	expect( inspectable.isPending ).toBe( false );
+	// 	expect( inspectable.isResolved ).toBe( true );
+	// 	expect( inspectable.isRejected ).toBe( false );
 
-		return inspectable.promise;
-	} );
+	// 	return inspectable.promise;
+	// } );
 
-	it( "should work with rejecting", async ( ) =>
-	{
-		const deferred = deferInspectable< string >( );
+	// it( "should work with rejecting", async ( ) =>
+	// {
+	// 	const deferred = deferInspectable< string >( );
 
-		const inspectable = inspect( deferred.promise );
+	// 	const inspectable = inspect( deferred.promise );
 
-		// Register catch handler before asynchronously rejecting upstream
-		// to avoid erroneous nodejs warning about unhandled rejections.
-		inspectable.promise.catch( err => { } );
+	// 	// Register catch handler before asynchronously rejecting upstream
+	// 	// to avoid erroneous nodejs warning about unhandled rejections.
+	// 	inspectable.promise.catch( err => { } );
 
-		deferred.reject( new Error( ) );
+	// 	deferred.reject( new Error( ) );
 
-		await delay( 1 );
+	// 	await delay( 1 );
 
-		expect( inspectable.isPending ).to.be.false;
-		expect( inspectable.isResolved ).to.be.false;
-		expect( inspectable.isRejected ).to.be.true;
+	// 	expect( inspectable.isPending ).toBe( false );
+	// 	expect( inspectable.isResolved ).toBe( false );
+	// 	expect( inspectable.isRejected ).toBe( true );
 
-		return inspectable.promise.catch( err => { } );
-	} );
+	// 	return inspectable.promise.catch( err => { } );
+	// } );
 
-	it( "should be settled after {await}", async ( ) =>
-	{
-		const deferred = deferInspectable< string >( );
+	// it( "should be settled after {await}", async ( ) =>
+	// {
+	// 	const deferred = deferInspectable< string >( );
 
-		deferred.resolve( "" );
+	// 	deferred.resolve( "" );
 
-		const inspectable = await inspect( deferred.promise );
+	// 	const inspectable = await inspect( deferred.promise );
 
-		expect( inspectable.isPending ).to.be.false;
-		expect( inspectable.isResolved ).to.be.true;
-		expect( inspectable.isRejected ).to.be.false;
+	// 	expect( inspectable.isPending ).toBe( false );
+	// 	expect( inspectable.isResolved ).toBe( true );
+	// 	expect( inspectable.isRejected ).toBe( false );
 
-		return inspectable.promise;
-	} );
-*/
+	// 	return inspectable.promise;
+	// } );
 } );
 
 
@@ -1662,7 +1653,7 @@ describe( "try", ( ) =>
 			.then( val => val )
 		);
 
-		expect( ret ).to.be.a( "undefined" );
+		expect( ret ).toBe( void 0 );
 	} );
 
 	it( "should work with return value", async ( ) =>
@@ -1672,8 +1663,8 @@ describe( "try", ( ) =>
 			.then( val => val )
 		);
 
-		expect( ret ).to.be.a( "string" );
-		expect( ret ).to.equal( "foo" );
+		expect( typeof ret ).toBe( "string" );
+		expect( ret ).toBe( "foo" );
 	} );
 
 	it( "should work with a throwing function", async ( ) =>
@@ -1688,7 +1679,7 @@ describe( "try", ( ) =>
 				Try( fn )
 				.then( val => val )
 			);
-			expect( false ).to.equal( true ); // We shouldn't be here
+			expect( false ).toBe( true ); // We shouldn't be here
 		}
 		catch ( err )
 		{
@@ -1732,7 +1723,7 @@ describe( "specific", ( ) =>
 
 	it( "should treat nully as false", async ( ) =>
 	{
-		const spy = sinon.spy( );
+		const spy = jest.fn( );
 
 		// @ts-ignore
 		const err = new CustomErrorA( "custom-a" );
@@ -1741,12 +1732,12 @@ describe( "specific", ( ) =>
 		.catch( specific( null, spy ) )
 		.catch( ( ) => { } );
 
-		sinon.assert.notCalled( spy );
+		expect( spy.mock.calls.length ).toBe( 0 );
 	} );
 
 	it( "should treat invalid specific clauses as false", async ( ) =>
 	{
-		const spy = sinon.spy( );
+		const spy = jest.fn( );
 
 		// @ts-ignore
 		const err = new CustomErrorA( "custom-a" );
@@ -1755,12 +1746,12 @@ describe( "specific", ( ) =>
 		.catch( specific( < any >"custom-a", spy ) )
 		.catch( ( ) => { } );
 
-		sinon.assert.notCalled( spy );
+		expect( spy.mock.calls.length ).toBe( 0 );
 	} );
 
 	it( "should filter single class", async ( ) =>
 	{
-		const spy = sinon.spy( );
+		const spy = jest.fn( );
 
 		// @ts-ignore
 		const err = new CustomErrorA( "custom-a" );
@@ -1768,12 +1759,12 @@ describe( "specific", ( ) =>
 		await Promise.reject( err )
 		.catch( specific( CustomErrorA, spy ) );
 
-		sinon.assert.calledWith( spy, err );
+		expect( spy.mock.calls[ 0 ][ 0 ] ).toBe( err );
 	} );
 
 	it( "should filter two classes", async ( ) =>
 	{
-		const spy = sinon.spy( );
+		const spy = jest.fn( );
 
 		// @ts-ignore
 		const err = new CustomErrorA( "custom-a" );
@@ -1781,13 +1772,13 @@ describe( "specific", ( ) =>
 		await Promise.reject( err )
 		.catch( specific( [ CustomErrorA, CustomErrorB ], spy ) );
 
-		sinon.assert.calledWith( spy, err );
+		expect( spy.mock.calls[ 0 ][ 0 ] ).toBe( err );
 	} );
 
 	it( "should skip two classes", async ( ) =>
 	{
-		const spy1 = sinon.spy( );
-		const spy2 = sinon.spy( );
+		const spy1 = jest.fn( );
+		const spy2 = jest.fn( );
 
 		const err = new Error( "custom-a" );
 
@@ -1795,13 +1786,13 @@ describe( "specific", ( ) =>
 		.catch( specific( [ CustomErrorB, CustomErrorA ], spy1 ) )
 		.catch( spy2 );
 
-		sinon.assert.notCalled( spy1 );
-		sinon.assert.calledWith( spy2, err );
+		expect( spy1.mock.calls.length ).toBe( 0 );
+		expect( spy2.mock.calls[ 0 ][ 0 ] ).toBe( err );
 	} );
 
 	it( "should filter one function", async ( ) =>
 	{
-		const spy = sinon.spy( );
+		const spy = jest.fn( );
 
 		// @ts-ignore
 		const err = new CustomErrorA( "custom-a" );
@@ -1810,12 +1801,12 @@ describe( "specific", ( ) =>
 		await Promise.reject( err )
 		.catch( specific( isMyError, spy ) );
 
-		sinon.assert.calledWith( spy, err );
+		expect( spy.mock.calls[ 0 ][ 0 ] ).toBe( err );
 	} );
 
 	it( "should filter two functions", async ( ) =>
 	{
-		const spy = sinon.spy( );
+		const spy = jest.fn( );
 
 		// @ts-ignore
 		const err = new CustomErrorA( "custom-a" );
@@ -1824,13 +1815,13 @@ describe( "specific", ( ) =>
 		await Promise.reject( err )
 		.catch( specific( [ isNotMyError, isMyError ], spy ) );
 
-		sinon.assert.calledWith( spy, err );
+		expect( spy.mock.calls[ 0 ][ 0 ] ).toBe( err );
 	} );
 
 	it( "should skip two functions", async ( ) =>
 	{
-		const spy1 = sinon.spy( );
-		const spy2 = sinon.spy( );
+		const spy1 = jest.fn( );
+		const spy2 = jest.fn( );
 
 		// @ts-ignore
 		const err = new CustomErrorA( "custom-a" );
@@ -1840,13 +1831,13 @@ describe( "specific", ( ) =>
 		.catch( specific( [ isNotMyError, isMyError ], spy1 ) )
 		.catch( spy2 );
 
-		sinon.assert.notCalled( spy1 );
-		sinon.assert.calledWith( spy2, err );
+		expect( spy1.mock.calls.length ).toBe( 0 );
+		expect( spy2.mock.calls[ 0 ][ 0 ] ).toBe( err );
 	} );
 
 	it( "should filter one object", async ( ) =>
 	{
-		const spy = sinon.spy( );
+		const spy = jest.fn( );
 
 		// @ts-ignore
 		const err = new CustomErrorA( "custom-a" );
@@ -1855,12 +1846,12 @@ describe( "specific", ( ) =>
 		await Promise.reject( err )
 		.catch( specific( { myError: true }, spy ) );
 
-		sinon.assert.calledWith( spy, err );
+		expect( spy.mock.calls[ 0 ][ 0 ] ).toBe( err );
 	} );
 
 	it( "should filter two objects", async ( ) =>
 	{
-		const spy = sinon.spy( );
+		const spy = jest.fn( );
 
 		// @ts-ignore
 		const err = new CustomErrorA( "custom-a" );
@@ -1869,13 +1860,13 @@ describe( "specific", ( ) =>
 		await Promise.reject( err )
 		.catch( specific( [ { foo: "bar" }, { myError: true } ], spy ) );
 
-		sinon.assert.calledWith( spy, err );
+		expect( spy.mock.calls[ 0 ][ 0 ] ).toBe( err );
 	} );
 
 	it( "should skip two objects", async ( ) =>
 	{
-		const spy1 = sinon.spy( );
-		const spy2 = sinon.spy( );
+		const spy1 = jest.fn( );
+		const spy2 = jest.fn( );
 
 		// @ts-ignore
 		const err = new CustomErrorA( "custom-a" );
@@ -1885,8 +1876,8 @@ describe( "specific", ( ) =>
 		.catch( specific( [ { a: 1 }, { b: 2 } ], spy1 ) )
 		.catch( spy2 );
 
-		sinon.assert.notCalled( spy1 );
-		sinon.assert.calledWith( spy2, err );
+		expect( spy1.mock.calls.length ).toBe( 0 );
+		expect( spy2.mock.calls[ 0 ][ 0 ] ).toBe( err );
 	} );
 
 	it( "should handle promise-returning callback", async ( ) =>
@@ -1907,7 +1898,7 @@ describe( "specific", ( ) =>
 		const res = await Promise.reject< I >( err )
 		.catch( specific( { myError: true } , callback ) );
 
-		expect( res ).to.deep.equal( { i: 2 } );
+		expect( res ).toEqual( { i: 2 } );
 	} );
 } );
 
@@ -1916,8 +1907,8 @@ describe( "rethrow", ( ) =>
 {
 	it( "should rethrow error on synchronous callback", async ( ) =>
 	{
-		const spy1 = sinon.spy( );
-		const spy2 = sinon.spy( );
+		const spy1 = jest.fn( );
+		const spy2 = jest.fn( );
 
 		const err = new Error( "error" );
 
@@ -1925,14 +1916,14 @@ describe( "rethrow", ( ) =>
 		.catch( rethrow( spy1 ) )
 		.catch( spy2 );
 
-		sinon.assert.calledWith( spy1, err );
-		sinon.assert.calledWith( spy2, err );
+		expect( spy1.mock.calls[ 0 ][ 0 ] ).toBe( err );
+		expect( spy2.mock.calls[ 0 ][ 0 ] ).toBe( err );
 	} );
 
 	it( "should rethrow error on asynchronous callback", async ( ) =>
 	{
-		const spy1 = sinon.spy( );
-		const spy2 = sinon.spy( );
+		const spy1 = jest.fn( );
+		const spy2 = jest.fn( );
 
 		const err = new Error( "error" );
 
@@ -1946,13 +1937,13 @@ describe( "rethrow", ( ) =>
 		.catch( rethrow( proxy ) )
 		.then( ...Finally( ( ) =>
 		{
-			sinon.assert.calledOnce( spy1 );
-			sinon.assert.notCalled( spy2 );
+			expect( spy1.mock.calls.length ).toBe( 1 );
+			expect( spy2.mock.calls.length ).toBe( 0 );
 		} ) )
 		.catch( spy2 );
 
-		sinon.assert.calledWith( spy1, err );
-		sinon.assert.calledWith( spy2, err );
+		expect( spy1.mock.calls[ 0 ][ 0 ] ).toBe( err );
+		expect( spy2.mock.calls[ 0 ][ 0 ] ).toBe( err );
 	} );
 
 	it( "should throw synchronous callback error", async ( ) =>
@@ -1965,15 +1956,15 @@ describe( "rethrow", ( ) =>
 			throw err2;
 		}
 
-		const spy1 = sinon.spy( wrapper );
-		const spy2 = sinon.spy( );
+		const spy1 = jest.fn( wrapper );
+		const spy2 = jest.fn( );
 
 		await Promise.reject( err1 )
 		.catch( rethrow( spy1 ) )
 		.catch( spy2 );
 
-		sinon.assert.calledWith( spy1, err1 );
-		sinon.assert.calledWith( spy2, err2 );
+		expect( spy1.mock.calls[ 0 ][ 0 ] ).toBe( err1 );
+		expect( spy2.mock.calls[ 0 ][ 0 ] ).toBe( err2 );
 	} );
 
 	it( "should throw asynchronous callback error", async ( ) =>
@@ -1987,15 +1978,15 @@ describe( "rethrow", ( ) =>
 			throw err2;
 		}
 
-		const spy1 = sinon.spy( wrapper );
-		const spy2 = sinon.spy( );
+		const spy1 = jest.fn( wrapper );
+		const spy2 = jest.fn( );
 
 		await Promise.reject( err1 )
 		.catch( rethrow( spy1 ) )
 		.catch( spy2 );
 
-		sinon.assert.calledWith( spy1, err1 );
-		sinon.assert.calledWith( spy2, err2 );
+		expect( spy1.mock.calls[ 0 ][ 0 ] ).toBe( err1 );
+		expect( spy2.mock.calls[ 0 ][ 0 ] ).toBe( err2 );
 	} );
 } );
 
@@ -2003,15 +1994,15 @@ describe( "rethrow", ( ) =>
 describe( "wrapFunction", ( ) =>
 {
 	function makeSpy0< W >( fun: ( ) => W )
-	: sinon.SinonSpy & ( ( ) => W )
+	: jest.Mock & ( ( ) => W )
 	{
-		return < sinon.SinonSpy< any, W > & ( ( ) => W ) >sinon.spy( fun );
+		return < jest.Mock< W, any > & ( ( ) => W ) >jest.fn( fun );
 	}
 	function makeSpy< T, W >( fun: ( t: T ) => W )
-	: sinon.SinonSpy & ( < T >( t: T ) => W )
+	: jest.Mock & ( < T >( t: T ) => W )
 	{
-		return < sinon.SinonSpy< any, W > & ( ( t: T ) => W ) >
-			sinon.spy( fun );
+		return < jest.Mock< W, any > & ( ( t: T ) => W ) >
+			jest.fn( fun );
 	}
 
 	describe( "(before, fn, after) combinations", ( ) =>
@@ -2023,10 +2014,10 @@ describe( "wrapFunction", ( ) =>
 
 			expect(
 				wrapFunction( before )( ( ) => { } )
-			).to.be.undefined;
+			).toBe( void 0 );
 
-			expect( before.callCount ).to.equal( 1 );
-			expect( after.callCount ).to.equal( 1 );
+			expect( before.mock.calls.length ).toBe( 1 );
+			expect( after.mock.calls.length ).toBe( 1 );
 		} );
 
 		it( "sync sync sync noarg", ( ) =>
@@ -2034,12 +2025,10 @@ describe( "wrapFunction", ( ) =>
 			const after = makeSpy( ( ) => { } );
 			const before = makeSpy0( ( ) => after );
 
-			expect(
-				wrapFunction( before )( ( ) => 42 )
-			).to.equal( 42 );
+			expect( wrapFunction( before )( ( ) => 42 ) ).toBe( 42 );
 
-			expect( before.callCount ).to.equal( 1 );
-			expect( after.callCount ).to.equal( 1 );
+			expect( before.mock.calls.length ).toBe( 1 );
+			expect( after.mock.calls.length ).toBe( 1 );
 		} );
 
 		it( "sync sync sync arg noreturn", ( ) =>
@@ -2049,10 +2038,10 @@ describe( "wrapFunction", ( ) =>
 
 			expect(
 				wrapFunction( before )( "foo", ( ) => { } )
-			).to.be.undefined;
+			).toBe( void 0 );
 
-			expect( before.args ).to.deep.equal( [ [ "foo" ] ] );
-			expect( after.callCount ).to.equal( 1 );
+			expect( before.mock.calls ).toEqual( [ [ "foo" ] ] );
+			expect( after.mock.calls.length ).toBe( 1 );
 		} );
 
 		it( "sync sync sync arg", ( ) =>
@@ -2060,12 +2049,10 @@ describe( "wrapFunction", ( ) =>
 			const after = makeSpy( ( ) => { } );
 			const before = makeSpy( ( s: string ) => after );
 
-			expect(
-				wrapFunction( before )( "foo", ( ) => 42 )
-			).to.equal( 42 );
+			expect( wrapFunction( before )( "foo", ( ) => 42 ) ).toBe( 42 );
 
-			expect( before.args ).to.deep.equal( [ [ "foo" ] ] );
-			expect( after.callCount ).to.equal( 1 );
+			expect( before.mock.calls ).toEqual( [ [ "foo" ] ] );
+			expect( after.mock.calls.length ).toBe( 1 );
 		} );
 
 
@@ -2076,10 +2063,10 @@ describe( "wrapFunction", ( ) =>
 
 			expect(
 				await wrapFunction( before )( ( ) => { } )
-			).to.be.undefined;
+			).toBe( void 0 );
 
-			expect( before.callCount ).to.equal( 1 );
-			expect( after.callCount ).to.equal( 1 );
+			expect( before.mock.calls.length ).toBe( 1 );
+			expect( after.mock.calls.length ).toBe( 1 );
 		} );
 
 		it( "async sync sync noarg", async ( ) =>
@@ -2087,12 +2074,10 @@ describe( "wrapFunction", ( ) =>
 			const after = makeSpy( ( ) => { } );
 			const before = makeSpy0( ( ) => Promise.resolve( after ) );
 
-			expect(
-				await wrapFunction( before )( ( ) => 42 )
-			).to.equal( 42 );
+			expect( await wrapFunction( before )( ( ) => 42 ) ).toBe( 42 );
 
-			expect( before.callCount ).to.equal( 1 );
-			expect( after.callCount ).to.equal( 1 );
+			expect( before.mock.calls.length ).toBe( 1 );
+			expect( after.mock.calls.length ).toBe( 1 );
 		} );
 
 		it( "async sync sync arg noreturn", async ( ) =>
@@ -2102,10 +2087,10 @@ describe( "wrapFunction", ( ) =>
 
 			expect(
 				await wrapFunction( before )( "foo", ( ) => { } )
-			).to.be.undefined;
+			).toBe( void 0 );
 
-			expect( before.args ).to.deep.equal( [ [ "foo" ] ] );
-			expect( after.callCount ).to.equal( 1 );
+			expect( before.mock.calls ).toEqual( [ [ "foo" ] ] );
+			expect( after.mock.calls.length ).toBe( 1 );
 		} );
 
 		it( "async sync sync arg", async ( ) =>
@@ -2113,12 +2098,11 @@ describe( "wrapFunction", ( ) =>
 			const after = makeSpy( ( ) => { } );
 			const before = makeSpy( ( s: string ) => Promise.resolve( after ) );
 
-			expect(
-				await wrapFunction( before )( "foo", ( ) => 42 )
-			).to.equal( 42 );
+			expect( await wrapFunction( before )( "foo", ( ) => 42 ) )
+				.toBe( 42 );
 
-			expect( before.args ).to.deep.equal( [ [ "foo" ] ] );
-			expect( after.callCount ).to.equal( 1 );
+			expect( before.mock.calls ).toEqual( [ [ "foo" ] ] );
+			expect( after.mock.calls.length ).toBe( 1 );
 		} );
 
 		it( "sync async sync noarg noreturn", async ( ) =>
@@ -2128,10 +2112,10 @@ describe( "wrapFunction", ( ) =>
 
 			expect(
 				await wrapFunction( before )( ( ) => Promise.resolve( ) )
-			).to.be.undefined;
+			).toBe( void 0 );
 
-			expect( before.callCount ).to.equal( 1 );
-			expect( after.callCount ).to.equal( 1 );
+			expect( before.mock.calls.length ).toBe( 1 );
+			expect( after.mock.calls.length ).toBe( 1 );
 		} );
 
 		it( "sync async sync noarg", async ( ) =>
@@ -2141,10 +2125,10 @@ describe( "wrapFunction", ( ) =>
 
 			expect(
 				await wrapFunction( before )( ( ) => Promise.resolve( 42 ) )
-			).to.equal( 42 );
+			).toBe( 42 );
 
-			expect( before.callCount ).to.equal( 1 );
-			expect( after.callCount ).to.equal( 1 );
+			expect( before.mock.calls.length ).toBe( 1 );
+			expect( after.mock.calls.length ).toBe( 1 );
 		} );
 
 		it( "sync async sync arg noreturn", async ( ) =>
@@ -2154,10 +2138,10 @@ describe( "wrapFunction", ( ) =>
 
 			expect(
 				await wrapFunction( before )( "foo", ( ) => Promise.resolve( ) )
-			).to.be.undefined;
+			).toBe( void 0 );
 
-			expect( before.args ).to.deep.equal( [ [ "foo" ] ] );
-			expect( after.callCount ).to.equal( 1 );
+			expect( before.mock.calls ).toEqual( [ [ "foo" ] ] );
+			expect( after.mock.calls.length ).toBe( 1 );
 		} );
 
 		it( "sync async sync arg", async ( ) =>
@@ -2167,10 +2151,10 @@ describe( "wrapFunction", ( ) =>
 
 			expect(
 				await wrapFunction( before )( "foo", ( ) => Promise.resolve( 42 ) )
-			).to.equal( 42 );
+			).toBe( 42 );
 
-			expect( before.args ).to.deep.equal( [ [ "foo" ] ] );
-			expect( after.callCount ).to.equal( 1 );
+			expect( before.mock.calls ).toEqual( [ [ "foo" ] ] );
+			expect( after.mock.calls.length ).toBe( 1 );
 		} );
 
 
@@ -2181,10 +2165,10 @@ describe( "wrapFunction", ( ) =>
 
 			expect(
 				await wrapFunction( before )( ( ) => Promise.resolve( 42 ) )
-			).to.equal( 42 );
+			).toBe( 42 );
 
-			expect( before.callCount ).to.equal( 1 );
-			expect( after.callCount ).to.equal( 1 );
+			expect( before.mock.calls.length ).toBe( 1 );
+			expect( after.mock.calls.length ).toBe( 1 );
 		} );
 
 		it( "async async sync arg", async ( ) =>
@@ -2193,11 +2177,13 @@ describe( "wrapFunction", ( ) =>
 			const before = makeSpy( ( s: string ) => Promise.resolve( after ) );
 
 			expect(
-				await wrapFunction( before )( "foo", ( ) => Promise.resolve( 42 ) )
-			).to.equal( 42 );
+				await wrapFunction( before )(
+					"foo", ( ) => Promise.resolve( 42 )
+				)
+			).toBe( 42 );
 
-			expect( before.args ).to.deep.equal( [ [ "foo" ] ] );
-			expect( after.callCount ).to.equal( 1 );
+			expect( before.mock.calls ).toEqual( [ [ "foo" ] ] );
+			expect( after.mock.calls.length ).toBe( 1 );
 		} );
 
 		it( "sync sync async noarg", async ( ) =>
@@ -2205,12 +2191,10 @@ describe( "wrapFunction", ( ) =>
 			const after = makeSpy( ( ) => Promise.resolve( ) );
 			const before = makeSpy0( ( ) => after );
 
-			expect(
-				await wrapFunction( before )( ( ) => 42 )
-			).to.equal( 42 );
+			expect( await wrapFunction( before )( ( ) => 42 ) ).toBe( 42 );
 
-			expect( before.callCount ).to.equal( 1 );
-			expect( after.callCount ).to.equal( 1 );
+			expect( before.mock.calls.length ).toBe( 1 );
+			expect( after.mock.calls.length ).toBe( 1 );
 		} );
 
 		it( "sync sync async arg", async ( ) =>
@@ -2220,10 +2204,10 @@ describe( "wrapFunction", ( ) =>
 
 			expect(
 				await wrapFunction( before )( "foo", ( ) => 42 )
-			).to.equal( 42 );
+			).toBe( 42 );
 
-			expect( before.args ).to.deep.equal( [ [ "foo" ] ] );
-			expect( after.callCount ).to.equal( 1 );
+			expect( before.mock.calls ).toEqual( [ [ "foo" ] ] );
+			expect( after.mock.calls.length ).toBe( 1 );
 		} );
 
 
@@ -2234,10 +2218,10 @@ describe( "wrapFunction", ( ) =>
 
 			expect(
 				await wrapFunction( before )( ( ) => { } )
-			).to.be.undefined;
+			).toBe( void 0 );
 
-			expect( before.callCount ).to.equal( 1 );
-			expect( after.callCount ).to.equal( 1 );
+			expect( before.mock.calls.length ).toBe( 1 );
+			expect( after.mock.calls.length ).toBe( 1 );
 		} );
 
 		it( "async sync async noarg", async ( ) =>
@@ -2245,12 +2229,10 @@ describe( "wrapFunction", ( ) =>
 			const after = makeSpy( ( ) => Promise.resolve( ) );
 			const before = makeSpy0( ( ) => Promise.resolve( after ) );
 
-			expect(
-				await wrapFunction( before )( ( ) => 42 )
-			).to.equal( 42 );
+			expect( await wrapFunction( before )( ( ) => 42 ) ).toBe( 42 );
 
-			expect( before.callCount ).to.equal( 1 );
-			expect( after.callCount ).to.equal( 1 );
+			expect( before.mock.calls.length ).toBe( 1 );
+			expect( after.mock.calls.length ).toBe( 1 );
 		} );
 
 		it( "async sync async arg noreturn", async ( ) =>
@@ -2260,10 +2242,10 @@ describe( "wrapFunction", ( ) =>
 
 			expect(
 				await wrapFunction( before )( "foo", ( ) => { } )
-			).to.be.undefined;
+			).toBe( void 0 );
 
-			expect( before.args ).to.deep.equal( [ [ "foo" ] ] );
-			expect( after.callCount ).to.equal( 1 );
+			expect( before.mock.calls ).toEqual( [ [ "foo" ] ] );
+			expect( after.mock.calls.length ).toBe( 1 );
 		} );
 
 		it( "async sync async arg", async ( ) =>
@@ -2273,10 +2255,10 @@ describe( "wrapFunction", ( ) =>
 
 			expect(
 				await wrapFunction( before )( "foo", ( ) => 42 )
-			).to.equal( 42 );
+			).toBe( 42 );
 
-			expect( before.args ).to.deep.equal( [ [ "foo" ] ] );
-			expect( after.callCount ).to.equal( 1 );
+			expect( before.mock.calls ).toEqual( [ [ "foo" ] ] );
+			expect( after.mock.calls.length ).toBe( 1 );
 		} );
 
 		it( "sync async async noarg", async ( ) =>
@@ -2286,10 +2268,10 @@ describe( "wrapFunction", ( ) =>
 
 			expect(
 				await wrapFunction( before )( ( ) => Promise.resolve( 42 ) )
-			).to.equal( 42 );
+			).toBe( 42 );
 
-			expect( before.callCount ).to.equal( 1 );
-			expect( after.callCount ).to.equal( 1 );
+			expect( before.mock.calls.length ).toBe( 1 );
+			expect( after.mock.calls.length ).toBe( 1 );
 		} );
 
 		it( "sync async async noarg timing", async ( ) =>
@@ -2302,12 +2284,12 @@ describe( "wrapFunction", ( ) =>
 				await wrapFunction( before )(
 					( ) => delay( 10 ).then( ( ) => 42 )
 				)
-			).to.equal( 42 );
+			).toBe( 42 );
 			const diff = Date.now( ) - startAt;
-			expect( diff ).to.be.gte( 20 );
+			expect( diff ).toBeGreaterThanOrEqual( 20 );
 
-			expect( before.callCount ).to.equal( 1 );
-			expect( after.callCount ).to.equal( 1 );
+			expect( before.mock.calls.length ).toBe( 1 );
+			expect( after.mock.calls.length ).toBe( 1 );
 		} );
 
 		it( "sync async async arg", async ( ) =>
@@ -2316,11 +2298,13 @@ describe( "wrapFunction", ( ) =>
 			const before = makeSpy( ( s: string ) => after );
 
 			expect(
-				await wrapFunction( before )( "foo", ( ) => Promise.resolve( 42 ) )
-			).to.equal( 42 );
+				await wrapFunction( before )(
+					"foo", ( ) => Promise.resolve( 42 )
+				)
+			).toBe( 42 );
 
-			expect( before.args ).to.deep.equal( [ [ "foo" ] ] );
-			expect( after.callCount ).to.equal( 1 );
+			expect( before.mock.calls ).toEqual( [ [ "foo" ] ] );
+			expect( after.mock.calls.length ).toBe( 1 );
 		} );
 
 
@@ -2331,10 +2315,10 @@ describe( "wrapFunction", ( ) =>
 
 			expect(
 				await wrapFunction( before )( ( ) => Promise.resolve( 42 ) )
-			).to.equal( 42 );
+			).toBe( 42 );
 
-			expect( before.callCount ).to.equal( 1 );
-			expect( after.callCount ).to.equal( 1 );
+			expect( before.mock.calls.length ).toBe( 1 );
+			expect( after.mock.calls.length ).toBe( 1 );
 		} );
 
 		it( "async async async arg", async ( ) =>
@@ -2343,11 +2327,13 @@ describe( "wrapFunction", ( ) =>
 			const before = makeSpy( ( s: string ) => Promise.resolve( after ) );
 
 			expect(
-				await wrapFunction( before )( "foo", ( ) => Promise.resolve( 42 ) )
-			).to.equal( 42 );
+				await wrapFunction( before )(
+					"foo", ( ) => Promise.resolve( 42 )
+					)
+			).toBe( 42 );
 
-			expect( before.args ).to.deep.equal( [ [ "foo" ] ] );
-			expect( after.callCount ).to.equal( 1 );
+			expect( before.mock.calls ).toEqual( [ [ "foo" ] ] );
+			expect( after.mock.calls.length ).toBe( 1 );
 		} );
 	} );
 
@@ -2362,18 +2348,18 @@ describe( "wrapFunction", ( ) =>
 			{
 				await ( < any >wrapFunction( before ) )
 					( ( ) => Promise.resolve( 42 ) );
-				expect( false ).to.be.true;
+				expect( false ).toBe( true );
 			}
 			catch ( err )
 			{
-				expect( err.message ).to.equal(
+				expect( err.message ).toBe(
 					"Invalid invocation, function requires 2 arguments"
 				);
 			}
 		} )( );
 
-		expect( before.callCount ).to.equal( 0 );
-		expect( after.callCount ).to.equal( 0 );
+		expect( before.mock.calls.length ).toBe( 0 );
+		expect( after.mock.calls.length ).toBe( 0 );
 	} );
 
 	it( 'Empty return from "before"', async ( ) =>
@@ -2382,9 +2368,9 @@ describe( "wrapFunction", ( ) =>
 
 		expect(
 			await wrapFunction( before )( "foo", ( ) => Promise.resolve( 42 ) )
-		).to.equal( 42 );
+		).toBe( 42 );
 
-		expect( before.args ).to.deep.equal( [ [ "foo" ] ] );
+		expect( before.mock.calls ).toEqual( [ [ "foo" ] ] );
 	} );
 
 	it( 'Illegal return value from "before"', async ( ) =>
@@ -2397,17 +2383,17 @@ describe( "wrapFunction", ( ) =>
 			{
 				await ( wrapFunction( before ) )
 					( "foo", ( ) => Promise.resolve( 42 ) );
-				expect( false ).to.be.true;
+				expect( false ).toBe( true );
 			}
 			catch ( err )
 			{
-				expect( err.message ).to.equal(
+				expect( err.message ).toBe(
 					"Invalid return value in 'before' handler"
 				);
 			}
 		} )( );
 
-		expect( before.args ).to.deep.equal( [ [ "foo" ] ] );
+		expect( before.mock.calls ).toEqual( [ [ "foo" ] ] );
 	} );
 
 	it( 'Async throw in "before"', async ( ) =>
@@ -2422,15 +2408,15 @@ describe( "wrapFunction", ( ) =>
 			{
 				await ( wrapFunction( before ) )
 					( "foo", ( ) => Promise.resolve( 42 ) );
-				expect( false ).to.be.true;
+				expect( false ).toBe( true );
 			}
 			catch ( err )
 			{
-				expect( err.message ).to.equal( "foobar" );
+				expect( err.message ).toBe( "foobar" );
 			}
 		} )( );
 
-		expect( before.args ).to.deep.equal( [ [ "foo" ] ] );
+		expect( before.mock.calls ).toEqual( [ [ "foo" ] ] );
 	} );
 
 	describe( "Cleanup on exceptions", ( ) =>
@@ -2457,7 +2443,7 @@ describe( "wrapFunction", ( ) =>
 			try
 			{
 				await cb( );
-				expect( true ).to.be.false;
+				expect( true ).toBe( false );
 			}
 			catch ( err ) { }
 		}
@@ -2493,7 +2479,7 @@ describe( "wrapFunction", ( ) =>
 
 			await swallowException( ( ) => wrapper( throwSync ) );
 
-			expect( state.value ).to.equal( 0 );
+			expect( state.value ).toBe( 0 );
 		} );
 
 		it( "async sync sync", async ( ) =>
@@ -2503,7 +2489,7 @@ describe( "wrapFunction", ( ) =>
 
 			await swallowException( ( ) => wrapper( throwSync ) );
 
-			expect( state.value ).to.equal( 0 );
+			expect( state.value ).toBe( 0 );
 		} );
 
 		it( "sync async sync", async ( ) =>
@@ -2513,7 +2499,7 @@ describe( "wrapFunction", ( ) =>
 
 			await swallowException( ( ) => wrapper( throwAsync ) );
 
-			expect( state.value ).to.equal( 0 );
+			expect( state.value ).toBe( 0 );
 		} );
 
 		it( "async async sync", async ( ) =>
@@ -2523,7 +2509,7 @@ describe( "wrapFunction", ( ) =>
 
 			await swallowException( ( ) => wrapper( throwAsync ) );
 
-			expect( state.value ).to.equal( 0 );
+			expect( state.value ).toBe( 0 );
 		} );
 
 		it( "sync sync async", async ( ) =>
@@ -2533,7 +2519,7 @@ describe( "wrapFunction", ( ) =>
 
 			await swallowException( ( ) => wrapper( throwSync ) );
 
-			expect( state.value ).to.equal( 0 );
+			expect( state.value ).toBe( 0 );
 		} );
 
 		it( "async sync async", async ( ) =>
@@ -2543,7 +2529,7 @@ describe( "wrapFunction", ( ) =>
 
 			await swallowException( ( ) => wrapper( throwSync ) );
 
-			expect( state.value ).to.equal( 0 );
+			expect( state.value ).toBe( 0 );
 		} );
 
 		it( "sync async async", async ( ) =>
@@ -2553,7 +2539,7 @@ describe( "wrapFunction", ( ) =>
 
 			await swallowException( ( ) => wrapper( throwAsync ) );
 
-			expect( state.value ).to.equal( 0 );
+			expect( state.value ).toBe( 0 );
 		} );
 
 		it( "async async async", async ( ) =>
@@ -2563,7 +2549,7 @@ describe( "wrapFunction", ( ) =>
 
 			await swallowException( ( ) => wrapper( throwAsync ) );
 
-			expect( state.value ).to.equal( 0 );
+			expect( state.value ).toBe( 0 );
 		} );
 	} );
 } );
