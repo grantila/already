@@ -51,7 +51,7 @@
   ],
   "devDependencies": {
     "@types/jest": "^24",
-    "commitizen": "3.x",
+    "commitizen": "^4.0.0",
     "concurrently": "^4.1.1",
     "coveralls": "3.x",
     "cz-conventional-changelog": "2.x",
