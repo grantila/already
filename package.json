@@ -57,7 +57,7 @@
     "cz-conventional-changelog": "2.x",
     "jest": "^24",
     "pre-commit": "1.x",
-    "rimraf": "^2.6.3",
+    "rimraf": "^3.0.0",
     "semantic-release": "15.x",
     "trace-unhandled": "^1.0.1",
     "travis-deploy-once": "5.x",
