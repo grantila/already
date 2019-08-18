@@ -1007,12 +1007,13 @@ export function wrapFunction< T, R extends Promise< void > | void >(
 
 export type FunnelShouldRetry = ( ) => boolean;
 export type FunnelRetry< T, U extends Promise< T > > = ( ) => U;
+export type FunnelShortcut = ( ) => void;
 
 export type FunnelFunction< T, U extends Promise< T > = Promise< T > > =
 	(
 		shouldRetry: FunnelShouldRetry,
 		retry: FunnelRetry< T, U >,
-		shortcut: ( ) => void
+		shortcut: FunnelShortcut
 	) => U;
 
 export type Funnel< T, U extends Promise< T > = Promise< T > > =

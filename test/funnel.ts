@@ -5,47 +5,49 @@ import {
 	funnel,
 	Funnel,
 	FunnelFunction,
+	FunnelRetry,
+	FunnelShortcut,
 	reflect,
 } from "../";
 
 
-type AnyFunctionWoArgs< T > =
-	( ( ) => T ) |
-	( ( ) => Promise< T > );
-type AnyFunction< T > =
-	AnyFunctionWoArgs< T > |
-	( ( arg: any ) => T ) |
-	( ( arg: any ) => Promise< T > );
-
 const makePredicate = < T >(
-	pre: AnyFunction< void >,
-	post: AnyFunction< void >,
+	pre: FunnelFunction< T, Promise< T > >,
+	post: FunnelFunction< T, Promise< T > >,
 	ret: T
 )
-: FunnelFunction< T > => async ( shouldRetry, retry ) =>
+: FunnelFunction< T > => async ( shouldRetry, retry, shortcut ) =>
 {
-	await ( < AnyFunctionWoArgs< T > >pre )( );
+	await ( pre )( shouldRetry, retry, shortcut );
 
 	if ( shouldRetry( ) )
 		return retry( );
 
-	await ( < AnyFunctionWoArgs< T > >post )( );
+	await ( post )( shouldRetry, retry, shortcut );
 
 	return ret;
 };
 
+interface MakerArguments
+{
+	shortcut: FunnelShortcut;
+	retry: FunnelRetry< any, any >;
+	shouldRetry: FunnelShortcut;
+}
+
 const maker = (
 	reporter: ( val: string ) => void,
 	val: string,
-	millis: number | ( ( ) => Promise< void > ) = 0
-) =>
-	async ( ) =>
+	millis: number | ( ( args: MakerArguments ) => Promise< void > ) = 0
+): FunnelFunction< number, Promise< number > > =>
+	async ( shouldRetry, retry, shortcut ) =>
 	{
-		if ( typeof millis === "number" || typeof millis === "bigint" )
+		if ( typeof millis === "number" )
 			await delay( millis );
 		else
-			await millis( );
+			await millis( { shouldRetry, retry, shortcut } );
 		reporter( val );
+		return 0;
 	};
 
 const testError = ( ) => new Error( "foo" );
@@ -269,88 +271,107 @@ describe( "funnel", ( ) =>
 		);
 	} );
 
-	it.concurrent( "two jobs, shortcut", async ( ) =>
+	[ false, true ].forEach( fifo =>
 	{
-		const parts = jest.fn( );
-		const fun = funnel< number >( { onComplete: < any >null, fifo: false } );
-		const order = deferSet( );
+		it.concurrent( `two jobs, shortcut before retry, fifo = ${fifo}`,
+			async ( ) =>
+		{
+			const parts = jest.fn( );
+			const fun = funnel< number >( { onComplete: < any >null, fifo } );
+			const order = deferSet( );
 
-		const eventualValue1 =
-			fun( makePredicate< number >(
-				maker( parts, "1 a", ( ) => order.wait( 0 ) ),
-				maker( parts, "1 b", ( ) => order.wait( 0 ).resolve( 1 ) ),
-				1
-			) );
+			const eventualValue1 =
+				fun( makePredicate< number >(
+					maker( parts, "1 a", ( ) => order.wait( 0 ) ),
+					maker( parts, "1 b", async ( { shortcut } ) =>
+						{
+							shortcut( );
+							await order.resolve( 1 );
+						} ),
+					1
+				) );
 
-		const eventualValue2 =
-			fun( async ( shouldRetry, retry, shortcut ) =>
-			{
-				parts( "2 a" );
+			const eventualValue2 =
+				fun( async ( shouldRetry, retry, shortcut ) =>
+				{
+					await delay( 1 );
+					parts( "2 a" );
 
-				await order.resolve( 0 );
+					shortcut( );
+					await order.resolve( 0 );
+					await order.wait( 1 );
 
-				if ( shouldRetry( ) )
-					return retry( );
+					if ( shouldRetry( ) )
+						return retry( );
 
-				parts( "2 b" );
-				shortcut( );
-				await order.wait( 1 );
-				parts( "2 c" );
+					parts( "2 b" );
+					await delay( 1 );
+					parts( "2 c" );
 
-				return 2;
-			} );
+					return 2;
+				} );
 
-		const value1 = await eventualValue1;
-		const value2 = await eventualValue2;
+			const value1 = await eventualValue1;
+			const value2 = await eventualValue2;
 
-		const args = ( < Array< string > >[ ] ).concat( ...parts.mock.calls );
+			const args =
+				( < Array< string > >[ ] ).concat( ...parts.mock.calls );
 
-		expect( value1 ).toBe( 1 );
-		expect( value2 ).toBe( 2 );
-		expect( args ).toEqual( [ "2 a", "2 b", "1 a", "1 b", "2 c" ] );
-	} );
+			expect( value1 ).toBe( 1 );
+			expect( value2 ).toBe( 2 );
+			expect( args ).toEqual( [ "2 a", "1 a", "1 b", "2 b", "2 c" ] );
+		} );
 
-	it.concurrent( "two jobs, shortcut before retry", async ( ) =>
-	{
-		const parts = jest.fn( );
-		const fun = funnel< number >( { onComplete: < any >null, fifo: false } );
-		const order = deferSet( );
+		it.concurrent( `two jobs, shortcut after retry, fifo = ${fifo}`,
+			async ( ) =>
+		{
+			const parts = jest.fn( );
+			const fun = funnel< number >( { onComplete: < any >null, fifo } );
+			const order = deferSet( );
 
-		const eventualValue1 =
-			fun( makePredicate< number >(
-				maker( parts, "1 a", ( ) => order.wait( 0 ) ),
-				maker( parts, "1 b", 0 ),
-				1
-			) );
+			const eventualValue1 =
+				fun( makePredicate< number >(
+					maker( parts, "1 a", ( ) => order.wait( 0 ) ),
+					maker( parts, "1 c", async ( { shortcut } ) =>
+						{
+							parts( "1 b" );
+							shortcut( );
+							await order.resolve( 1 );
+							await order.wait( 2 );
+						} ),
+					1
+				) );
 
-		const eventualValue2 =
-			fun( async ( shouldRetry, retry, shortcut ) =>
-			{
-				await delay( 1 );
-				parts( "2 a" );
+			const eventualValue2 =
+				fun( async ( shouldRetry, retry, shortcut ) =>
+				{
+					parts( "2 a" );
 
-				shortcut( );
+					await order.resolve( 0 );
+					await order.wait( 1 );
 
-				if ( shouldRetry( ) )
-					return retry( );
+					if ( shouldRetry( ) )
+						return retry( );
 
-				parts( "2 b" );
-				await delay( 1 );
-				parts( "2 c" );
+					parts( "2 b" );
+					await order.resolve( 2 );
+					await order.wait( 3 );
+					parts( "2 c" );
 
-				order.resolve( 0 );
+					return 2;
+				} );
 
-				return 2;
-			} );
+			const value1 = await eventualValue1;
+			order.resolve( 3 );
+			const value2 = await eventualValue2;
 
-		const value1 = await eventualValue1;
-		const value2 = await eventualValue2;
+			const args =
+				( < Array< string > >[ ] ).concat( ...parts.mock.calls );
 
-		const args = ( < Array< string > >[ ] ).concat( ...parts.mock.calls );
-
-		expect( value1 ).toBe( 1 );
-		expect( value2 ).toBe( 2 );
-		expect( args ).toEqual( [ "2 a", "2 b", "2 c", "1 a", "1 b" ] );
+			expect( value1 ).toBe( 1 );
+			expect( value2 ).toBe( 2 );
+			expect( args ).toEqual( [ "2 a", "1 a", "1 b", "2 b", "1 c", "2 c" ] );
+		} );
 	} );
 
 	it.concurrent( "two jobs, retry in sync", async ( ) =>
@@ -409,7 +430,7 @@ describe( "funnel", ( ) =>
 					reflect(
 						fun( makePredicate< number >(
 							predicate,
-							( ) => { },
+							async ( ) => 0,
 							42
 						) )
 					);
@@ -428,7 +449,7 @@ describe( "funnel", ( ) =>
 				const thrower = async ( ) =>
 					reflect(
 						fun( makePredicate< number >(
-							( ) => { },
+							async ( ) => 0,
 							predicate,
 							42
 						) )
