@@ -523,7 +523,7 @@ A combination of `defer` and `inspect` is sometimes useful, where `deferInspecta
 ```ts
 import { deferInspectable } from 'already'
 
-const deferred = deferInspectable( somePromise );
+const deferred = deferInspectable< T >( );
 deferred.promise    // The promise.
 deferred.resolve;   // The resolve function.
 deferred.reject;    // The reject function.
@@ -531,6 +531,8 @@ deferred.isPending  // <boolean>
 deferred.isResolved // <boolean>
 deferred.isRejected // <boolean>
 ```
+
+For promises of `void` type, in TypeScript create it with `deferInspectable( void 0 )`.
 
 Unlike `inspect`, the values are immediately correct, no `await` is necessary to settle the values. Also, when `resolve()` and `reject()` are called, the `is*` booleans are synchronously set.
 
