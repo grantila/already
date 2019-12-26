@@ -20,25 +20,45 @@ This library is written in TypeScript but is exposed as ES7 (if imported as `alr
 # Functions
 
   * [delay](#delay)
+      <br>&emsp;Create a promise which resolved after a certain time
   * [Finally](#finally)
+      <br>&emsp;Asynchronous version of try-catch-**finally**
   * [tap](#tap)
+      <br>&emsp;_"Listen"_ to a promise version in a `.then`-chain without modifying the value
   * [props](#props)
+      <br>&emsp;`Promise.all` but for objects/properties
   * [filter](#filter)
+      <br>&emsp;Asynchronuos version of `Array.prototype.filter`
   * [map](#map)
+      <br>&emsp;Asynchronuos version of `Array.prototype.map`
   * [reduce](#reduce)
+      <br>&emsp;Asynchronuos version of `Array.prototype.reduce`
   * [each](#each)
+      <br>&emsp;Asynchronuos version of `Array.prototype.forEach`
   * [some](#some)
+      <br>&emsp;Asynchronuos version of `Array.prototype.some`
   * [once](#once)
+      <br>&emsp;Wrap a function and ensure it only runs once (with asynchrony)
   * [retry](#retry)
+      <br>&emsp;Asynchronously retry a function call
   * [defer](#defer)
+      <br>&emsp;Create a promise and extract its `resolve`/`reject` functions
   * [deferSet](#deferset)
+      <br>&emsp;Create a set of deferred promises
   * [reflect](#reflect)
+      <br>&emsp;Get a promise's resolved value or rejected error in a success flow
   * [inspect](#inspect)
+      <br>&emsp;Inspect a promise. Is it pending? Is it rejected?
   * [Try](#try)
+      <br>&emsp;Make a possibly throwing function asynchronous (to not throw, but maybe reject)
   * [specific](#specific)
+      <br>&emsp;Catch _specific_ types, like many languages have error type matching in subsequent `catch` statements
   * [rethrow](#rethrow)
+      <br>&emsp;Ensure a callback re-throws (to not silently swallow errors)
   * [wrapFunction](#wrapfunction)
+      <br>&emsp;Wrap a function with a potentially asynchronous prolog and/or epilog (e.g. init/cleanup)
   * [funnel](#funnel)
+      <br>&emsp;Ensure certain parts of a function is executed without concurrency (think asynchrony _barrier_)
 
 ---
 
@@ -723,7 +743,7 @@ expect( ret ).to.equal( "yo" );
 
 Ensuring exclusive calls to a function can be implemented in multiple ways. With asynchrony, this gets quite complicated.
 
-Many problems can be generalized to testing whether the exlusive function should be called or not, and then exlusively calling it, and after having called it, still exclusively finish with (potentially asynchronous) work.
+Many problems can be generalized to only running one function at a time (awaiting it if necessary). For this, the [`throat`](https://www.npmjs.com/package/throat) package is useful (it is used by the package). Sometimes a more fine grained control is desired, such as allowing a _test and early return_ as well as signalling that the concurrent logic is complete (to allow the next function call) before the whole function is complete. This results in more understandable flow.
 
 For this, `funnel()` is extremely handy.
 
@@ -747,7 +767,9 @@ The above is a connection pool, we might only want a certain number of connectio
 
 Is the above code safe? It isn't. Two synchronously immediate calls to `getConnection` will likely get the same answer from `getReusableConnection`, i.e. *falsy*. This means, they'll both call `connect`, although maybe just one should have done so. Only one should have created a connection, then `registerToConnectionPool` while the other should wait until the first is complete, then retry `getConnection` from scratch to see if a connection can be re-used.
 
-`funnel` makes this trivial. Wrap the function in a funnel, and where the synchronization barrier is possibly retry:
+The `getConnection` could be wrapped inside a [`throat`](https://www.npmjs.com/package/throat) wrapper, but that wouldn't be as performant as possible. Consider two calls to `getConnection` when there are connections in the pool, but none is free. One of the two calls should create a new connection, but while this takes place (which may take time), another might be freed. This newly freed connection should be re-usable by the second call to `getConnection`.
+
+`funnel` makes this trivial. Wrap the `getConnection` logic in a funnel. Allow concurrent access to `getReusableConnection` which is concurrency _safe_. Then create a _synchronization barrier_ (using `shouldRetry`/`retry`):
 
 ```ts
 import { funnel } from "already";
@@ -803,7 +825,7 @@ async function getConnection( )
         registerToConnectionPool( newConn );
         shortcut( ); // This will signal that synchronization is complete,
                      // let concurrent tasks (if any) retry immediately.
-        return decorateConnection( newConn ); // Maybe slow
+        return decorateConnection( newConn ); // Maybe (asynchronously) slow
     } );
 }
 ```
