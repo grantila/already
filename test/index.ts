@@ -1120,6 +1120,14 @@ describe( "once", ( ) =>
 		( ) =>
 			delay( 5 ).then( ( ) => 42 );
 
+	const delayedFunctionWithArg = ( ) =>
+		( val: number ) =>
+			delay( 5 ).then( ( ) => val * 2 );
+
+	const delayedFunctionWithArgReturningVoid = ( ) =>
+		( _val: number ) =>
+			delay( 5 ).then( ( ) => { } );
+
 	describe( "pre-defined function", ( ) =>
 	{
 		it( "should call synchronously once", ( ) =>
@@ -1168,6 +1176,55 @@ describe( "once", ( ) =>
 			expect( await _once( ) ).toBe( 42 );
 			expect( spy.mock.calls.length ).toBe( 1 );
 			expect( await _once( ) ).toBe( 42 );
+			expect( spy.mock.calls.length ).toBe( 1 );
+		} );
+
+		it( "should call synchronously once with arg", ( ) =>
+		{
+			const spy = jest.fn( ( v: number ) => { } );
+
+			const _once = once( spy );
+			expect( spy.mock.calls.length ).toBe( 0 );
+			_once( 4 );
+			expect( spy.mock.calls.length ).toBe( 1 );
+			_once( 5 );
+			expect( spy.mock.calls.length ).toBe( 1 );
+		} );
+
+		it.concurrent( "should call asynchronously once with arg", async ( ) =>
+		{
+			const spy = jest.fn( delayedFunctionWithArgReturningVoid( ) );
+
+			const _once = once( spy );
+			expect( spy.mock.calls.length ).toBe( 0 );
+			expect( await _once( 21 ) ).toBe( undefined );
+			expect( spy.mock.calls.length ).toBe( 1 );
+			expect( await _once( 22 ) ).toBe( undefined );
+			expect( spy.mock.calls.length ).toBe( 1 );
+		} );
+
+		it( "should call synchronously once with arg and return value", ( ) =>
+		{
+			const spy = jest.fn( ( v: number ) => v * 2 );
+
+			const _once = once( spy );
+			expect( spy.mock.calls.length ).toBe( 0 );
+			expect( _once( 21 ) ).toBe( 42 );
+			expect( spy.mock.calls.length ).toBe( 1 );
+			expect( _once( 22 ) ).toBe( 42 );
+			expect( spy.mock.calls.length ).toBe( 1 );
+		} );
+
+		it.concurrent( "should call asynchronously once with arg and value",
+			async ( ) =>
+		{
+			const spy = jest.fn( delayedFunctionWithArg( ) );
+
+			const _once = once( spy );
+			expect( spy.mock.calls.length ).toBe( 0 );
+			expect( await _once( 21 ) ).toBe( 42 );
+			expect( spy.mock.calls.length ).toBe( 1 );
+			expect( await _once( 22 ) ).toBe( 42 );
 			expect( spy.mock.calls.length ).toBe( 1 );
 		} );
 	} );

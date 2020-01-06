@@ -382,6 +382,14 @@ const promise = once1( ); // Will invoke myFunction
 await once1( ); // Will not invoke myFunction, but await its completion!
 ```
 
+You can pass an argument to the function if it takes one. It will still only call the function once, regardless of the argument (unlike memoize functions):
+
+```ts
+const once1 = once( ( n: number ) => n * 3 ); // Wrap a function
+12 === await once1( 4 ); // Will invoke myFunction
+12 === await once1( 5 ); // Will do nothing (but return the old value)
+```
+
 
 ## retry
 

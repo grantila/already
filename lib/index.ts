@@ -462,21 +462,24 @@ async function someImpl< T, R >(
 }
 
 
-export type OnceRunnee< T > = ( ) => T;
-export type OnceRunner = < T >( fn: OnceRunnee< T > ) => T;
+export type OnceRunnee< T, R > =
+	T extends void ? ( ( ) => R ) : ( ( t: T ) => R );
+export interface OnceRunner
+{
+	< T, R >( fn: OnceRunnee< T, R >, t: T ): R;
+	< R >( fn: OnceRunnee< void, R > ): R;
+}
 
 export function once( ): OnceRunner;
-export function once< T >(
-	fn: OnceRunnee< T >
-): OnceRunnee< T >;
-export function once< T >(
-	fn?: OnceRunnee< T >
-): OnceRunner | OnceRunnee< T >
+export function once< R >( fn: OnceRunnee< void, R > ): OnceRunnee< void, R >;
+export function once< T, R >( fn: OnceRunnee< T, R > ): OnceRunnee< T, R >;
+export function once< T, R >( fn?: OnceRunnee< T, R > )
+: OnceRunner | OnceRunnee< T, R >
 {
 	if ( fn )
 	{
 		const _once = onceDynamic( );
-		return ( ) => _once( fn );
+		return ( ( t: T ) => _once( fn, t ) ) as OnceRunnee< T, R >;
 	}
 	else
 		return onceDynamic( );
@@ -499,10 +502,10 @@ function onceDynamic( ): OnceRunner
 			state.set( fn, { hasRun: false } );
 	};
 
-	return < T >( fn: OnceRunnee< T > ) =>
+	return ( < T, R >( fn: OnceRunnee< T, R >, t: T ) =>
 	{
 		ensureState( fn );
-		const stateObject = < OnceState< T > >state.get( fn );
+		const stateObject = < OnceState< R > >state.get( fn );
 
 		if ( stateObject.hasRun )
 		{
@@ -512,7 +515,7 @@ function onceDynamic( ): OnceRunner
 		}
 
 		stateObject.hasRun = true;
-		const ret = fn( );
+		const ret = fn( t );
 		const pret = < Promise< T > >< any >ret;
 		if ( pret !== undefined && pret && typeof pret.then === "function" )
 		{
@@ -523,12 +526,12 @@ function onceDynamic( ): OnceRunner
 					rethrow( stateObject.deferred.reject )
 				)
 				.then( ( ) =>
-					( < Deferred< T > >stateObject.deferred ).promise
+					( < Deferred< R > >stateObject.deferred ).promise
 				);
 		}
 		stateObject.returnValue = ret;
 		return ret;
-	};
+	} ) as OnceRunner;
 }
 
 
