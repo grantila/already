@@ -58,7 +58,7 @@
     "jest": "^24",
     "pre-commit": "1.x",
     "rimraf": "^3.0.0",
-    "semantic-release": "15.x",
+    "semantic-release": "^16.0.0",
     "trace-unhandled": "^1.0.1",
     "travis-deploy-once": "5.x",
     "ts-jest": "^24.0.2",
