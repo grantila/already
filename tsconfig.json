@@ -4,7 +4,6 @@
 		"declaration": true,
 		"lib": [ "es2015", "es2017", "dom" ],
 		"types": [
-			"node",
 			"jest"
 		],
 		"target": "es6",

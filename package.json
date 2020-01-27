@@ -24,11 +24,8 @@
     "build": "yarn build:lib && yarn build:test",
     "lint": "node_modules/.bin/tslint --project .",
     "jest": "node_modules/.bin/jest --coverage",
-    "test": "npm run lint && npm run jest",
-    "buildtest": "npm run build && npm run test",
-    "coveralls": "cat coverage/lcov.info | node_modules/.bin/coveralls",
-    "travis-deploy-once": "travis-deploy-once",
-    "semantic-release": "semantic-release",
+    "test": "yarn lint && yarn jest",
+    "buildtest": "yarn build && yarn test",
     "cz": "git-cz"
   },
   "pre-commit": [
@@ -52,15 +49,12 @@
   "devDependencies": {
     "@types/jest": "^24.9.1",
     "commitizen": "^4.0.3",
-    "concurrently": "^5.0.2",
-    "coveralls": "3.0.9",
+    "concurrently": "^5.1.0",
     "cz-conventional-changelog": "^3.0.2",
     "jest": "^25.1.0",
     "pre-commit": "1.x",
     "rimraf": "^3.0.0",
-    "semantic-release": "16.0.3",
     "trace-unhandled": "^1.0.1",
-    "travis-deploy-once": "5.x",
     "ts-jest": "^25.0.0",
     "tslint": "6.0.0",
     "typescript": "3.7.5"

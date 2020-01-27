@@ -1,23 +1,23 @@
 language: node_js
-cache:
-  directories:
-    - ~/.npm
 notifications:
   email: false
 node_js:
-  - '13'
-  - '12'
-  - '11'
-  - '10'
-  - '9'
-  - '8'
-  - '7'
+  - "8"
+  - "10"
+  - "12"
+  - "13"
 before_script:
-  - npm run build
-after_success:
-  - npm run travis-deploy-once "npm run semantic-release"
+  - "yarn build"
+script:
+  - "yarn test"
 branches:
   except:
     - /^v\d+\.\d+\.\d+$/
-after_script:
-  - "npm run coveralls"
+jobs:
+  include:
+    - stage: release
+      node_js: lts/*
+      script:
+        - yarn test -- --coverage
+        - cat coverage/lcov.info | npx coveralls
+        - npx semantic-release
