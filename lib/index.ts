@@ -1167,6 +1167,7 @@ export function funnel< T, U extends Promise< T > = Promise< T > >(
 			waitFor( store );
 
 		( < U >Try( ( ) => fn( shouldRetry, retry, shortcut ) ) )
+		.then( ...Finally( finalize ) )
 		.then( fnDeferred.resolve, fnDeferred.reject );
 
 		return store.ret;
