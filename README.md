@@ -1,6 +1,6 @@
 [![npm version][npm-image]][npm-url]
 [![downloads][downloads-image]][npm-url]
-[![build status][travis-image]][travis-url]
+[![build status][build-image]][build-url]
 [![coverage status][coverage-image]][coverage-url]
 [![greenkeeper badge][greenkeeper-image]][greenkeeper-url]
 [![Language grade: JavaScript][lgtm-image]][lgtm-url]
@@ -845,8 +845,8 @@ async function getConnection( )
 [npm-image]: https://img.shields.io/npm/v/already.svg
 [npm-url]: https://npmjs.org/package/already
 [downloads-image]: https://img.shields.io/npm/dm/already.svg
-[travis-image]: https://img.shields.io/travis/grantila/already/master.svg
-[travis-url]: https://travis-ci.org/grantila/already
+[build-image]: https://img.shields.io/github/workflow/status/grantila/already/Master.svg
+[build-url]: https://github.com/grantila/already/actions?query=workflow%3AMaster
 [coverage-image]: https://coveralls.io/repos/github/grantila/already/badge.svg?branch=master
 [coverage-url]: https://coveralls.io/github/grantila/already?branch=master
 [greenkeeper-image]: https://badges.greenkeeper.io/grantila/already.svg
