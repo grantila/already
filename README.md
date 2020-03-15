@@ -13,6 +13,9 @@ The functions are standalone and depends on no particular Promise implementation
 
 This library is written in TypeScript but is exposed as ES7 (if imported as `already`) and ES5 (if imported as `already/es5`). Typings are provided too, so any TypeScript project using this library will automatically get full type safety of all the functions.
 
+The library is also exported as an *ES module*, if imported in platforms (and bundlers) supporting this.
+
+
 # Types
   * [PromiseOf\<P\>](#PromiseOf)
   * [PromiseElement\<P\>](#PromiseElement)
