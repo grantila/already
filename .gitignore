@@ -3,8 +3,10 @@ coverage/
 build/
 node_modules/
 test-out/
+test-out-mjs/
 test-out-es5/
-dist
-es5
+dist/
+dist-mjs/
+es5/
 yarn.lock
 .vscode/

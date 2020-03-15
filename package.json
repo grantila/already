@@ -10,17 +10,24 @@
   },
   "files": [
     "dist",
+    "dist-mjs",
     "es5"
   ],
   "types": "./dist/index.d.ts",
   "main": "./dist/index.js",
+  "exports": {
+    "import": "./dist-mjs/index.js",
+    "require": "./dist/index.js"
+  },
   "scripts": {
     "build:dist": "scripts/build.sh dist ./tsconfig.prod.json --module commonjs -t esnext",
+    "build:dist-mjs": "scripts/build.sh dist-mjs ./tsconfig.prod.json --module ESNext -t esnext",
     "build:es5": "scripts/build.sh es5 ./tsconfig.prod.json -t es5",
     "build:test-out": "scripts/build.sh test-out ./tsconfig.test.json",
+    "build:test-out-mjs": "scripts/build.sh test-out-mjs ./tsconfig.test.json --module commonjs -t esnext && scripts/rewrite-mjs-test.js",
     "build:test-out-es5": "scripts/build.sh test-out-es5 ./tsconfig.test.json -t es5 && scripts/rewrite-es5-test.js",
-    "build:lib": "concurrently 'yarn build:dist' 'yarn build:es5'",
-    "build:test": "concurrently 'yarn build:test-out' 'yarn build:test-out-es5'",
+    "build:lib": "concurrently 'yarn build:dist' 'yarn build:dist-mjs' 'yarn build:es5'",
+    "build:test": "concurrently 'yarn build:test-out' 'yarn build:test-out-mjs' 'yarn build:test-out-es5'",
     "build": "yarn build:lib && yarn build:test",
     "lint": "node_modules/.bin/tslint --project .",
     "jest": "node_modules/.bin/jest --coverage",
@@ -47,17 +54,19 @@
     "deferred"
   ],
   "devDependencies": {
-    "@types/jest": "^24.9.1",
+    "@babel/plugin-transform-modules-commonjs": "^7.8.3",
+    "@babel/preset-typescript": "^7.8.3",
+    "@types/jest": "^25.1.4",
     "commitizen": "^4.0.3",
     "concurrently": "^5.1.0",
-    "cz-conventional-changelog": "^3.0.2",
+    "cz-conventional-changelog": "^3.1.0",
     "jest": "^25.1.0",
     "pre-commit": "1.x",
-    "rimraf": "^3.0.0",
+    "rimraf": "^3.0.2",
     "trace-unhandled": "^1.0.1",
-    "ts-jest": "^25.0.0",
-    "tslint": "6.0.0",
-    "typescript": "3.7.5"
+    "ts-jest": "^25.2.1",
+    "tslint": "6.1.0",
+    "typescript": "3.8.3"
   },
   "dependencies": {
     "throat": "^5.0.0"
