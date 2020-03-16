@@ -19,6 +19,8 @@ The library is also exported as an *ES module*, if imported in platforms (and bu
 # Types
   * [PromiseOf\<P\>](#PromiseOf)
   * [PromiseElement\<P\>](#PromiseElement)
+  * [EnsurePromise\<P\>](#EnsurePromise)
+  * [EnsureNotPromise\<P\>](#EnsureNotPromise)
 
 # Functions
 
@@ -85,6 +87,15 @@ The library is also exported as an *ES module*, if imported in platforms (and bu
     * E.g. `Promise< string >` ⇒ `string`
   * For non-promise `P`, it returns `P`
     * E.g. `string` ⇒ `string`
+
+## EnsurePromise
+
+`EnsurePromise< P >` returns `P` if it is a promise. Otherwise the type is `never`.
+
+
+## EnsureNotPromise
+
+`EnsureNotPromise< T >` returns `T` if it is **not** a promise. Otherwise the type is `never`.
 
 
 # Functions
@@ -754,7 +765,7 @@ expect( ret ).to.equal( "yo" );
 
 Ensuring exclusive calls to a function can be implemented in multiple ways. With asynchrony, this gets quite complicated.
 
-Many problems can be generalized to only running one function at a time (awaiting it if necessary). For this, the [`throat`](https://www.npmjs.com/package/throat) package is useful (it is used by the package). Sometimes a more fine grained control is desired, such as allowing a _test and early return_ as well as signalling that the concurrent logic is complete (to allow the next function call) before the whole function is complete. This results in more understandable flow.
+Many problems can be generalized to only running one function at a time (awaiting it if necessary). For this, the [`throat`](https://www.npmjs.com/package/throat) package is useful (it is used by `already`). Sometimes a more fine grained control is desired, such as allowing a _test and early return_ as well as signalling that the concurrent logic is complete (to allow the next function call) before the whole function is complete. This results in a more understandable flow.
 
 For this, `funnel()` is extremely handy.
 
@@ -810,21 +821,23 @@ async function getConnection( )
 
 When creating a funnel, an options object can be provided with two options:
 
- * `onComplete` [`callback`]: will be called when the last concurrent task has finished. This can be used for cleanup.
- * `fifo` [`boolean`]: Specifies whether calls to `shouldRetry` should flow through in the order they came in. (Defaults to `true`).
+ * `onEmpty` [`callback`]: will be called when the last concurrent task has finished. This can be used for cleanup. Note; This can be called multiple times, it will be called when there is no pending/waiting tasks anymore.
+ * `concurrency` [`number`]: Specifies how many concurrent tasks to allow before `shouldRetry` returns `true`. (Defaults to `1`).
 
 The callback function to the funnel can take a third argument after `shouldRetry` and `retry`, which is a function called `shortcut`. This can be used to signal that the function is complete (in terms of synchronization) earlier than when its returned promise is resolved:
 
 ```ts
 import { funnel } from "already";
 
-const onComplete = ( ) => console.log( "Concurrent tasks finished" );
-const connectionFunnel = funnel( { onComplete } );
+const onEmpty = ( ) => console.log( "Concurrent tasks finished" );
+const connectionFunnel = funnel( { onEmpty } );
 
 async function getConnection( )
 {
     return connectionFunnel( async ( shouldRetry, retry, shortcut ) =>
     {
+        // Before shouldRetry there is no synchronization, this can be called
+        // concurrently.
         const conn = await getReusableConnection( );
         if ( conn )
             return conn;
@@ -832,8 +845,10 @@ async function getConnection( )
         if ( shouldRetry( ) )
             return retry( );
 
+        // Synchronization begins
         const newConn = await connect( );
         registerToConnectionPool( newConn );
+        // Synchronization ends
         shortcut( ); // This will signal that synchronization is complete,
                      // let concurrent tasks (if any) retry immediately.
         return decorateConnection( newConn ); // Maybe (asynchronously) slow

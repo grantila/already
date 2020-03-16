@@ -27,6 +27,16 @@ export default {
 
 
 /**
+ * IfPromise< P, T > returns T if P is a promise, otherwise returns <never>.
+ */
+export type IfPromise< P, T > = P extends Promise< infer U > ? T : never;
+
+/**
+ * IfNotPromise< P, T > returns <never> if P is a promise, otherwise returns T.
+ */
+export type IfNotPromise< P, T > = P extends Promise< infer U > ? never : T;
+
+/**
  * Returns the Promise wrapped value of P, unless it's already a promise, where
  * the promise itself is returned instead.
  *
@@ -43,6 +53,17 @@ export type PromiseOf< P > = P extends Promise< infer U > ? P : Promise< P >;
  * For non-promise P, it returns P
  */
 export type PromiseElement< P > = P extends Promise< infer U > ? U : P;
+
+/**
+ * Given type P, returns the same type P if it is a Promise, otherwise never.
+ */
+export type EnsurePromise< P > = P extends Promise< infer U > ? P : never;
+
+/**
+ * Given type T, returns the same type T if it is *not* a Promise, otherwise
+ * never.
+ */
+export type EnsureNotPromise< T > = T extends Promise< infer U > ? never : T;
 
 
 function toReadonlyArray< T >( arr: ConcatArray< T > ): ReadonlyArray< T >
@@ -1009,173 +1030,161 @@ export function wrapFunction< T, R extends Promise< void > | void >(
 
 
 export type FunnelShouldRetry = ( ) => boolean;
-export type FunnelRetry< T, U extends Promise< T > > = ( ) => U;
+export type FunnelRetry< T > = ( ) => Promise< T >;
 export type FunnelShortcut = ( ) => void;
 
-export type FunnelFunction< T, U extends Promise< T > = Promise< T > > =
+export type FunnelFunction< T > =
 	(
 		shouldRetry: FunnelShouldRetry,
-		retry: FunnelRetry< T, U >,
+		retry: FunnelRetry< T >,
 		shortcut: FunnelShortcut
-	) => U;
+	) => Promise< T >;
 
-export type Funnel< T, U extends Promise< T > = Promise< T > > =
-	( funnelFunction: FunnelFunction< T, U > ) => U;
+export type Funnel< T > =
+	( funnelFunction: FunnelFunction< T > ) => Promise< T >;
 
 export interface FunnelOptions
 {
-	onComplete: ( ) => void;
-	fifo: boolean;
+	onEmpty: ( ) => void;
+	concurrency: number;
 }
 
-interface FunnelStore< T >
-{
-	ret: T;
-	call: FunnelCall< T >;
-}
-
-type FunnelCall< T > = Array< FunnelStore< T > >;
-
-export function funnel< T, U extends Promise< T > = Promise< T > >(
+export function funnel< T, B extends boolean = IfNotPromise< T, true > >(
 	opts: Partial< FunnelOptions > = { }
 )
-: Funnel< T, U >
+: Funnel< T >
 {
-	const { onComplete = ( ) => { }, fifo = true } = ( opts || { } );
+	type U = Promise< T >;
 
-	const _onComplete = ( ) => onComplete && onComplete( );
+	const { onEmpty, concurrency = 1 } = ( opts || { } );
 
-	const waiters: Array< FunnelStore< U > > = [ ];
-	const retryers = new WeakMap< FunnelStore< U >, ( ) => void >( );
-	const stores = new Set< FunnelStore< U > >( );
-
-	const waitFor = ( t: FunnelStore< U > ) =>
+	enum FunnelState
 	{
-		waiters.push( t );
+		DEFAULT,
+		SHOULD_RETRY,
+		WAITING,
+		COMPLETED,
+	}
+
+	interface FunnelStore
+	{
+		state: FunnelState;
+		counted: boolean;
+		resume: undefined | ( ( ) => void );
+	}
+
+	/**
+	 * All ongoing tasks (functions) regardless of state they are in.
+	 * If they return/throw or shortcut, they get cleared from this map.
+	 * The order is preserved for fifo fairness.
+	 */
+	const tasks = new Map< { }, FunnelStore >( );
+
+	const countWaiting = ( ) =>
+	{
+		return [ ...tasks.values( ) ]
+			.filter( ( { state } ) => state === FunnelState.WAITING )
+			.length;
 	};
 
-	const hasSiblingFirst = ( store: FunnelStore< U > ) =>
+	const countWorking = ( ) =>
 	{
-		if ( waiters.length === 0 )
-			return false;
-		const firstStoreInCall = store.call[ 0 ];
-		return waiters[ 0 ] === firstStoreInCall;
+		return [ ...tasks.values( ) ]
+			.filter( ( { state } ) => state === FunnelState.SHOULD_RETRY )
+			.length;
 	};
 
-	const completeStore = ( store: FunnelStore< U > ) =>
+	const freeSlots = ( ) =>
 	{
-		const indexCall = store.call.indexOf( store );
-		store.call.splice( indexCall, 1 );
-
-		const indexWaiters = waiters.indexOf( store );
-		waiters.splice( indexWaiters, 1 );
-
-		stores.delete( store );
-
-		return store.call.length === 0;
+		return Math.max( 0, concurrency - countWorking( ) );
 	};
 
-	const triggerWaiter = ( ) =>
+	const triggerWaiting = ( ) =>
 	{
-		if ( waiters.length === 0 && stores.size === 0 )
-			_onComplete( );
-		else
-		{
-			const first = waiters[ 0 ];
-			const nextRetryer = retryers.get( first );
-			nextRetryer && nextRetryer( );
-		}
+		const amountToResume = freeSlots( );
+
+		[ ...tasks.values( ) ]
+			.filter( ( { state } ) => state === FunnelState.WAITING )
+			.slice( 0, amountToResume )
+			.forEach( task =>
+			{
+				( task.resume as NonNullable< typeof task.resume > )( );
+			} );
 	};
 
-	const finalizeRetry = ( store: FunnelStore< U > ) =>
+	return ( fn: FunnelFunction< T > ): U =>
 	{
-		const completed = completeStore( store );
-		if ( completed )
-			triggerWaiter( );
-	};
-
-	const runner = ( fn: FunnelFunction< T, U >, call: FunnelCall< U > ) =>
-	{
-		const fnDeferred = defer< T >( );
-		const store: FunnelStore< U > = {
-			call,
-			ret: < U >fnDeferred.promise,
+		const sentry = { };
+		const store: FunnelStore = {
+			state: FunnelState.DEFAULT,
+			counted: false,
+			resume: undefined,
 		};
-		call.push( store );
-		stores.add( store );
-
-		let hasPassedRetry = false;
-		let hasFinalized = false;
-		const finalize = ( ) =>
-		{
-			if ( hasFinalized )
-				return;
-			hasFinalized = true;
-
-			finalizeRetry( store );
-		};
+		tasks.set( sentry, store );
 
 		const shouldRetry: FunnelShouldRetry = ( ) =>
 		{
-			const firstAndOnly = waiters.length === 0;
-			const firstInQueue = hasSiblingFirst( store );
-			const result = firstAndOnly || firstInQueue;
+			if ( store.state === FunnelState.COMPLETED )
+				// shortcut before should/retry shortcuts through
+				return false;
 
-			if ( result && !fifo )
-				waitFor( store );
+			const free = freeSlots( );
+			const shouldContinue = free > 0;
 
-			if ( result )
-			{
-				hasPassedRetry = true;
-				// If first in queue, schedule waiting for the return promise
-				// to trigger the rest of the queue.
-				store.ret
-					.then( ...Finally( finalize ) )
-					// Ingore errors here, they're handled elsewhere
-					.catch( err => { } );
-			}
+			if ( store.state !== FunnelState.DEFAULT )
+				throw new Error( "Invalid use of 'shouldRetry'" );
 
-			return !result;
+			store.state = FunnelState.SHOULD_RETRY;
+			store.counted = true;
+
+			return !shouldContinue;
 		};
 
-		const retry: FunnelRetry< T, U > = ( ) =>
+		const retry: FunnelRetry< T > = ( ) =>
 		{
+			if ( store.state !== FunnelState.SHOULD_RETRY )
+				throw new Error(
+					"Invalid use of 'retry', " +
+					"must only be called after 'shouldRetry'"
+				);
+
+			store.state = FunnelState.WAITING;
+
 			const deferred = defer< T >( );
-			const retryer = ( ) => deferred.resolve( runner( fn, call ) );
+			const resume = ( ) =>
+			{
+				store.state = FunnelState.DEFAULT;
+				store.resume = undefined;
+				deferred.resolve( runner( ) );
+			};
 
-			retryers.set( store, retryer );
-
-			if ( !fifo )
-				waitFor( store );
-
-			hasPassedRetry = true;
-
-			// When retrying, when the final result is finally complete, it's
-			// always first in queue.
-			deferred.promise.then( ...Finally( finalize ) );
+			store.resume = resume;
 
 			return < U >deferred.promise;
 		};
 
 		const shortcut = ( ) =>
 		{
-			if ( hasPassedRetry )
-				finalize( );
+			if ( store.state === FunnelState.COMPLETED )
+				return;
+
+			store.state = FunnelState.COMPLETED;
+
+			tasks.delete( sentry );
+
+			if ( countWaiting( ) === 0 )
+				onEmpty?.( );
+			else
+				triggerWaiting( );
 		};
 
-		if ( fifo )
-			waitFor( store );
+		const runner = ( ) =>
+		{
+			return ( < U >Try( ( ) => fn( shouldRetry, retry, shortcut ) ) )
+				.then( ...Finally( shortcut ) );
+		};
 
-		( < U >Try( ( ) => fn( shouldRetry, retry, shortcut ) ) )
-		.then( ...Finally( finalize ) )
-		.then( fnDeferred.resolve, fnDeferred.reject );
-
-		return store.ret;
-	};
-
-	return ( fn: FunnelFunction< T, U > ) =>
-	{
-		return runner( fn, [ ] );
+		return runner( );
 	};
 }
 

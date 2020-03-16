@@ -2,7 +2,7 @@
   "name": "already",
   "description": "Promise extensions; finally, map, filter, etc",
   "license": "MIT",
-  "version": "0.0.0-development",
+  "version": "1.12.0-beta.0",
   "author": "Gustaf Räntilä <g.rantila@gmail.com>",
   "repository": {
     "type": "git",
@@ -20,9 +20,9 @@
     "require": "./dist/index.js"
   },
   "scripts": {
-    "build:dist": "scripts/build.sh dist ./tsconfig.prod.json --module commonjs -t esnext",
-    "build:dist-mjs": "scripts/build.sh dist-mjs ./tsconfig.prod.json --module ESNext -t esnext",
-    "build:es5": "scripts/build.sh es5 ./tsconfig.prod.json -t es5",
+    "build:dist": "scripts/build.sh dist ./tsconfig.prod.json --module commonjs -t ES2017",
+    "build:dist-mjs": "scripts/build.sh dist-mjs ./tsconfig.prod.json --module ESNext -t ES2017",
+    "build:es5": "scripts/build.sh es5 ./tsconfig.prod.json -t es5 --downlevelIteration",
     "build:test-out": "scripts/build.sh test-out ./tsconfig.test.json",
     "build:test-out-mjs": "scripts/build.sh test-out-mjs ./tsconfig.test.json --module commonjs -t esnext && scripts/rewrite-mjs-test.js",
     "build:test-out-es5": "scripts/build.sh test-out-es5 ./tsconfig.test.json -t es5 && scripts/rewrite-es5-test.js",
@@ -54,6 +54,7 @@
     "deferred"
   ],
   "devDependencies": {
+    "@babel/plugin-syntax-optional-chaining": "^7.8.3",
     "@babel/plugin-transform-modules-commonjs": "^7.8.3",
     "@babel/preset-typescript": "^7.8.3",
     "@types/jest": "^25.1.4",
