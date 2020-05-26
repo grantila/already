@@ -75,7 +75,7 @@ The library is also exported as an *ES module*, if imported in platforms (and bu
 
   * For `P` (being `Promise< E >`), it returns `P`
     * E.g. `Promise< string >` ⇒ `Promise< string >`
-  * For non-promise `P`, it returns `Promise< P >`
+  * For non-promise `E`, it returns `Promise< E >`
     * E.g. `string` ⇒ `Promise< string >`
 
 
@@ -85,7 +85,7 @@ The library is also exported as an *ES module*, if imported in platforms (and bu
 
   * For `P` (being `Promise< E >`), it returns `E`
     * E.g. `Promise< string >` ⇒ `string`
-  * For non-promise `P`, it returns `P`
+  * For non-promise `E`, it returns `E`
     * E.g. `string` ⇒ `string`
 
 ## EnsurePromise
@@ -202,7 +202,7 @@ By default, the values will be filtered as fast as possible, but sometimes it is
 import { filter } from 'already'
 
 somePromiseToAnArrayOfPromisesAndValues
-.then( filter( { concurrency: 4 }, item => item.shouldBeIncluded ) )
+.then( filter( { concurrency: 4 }, item => item.shouldBeIncluded( ) ) )
 ```
 
 ### filter without a promise chain
@@ -236,7 +236,7 @@ Like with `filter`, `map` allows a custom concurrency.
 import { map } from 'already'
 
 somePromiseToAnArrayOfPromisesAndValues
-.then( map( { concurrency: 4 }, item => JSON.stringify( item ) ) )
+.then( map( { concurrency: 4 }, item => queryDB( item ) ) )
 ```
 
 ### map without a promise chain
