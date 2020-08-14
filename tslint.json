@@ -21,12 +21,6 @@
             "check-open-brace",
             "check-whitespace"
         ],
-        "no-unused-variable": [
-            true,
-            {
-                "ignore-pattern": "^_"
-            }
-        ],
         "no-unused-expression": [
             true,
             "allow-fast-null-checks"

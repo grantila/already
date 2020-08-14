@@ -21,6 +21,8 @@ The library is also exported as an *ES module*, if imported in platforms (and bu
   * [PromiseElement\<P\>](#PromiseElement)
   * [EnsurePromise\<P\>](#EnsurePromise)
   * [EnsureNotPromise\<P\>](#EnsureNotPromise)
+  * [IfPromise\<P, T, U\>](#IfPromise)
+  * [IfNotPromise\<P, T, U\>](#IfNotPromise)
 
 # Functions
 
@@ -96,6 +98,16 @@ The library is also exported as an *ES module*, if imported in platforms (and bu
 ## EnsureNotPromise
 
 `EnsureNotPromise< T >` returns `T` if it is **not** a promise. Otherwise the type is `never`.
+
+
+## IfPromise
+
+`IfPromise< P, T[, U = never] >` returns `T` if `P` is a promise, otherwise returns `U`.
+
+
+## IfNotPromise
+
+`IfNotPromise< P, T[, U = never] >` returns `U` if `P` is a promise, otherwise returns `T`.
 
 
 # Functions

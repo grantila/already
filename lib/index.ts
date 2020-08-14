@@ -27,14 +27,18 @@ export default {
 
 
 /**
- * IfPromise< P, T > returns T if P is a promise, otherwise returns <never>.
+ * IfPromise< P, T[, U] > returns T if P is a promise, otherwise returns U (or
+ * fallbacks to <never> ).
  */
-export type IfPromise< P, T > = P extends Promise< infer U > ? T : never;
+export type IfPromise< P, T, U = never > =
+	P extends Promise< infer _X > ? T : U;
 
 /**
- * IfNotPromise< P, T > returns <never> if P is a promise, otherwise returns T.
+ * IfNotPromise< P, T[, U] > returns U (fallbacks to <never>) if P is a
+ * promise, otherwise returns T.
  */
-export type IfNotPromise< P, T > = P extends Promise< infer U > ? never : T;
+export type IfNotPromise< P, T, U = never > =
+	P extends Promise< infer _X > ? U : T;
 
 /**
  * Returns the Promise wrapped value of P, unless it's already a promise, where
@@ -43,7 +47,7 @@ export type IfNotPromise< P, T > = P extends Promise< infer U > ? never : T;
  * For P being Promise<E>, it returns P
  * For non-promise P, it returns Promise<P>
  */
-export type PromiseOf< P > = P extends Promise< infer U > ? P : Promise< P >;
+export type PromiseOf< P > = P extends Promise< infer _U > ? P : Promise< P >;
 
 /**
  * Returns the element type of a promise, or the type itself if it isn't
@@ -57,13 +61,13 @@ export type PromiseElement< P > = P extends Promise< infer U > ? U : P;
 /**
  * Given type P, returns the same type P if it is a Promise, otherwise never.
  */
-export type EnsurePromise< P > = P extends Promise< infer U > ? P : never;
+export type EnsurePromise< P > = P extends Promise< infer _U > ? P : never;
 
 /**
  * Given type T, returns the same type T if it is *not* a Promise, otherwise
  * never.
  */
-export type EnsureNotPromise< T > = T extends Promise< infer U > ? never : T;
+export type EnsureNotPromise< T > = T extends Promise< infer _U > ? never : T;
 
 
 function toReadonlyArray< T >( arr: ConcatArray< T > ): ReadonlyArray< T >
@@ -82,7 +86,7 @@ export function delay< T >( milliseconds: number, t: T ): Promise< T >;
 export function delay< T >( milliseconds: number, t?: T )
 : Promise< void > | Promise< T >
 {
-	return new Promise< T >( ( resolve, reject ) =>
+	return new Promise< T >( resolve =>
 	{
 		setTimeout( ( ) => resolve( t ), milliseconds );
 	} );
@@ -1049,9 +1053,7 @@ export interface FunnelOptions
 	concurrency: number;
 }
 
-export function funnel< T, B extends boolean = IfNotPromise< T, true > >(
-	opts: Partial< FunnelOptions > = { }
-)
+export function funnel< T >( opts: Partial< FunnelOptions > = { } )
 : Funnel< T >
 {
 	type U = Promise< T >;

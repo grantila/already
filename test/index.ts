@@ -77,7 +77,7 @@ describe( "finallyDelay", ( ) =>
 		return Promise.resolve( fooValue )
 		.then( ...finallyDelay( 20 ) )
 		.then( ...Finally( ( ) => { value = 2; } ) )
-		.then( async num =>
+		.then( async ( ) =>
 		{
 			await delay( 25 );
 			expect( value ).toBe( 2 );
@@ -97,7 +97,7 @@ describe( "finallyDelay", ( ) =>
 		{
 			throw new Error( "Finally silently swallowed user error!" );
 		} )
-		.catch( async err =>
+		.catch( async ( ) =>
 		{
 			await delay( 25 );
 			expect( value ).toBe( 2 );
@@ -143,7 +143,7 @@ describe( "tap", ( ) =>
 				throw new Error( "tap callback shouldn't have been called" );
 			throw err;
 		} )
-		.then( num =>
+		.then( ( ) =>
 		{
 			if ( called )
 				throw new Error( "tap callback shouldn't have been called" );
@@ -571,7 +571,7 @@ describe( "each", ( ) =>
 			const input: Array< number > = [ ];
 			const spy = jest.fn( );
 
-			each( input, ( x: number ) => { } ); // Type safety test
+			each( input, ( _x: number ) => { } ); // Type safety test
 			const arr = await each( input, spy );
 
 			expect( arr ).toEqual( input );
@@ -584,7 +584,7 @@ describe( "each", ( ) =>
 			const input = [ fooValue ];
 			const spy = jest.fn( );
 
-			const foo = ( n: number ) => { };
+			const foo = ( _n: number ) => { };
 
 			each( input, x => { foo( x ); } ); // Type safety test
 			const arr = await each( input, spy );
@@ -598,7 +598,7 @@ describe( "each", ( ) =>
 			const input = [ fooValue ];
 			const spy = jest.fn( );
 
-			each( input, ( x: number ) => { } ); // Type safety test
+			each( input, ( _x: number ) => { } ); // Type safety test
 			const arr = await each( input, spy );
 
 			expect( arr ).toEqual( input );
@@ -610,7 +610,7 @@ describe( "each", ( ) =>
 			const input = [ fooValue, barValue, fooValue ];
 			const spy = jest.fn( );
 
-			each( input, ( x: number ) => { } ); // Type safety test
+			each( input, ( _x: number ) => { } ); // Type safety test
 			const arr = await each( input, spy );
 
 			expect( arr ).toEqual( input );
@@ -627,7 +627,7 @@ describe( "each", ( ) =>
 			const order: Array< number > = [ ];
 			const input: Array< number > = [ ];
 			const spy = jest.fn(
-				async ( a: number, index: number ) =>
+				async ( _a: number, index: number ) =>
 				{
 					order.push( index );
 					await delay( 5 );
@@ -635,7 +635,7 @@ describe( "each", ( ) =>
 				}
 			);
 
-			each( input, async ( x: number ) => { } ); // Type safety test
+			each( input, async ( _x: number ) => { } ); // Type safety test
 			const arr = await each( input, spy );
 
 			expect( arr ).toEqual( input );
@@ -649,7 +649,7 @@ describe( "each", ( ) =>
 			const order: Array< number > = [ ];
 			const input = [ fooValue ];
 			const spy = jest.fn(
-				async ( a: number, index: number ) =>
+				async ( _a: number, index: number ) =>
 				{
 					order.push( index );
 					await delay( 5 );
@@ -657,7 +657,7 @@ describe( "each", ( ) =>
 				}
 			);
 
-			each( input, async ( x: number ) => { } ); // Type safety test
+			each( input, async ( _x: number ) => { } ); // Type safety test
 			const arr = await each( input, spy );
 
 			expect( arr ).toEqual( input );
@@ -671,7 +671,7 @@ describe( "each", ( ) =>
 			const order: Array< number > = [ ];
 			const input = [ fooValue, barValue, fooValue ];
 			const spy = jest.fn(
-				async ( a: number, index: number ) =>
+				async ( _a: number, index: number ) =>
 				{
 					order.push( index );
 					await delay( 5 );
@@ -679,7 +679,7 @@ describe( "each", ( ) =>
 				}
 			);
 
-			each( input, async ( x: number ) => { } ); // Type safety test
+			each( input, async ( _x: number ) => { } ); // Type safety test
 			const arr = await each( input, spy );
 
 			expect( arr ).toEqual( input );
@@ -699,7 +699,7 @@ describe( "each", ( ) =>
 			const input = Promise.resolve( [ ] );
 			const spy = jest.fn( );
 
-			input.then( each( ( x: number ) => { } ) ); // Type safety test
+			input.then( each( ( _x: number ) => { } ) ); // Type safety test
 			const arr = await input.then( each( spy ) );
 
 			expect( arr ).toEqual( await input );
@@ -711,7 +711,7 @@ describe( "each", ( ) =>
 			const input = Promise.resolve( [ fooValue ] );
 			const spy = jest.fn( );
 
-			input.then( each( ( x: number ) => { } ) ); // Type safety test
+			input.then( each( ( _x: number ) => { } ) ); // Type safety test
 			const arr = await input.then( each( spy ) );
 
 			expect( arr ).toEqual( await input );
@@ -723,7 +723,7 @@ describe( "each", ( ) =>
 			const input = Promise.resolve( [ fooValue, barValue, fooValue ] );
 			const spy = jest.fn( );
 
-			input.then( each( ( x: number ) => { } ) ); // Type safety test
+			input.then( each( ( _x: number ) => { } ) ); // Type safety test
 			const arr = await input.then( each( spy ) );
 
 			expect( arr ).toEqual( await input );
@@ -740,7 +740,7 @@ describe( "each", ( ) =>
 			const order: Array< number > = [ ];
 			const input = Promise.resolve( [ ] );
 			const spy = jest.fn(
-				async ( a: string, index: number ) =>
+				async ( _a: string, index: number ) =>
 				{
 					order.push( index );
 					await delay( 5 );
@@ -748,7 +748,7 @@ describe( "each", ( ) =>
 				}
 			);
 
-			input.then( each( async ( x: number ) => { } ) ); // TS test
+			input.then( each( async ( _x: number ) => { } ) ); // TS test
 			const arr = await input.then( each( spy ) );
 
 			expect( arr ).toEqual( await input );
@@ -762,7 +762,7 @@ describe( "each", ( ) =>
 			const order: Array< number > = [ ];
 			const input = Promise.resolve( [ fooValue ] );
 			const spy = jest.fn(
-				async ( a: number, index: number ) =>
+				async ( _a: number, index: number ) =>
 				{
 					order.push( index );
 					await delay( 5 );
@@ -770,7 +770,7 @@ describe( "each", ( ) =>
 				}
 			);
 
-			input.then( each( async ( x: number ) => { } ) ); // TS test
+			input.then( each( async ( _x: number ) => { } ) ); // TS test
 			const arr = await input.then( each( spy ) );
 
 			expect( arr ).toEqual( await input );
@@ -784,7 +784,7 @@ describe( "each", ( ) =>
 			const order: Array< number > = [ ];
 			const input = Promise.resolve( [ fooValue, barValue, fooValue ] );
 			const spy = jest.fn(
-				async ( a: number, index: number ) =>
+				async ( _a: number, index: number ) =>
 				{
 					order.push( index );
 					await delay( 5 );
@@ -792,7 +792,7 @@ describe( "each", ( ) =>
 				}
 			);
 
-			input.then( each( async ( x: number ) => { } ) ); // TS test
+			input.then( each( async ( _x: number ) => { } ) ); // TS test
 			const arr = await input.then( each( spy ) );
 
 			expect( arr ).toEqual( await input );
@@ -809,7 +809,7 @@ describe( "each", ( ) =>
 
 describe( "some", ( ) =>
 {
-	function somePredNull( val: number )
+	function somePredNull( _val: number )
 	{
 		return null; // Falsy
 	}
@@ -826,7 +826,7 @@ describe( "some", ( ) =>
 			return 0; // Falsy
 		};
 	}
-	function asyncSomePredNull( val: number )
+	function asyncSomePredNull( _val: number )
 	{
 		return Promise.resolve( null ); // Falsy
 	}
@@ -1181,7 +1181,7 @@ describe( "once", ( ) =>
 
 		it( "should call synchronously once with arg", ( ) =>
 		{
-			const spy = jest.fn( ( v: number ) => { } );
+			const spy = jest.fn( ( _v: number ) => { } );
 
 			const _once = once( spy );
 			expect( spy.mock.calls.length ).toBe( 0 );
@@ -1601,7 +1601,7 @@ describe( "inspect", ( ) =>
 
 		// Register catch handler before asynchronously rejecting upstream
 		// to avoid erroneous nodejs warning about unhandled rejections.
-		inspectable.promise.catch( err => { } );
+		inspectable.promise.catch( _err => { } );
 
 		deferred.reject( new Error( ) );
 
@@ -1611,7 +1611,7 @@ describe( "inspect", ( ) =>
 		expect( inspectable.isResolved ).toBe( false );
 		expect( inspectable.isRejected ).toBe( true );
 
-		return inspectable.promise.catch( err => { } );
+		return inspectable.promise.catch( _err => { } );
 	} );
 
 	it.concurrent( "should be settled after {await}", async ( ) =>
@@ -2051,7 +2051,7 @@ describe( "rethrow", ( ) =>
 		const err1 = new Error( "error" );
 		const err2 = new Error( "error" );
 
-		function wrapper( err: any )
+		function wrapper( _err: any )
 		{
 			throw err2;
 		}
@@ -2072,7 +2072,7 @@ describe( "rethrow", ( ) =>
 		const err1 = new Error( "error" );
 		const err2 = new Error( "error" );
 
-		async function wrapper( err: any )
+		async function wrapper( _err: any )
 		{
 			await delay( 10 );
 			throw err2;
@@ -2134,7 +2134,7 @@ describe( "wrapFunction", ( ) =>
 		it( "sync sync sync arg noreturn", ( ) =>
 		{
 			const after = makeSpy( ( ) => { } );
-			const before = makeSpy( ( s: string ) => after );
+			const before = makeSpy( ( _s: string ) => after );
 
 			expect(
 				wrapFunction( before )( "foo", ( ) => { } )
@@ -2147,7 +2147,7 @@ describe( "wrapFunction", ( ) =>
 		it( "sync sync sync arg", ( ) =>
 		{
 			const after = makeSpy( ( ) => { } );
-			const before = makeSpy( ( s: string ) => after );
+			const before = makeSpy( ( _s: string ) => after );
 
 			expect( wrapFunction( before )( "foo", ( ) => 42 ) ).toBe( 42 );
 
@@ -2183,7 +2183,7 @@ describe( "wrapFunction", ( ) =>
 		it.concurrent( "async sync sync arg noreturn", async ( ) =>
 		{
 			const after = makeSpy( ( ) => { } );
-			const before = makeSpy( ( s: string ) => Promise.resolve( after ) );
+			const before = makeSpy( ( _s: string ) => Promise.resolve( after ) );
 
 			expect(
 				await wrapFunction( before )( "foo", ( ) => { } )
@@ -2196,7 +2196,7 @@ describe( "wrapFunction", ( ) =>
 		it.concurrent( "async sync sync arg", async ( ) =>
 		{
 			const after = makeSpy( ( ) => { } );
-			const before = makeSpy( ( s: string ) => Promise.resolve( after ) );
+			const before = makeSpy( ( _s: string ) => Promise.resolve( after ) );
 
 			expect( await wrapFunction( before )( "foo", ( ) => 42 ) )
 				.toBe( 42 );
@@ -2234,7 +2234,7 @@ describe( "wrapFunction", ( ) =>
 		it.concurrent( "sync async sync arg noreturn", async ( ) =>
 		{
 			const after = makeSpy( ( ) => { } );
-			const before = makeSpy( ( s: string ) => after );
+			const before = makeSpy( ( _s: string ) => after );
 
 			expect(
 				await wrapFunction( before )( "foo", ( ) => Promise.resolve( ) )
@@ -2247,7 +2247,7 @@ describe( "wrapFunction", ( ) =>
 		it.concurrent( "sync async sync arg", async ( ) =>
 		{
 			const after = makeSpy( ( ) => { } );
-			const before = makeSpy( ( s: string ) => after );
+			const before = makeSpy( ( _s: string ) => after );
 
 			expect(
 				await wrapFunction( before )( "foo", ( ) => Promise.resolve( 42 ) )
@@ -2274,7 +2274,7 @@ describe( "wrapFunction", ( ) =>
 		it.concurrent( "async async sync arg", async ( ) =>
 		{
 			const after = makeSpy( ( ) => { } );
-			const before = makeSpy( ( s: string ) => Promise.resolve( after ) );
+			const before = makeSpy( ( _s: string ) => Promise.resolve( after ) );
 
 			expect(
 				await wrapFunction( before )(
@@ -2300,7 +2300,7 @@ describe( "wrapFunction", ( ) =>
 		it.concurrent( "sync sync async arg", async ( ) =>
 		{
 			const after = makeSpy( ( ) => Promise.resolve( ) );
-			const before = makeSpy( ( s: string ) => after );
+			const before = makeSpy( ( _s: string ) => after );
 
 			expect(
 				await wrapFunction( before )( "foo", ( ) => 42 )
@@ -2338,7 +2338,7 @@ describe( "wrapFunction", ( ) =>
 		it.concurrent( "async sync async arg noreturn", async ( ) =>
 		{
 			const after = makeSpy( ( ) => Promise.resolve( ) );
-			const before = makeSpy( ( s: string ) => Promise.resolve( after ) );
+			const before = makeSpy( ( _s: string ) => Promise.resolve( after ) );
 
 			expect(
 				await wrapFunction( before )( "foo", ( ) => { } )
@@ -2351,7 +2351,7 @@ describe( "wrapFunction", ( ) =>
 		it.concurrent( "async sync async arg", async ( ) =>
 		{
 			const after = makeSpy( ( ) => Promise.resolve( ) );
-			const before = makeSpy( ( s: string ) => Promise.resolve( after ) );
+			const before = makeSpy( ( _s: string ) => Promise.resolve( after ) );
 
 			expect(
 				await wrapFunction( before )( "foo", ( ) => 42 )
@@ -2395,7 +2395,7 @@ describe( "wrapFunction", ( ) =>
 		it.concurrent( "sync async async arg", async ( ) =>
 		{
 			const after = makeSpy( ( ) => Promise.resolve( ) );
-			const before = makeSpy( ( s: string ) => after );
+			const before = makeSpy( ( _s: string ) => after );
 
 			expect(
 				await wrapFunction( before )(
@@ -2424,7 +2424,7 @@ describe( "wrapFunction", ( ) =>
 		it.concurrent( "async async async arg", async ( ) =>
 		{
 			const after = makeSpy( ( ) => Promise.resolve( ) );
-			const before = makeSpy( ( s: string ) => Promise.resolve( after ) );
+			const before = makeSpy( ( _s: string ) => Promise.resolve( after ) );
 
 			expect(
 				await wrapFunction( before )(
@@ -2440,7 +2440,7 @@ describe( "wrapFunction", ( ) =>
 	it.concurrent( "Invalid (missing) argument", async ( ) =>
 	{
 		const after = makeSpy( ( ) => Promise.resolve( ) );
-		const before = makeSpy( ( s: string ) => Promise.resolve( after ) );
+		const before = makeSpy( ( _s: string ) => Promise.resolve( after ) );
 
 		await ( async ( ) =>
 		{
@@ -2464,7 +2464,7 @@ describe( "wrapFunction", ( ) =>
 
 	it.concurrent( 'Empty return from "before"', async ( ) =>
 	{
-		const before = makeSpy( ( s: string ) => < ( ) => { } >< any >null );
+		const before = makeSpy( ( _s: string ) => < ( ) => { } >< any >null );
 
 		expect(
 			await wrapFunction( before )( "foo", ( ) => Promise.resolve( 42 ) )
@@ -2475,7 +2475,7 @@ describe( "wrapFunction", ( ) =>
 
 	it.concurrent( 'Illegal return value from "before"', async ( ) =>
 	{
-		const before = makeSpy( ( s: string ) => < ( ) => { } >< any >"bad" );
+		const before = makeSpy( ( _s: string ) => < ( ) => { } >< any >"bad" );
 
 		await ( async ( ) =>
 		{
@@ -2499,7 +2499,7 @@ describe( "wrapFunction", ( ) =>
 	it.concurrent( 'Async throw in "before"', async ( ) =>
 	{
 		const before = makeSpy(
-			( s: string ) => Promise.reject( new Error( "foobar" ) )
+			( _s: string ) => Promise.reject( new Error( "foobar" ) )
 		);
 
 		await ( async ( ) =>

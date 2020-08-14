@@ -73,7 +73,7 @@ describe( "funnel", ( ) =>
 	{
 		const fun: Funnel< number > = funnel< number >( );
 
-		const value = ( ) => fun( async ( shouldRetry, retry ) =>
+		const value = ( ) => fun( async ( _shouldRetry, retry ) =>
 		{
 			return retry( );
 		} );
@@ -389,7 +389,7 @@ describe( "funnel", ( ) =>
 			) );
 
 		const eventualValue2 =
-			fun( async ( shouldRetry, retry, shortcut ) =>
+			fun( async ( shouldRetry, retry ) =>
 			{
 				parts( "2 a" );
 
@@ -433,7 +433,7 @@ describe( "funnel", ( ) =>
 			) );
 
 		const eventualValue2 =
-			fun( async ( shouldRetry, retry, shortcut ) =>
+			fun( async ( shouldRetry, retry ) =>
 			{
 				if ( shouldRetry( ) )
 					return retry( );
