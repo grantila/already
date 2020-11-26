@@ -88,7 +88,7 @@ export function delay< T >( milliseconds: number, t?: T )
 {
 	return new Promise< T >( resolve =>
 	{
-		setTimeout( ( ) => resolve( t ), milliseconds );
+		setTimeout( ( ) => resolve( t as T ), milliseconds );
 	} );
 }
 
