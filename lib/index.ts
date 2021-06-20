@@ -1,5 +1,3 @@
-import throat from "throat";
-
 export default {
 	defer,
 	deferSet,
@@ -73,6 +71,107 @@ function toReadonlyArray< T >( arr: ConcatArray< T > ): ReadonlyArray< T >
 		return < ReadonlyArray< T > >arr;
 	else
 		return Array.from( arr );
+}
+
+
+type ConcurrentQueueRunner< R > = ( ) => R | PromiseLike< R >;
+
+interface ConcurrentQueueItem< R >
+{
+	cb: ConcurrentQueueRunner< R >;
+	deferred: Deferred< R >;
+}
+
+interface ConcurrentQueue< R >
+{
+	size: number;
+	count: number;
+	queue: Array< ConcurrentQueueItem< R > >;
+	process: any;
+	runOne: ( cb: ConcurrentQueueRunner< R > ) => Promise< R >;
+	enqueue: ( cb: ConcurrentQueueRunner< R > ) => Promise< R >;
+}
+
+export type Callback< R, A extends any[ ] > =
+	( ...args: A ) => Promise< R >;
+
+/**
+ * Create a maximum concurrency for fn (can be curried)
+ *
+ * Either specify fn and invoke the returned function, or skip fn and the
+ * returned function will take an arbitrary function to limit concurrency for.
+ *
+ * @param size Concurrency limit
+ * @param fn The function to limit the concurrency for
+ * @returns Concurrency-limited version of fn
+ */
+export function concurrent< R, A extends any[ ] >(
+	size: number,
+	fn: Callback< R, A >
+): ( ...args: Parameters< typeof fn > ) => Promise< ReturnType< typeof fn > >;
+
+export function concurrent( size: number )
+: < R, A extends any[ ] >( fn: Callback< R, A >, ...a: A ) => Promise< R >;
+
+export function concurrent< R, A extends any[ ] >(
+	size: number,
+	fn?: Callback< R, A >
+)
+{
+	const queue = makeQueue< R >( size );
+
+	if ( size < 1 )
+		throw new RangeError( `Size must be at least 1` );
+
+	if ( !fn )
+		return ( cb: Callback< R, A >, ...args: A ) =>
+			queue.enqueue( ( ) => cb( ...args ) );
+	else
+		return ( ...args: A ): Promise< R > =>
+			queue.enqueue( ( ) => fn( ...args ) );
+}
+
+function makeQueue< R >( size: number ): ConcurrentQueue< R >
+{
+	const queue: ConcurrentQueue< R > = {
+		size,
+		count: 0,
+		queue: [ ],
+		process: ( ) =>
+		{
+			if ( queue.queue.length )
+			{
+				const first = queue.queue.shift( )!;
+
+				const { cb, deferred } = first;
+
+				queue.runOne( cb ).then( deferred.resolve, deferred.reject );
+			}
+		},
+		runOne: ( cb: ConcurrentQueueRunner< R > ) =>
+		{
+			++queue.count;
+			return ( async ( ) => cb( ) )( )
+				.finally( ( ) =>
+				{
+					--queue.count;
+					queue.process( );
+				} );
+		},
+		enqueue: async ( cb: ConcurrentQueueRunner< R > ) =>
+		{
+			if ( queue.count >= queue.size )
+			{
+				const deferred = defer< R >( );
+				queue.queue.push( { cb, deferred } );
+				return deferred.promise;
+			}
+
+			return queue.runOne( cb );
+		}
+	};
+
+	return queue;
 }
 
 
@@ -245,7 +344,7 @@ export function map< T, U >(
 		( t: T, index: number, arr: ConcatArray< T | PromiseLike< T > > ) =>
 			Promise.resolve( ( < MapFn< T, U > >mapFn )( t, index, arr ) );
 
-	const throated = throat( concurrency );
+	const concurrently = concurrent( concurrency );
 
 	return ( t: ConcatArray< T | PromiseLike< T > > )
 	: Promise< Array< U > > =>
@@ -254,9 +353,9 @@ export function map< T, U >(
 		.then( ( values: ConcatArray< T | PromiseLike< T > > ) =>
 			toReadonlyArray( values ).map(
 				( val, index, arr ) =>
-					throated( ( ) => Promise.resolve( val ) )
+					( ( ) => Promise.resolve( val ) )( )
 					.then( ( val: T ) =>
-						throated( ( ) => promiseMapFn( val, index, arr ) )
+						concurrently( promiseMapFn, val, index, arr )
 					)
 			)
 		)
@@ -621,6 +720,16 @@ export function defer< T = void >( ): Deferred< T >
 		deferred.resolve = resolve;
 		deferred.reject = reject;
 	} );
+
+	/* istanbul ignore next */
+	if ( process?.env?.JEST_WORKER_ID !== undefined )
+		try
+		{
+			// Jest has decided for many versions to break async catching,
+			// so this is needed for unit tests not to break unnecessarily.
+			deferred.promise.catch( ( ) => { } );
+		} catch ( _err ) { }
+
 	return deferred;
 }
 

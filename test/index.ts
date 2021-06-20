@@ -1608,58 +1608,58 @@ describe( "deferInspectable", ( ) =>
 			.toBe( "err" );
 	} );
 
-	// it( "should work with resolving", async ( ) =>
-	// {
-	// 	const deferred = deferInspectable< string >( );
+	it( "should work with resolving", async ( ) =>
+	{
+		const deferred = deferInspectable< string >( );
 
-	// 	const inspectable = inspect( deferred.promise );
+		const inspectable = inspect( deferred.promise );
 
-	// 	deferred.resolve( "" );
+		deferred.resolve( "" );
 
-	// 	await delay( 1 );
+		await delay( 1 );
 
-	// 	expect( inspectable.isPending ).toBe( false );
-	// 	expect( inspectable.isResolved ).toBe( true );
-	// 	expect( inspectable.isRejected ).toBe( false );
+		expect( inspectable.isPending ).toBe( false );
+		expect( inspectable.isResolved ).toBe( true );
+		expect( inspectable.isRejected ).toBe( false );
 
-	// 	return inspectable.promise;
-	// } );
+		return inspectable.promise;
+	} );
 
-	// it( "should work with rejecting", async ( ) =>
-	// {
-	// 	const deferred = deferInspectable< string >( );
+	it( "should work with rejecting", async ( ) =>
+	{
+		const deferred = deferInspectable< string >( );
 
-	// 	const inspectable = inspect( deferred.promise );
+		const inspectable = inspect( deferred.promise );
 
-	// 	// Register catch handler before asynchronously rejecting upstream
-	// 	// to avoid erroneous nodejs warning about unhandled rejections.
-	// 	inspectable.promise.catch( err => { } );
+		// Register catch handler before asynchronously rejecting upstream
+		// to avoid erroneous nodejs warning about unhandled rejections.
+		inspectable.promise.catch( _err => { } );
 
-	// 	deferred.reject( new Error( ) );
+		deferred.reject( new Error( ) );
 
-	// 	await delay( 1 );
+		await delay( 1 );
 
-	// 	expect( inspectable.isPending ).toBe( false );
-	// 	expect( inspectable.isResolved ).toBe( false );
-	// 	expect( inspectable.isRejected ).toBe( true );
+		expect( inspectable.isPending ).toBe( false );
+		expect( inspectable.isResolved ).toBe( false );
+		expect( inspectable.isRejected ).toBe( true );
 
-	// 	return inspectable.promise.catch( err => { } );
-	// } );
+		return inspectable.promise.catch( _err => { } );
+	} );
 
-	// it( "should be settled after {await}", async ( ) =>
-	// {
-	// 	const deferred = deferInspectable< string >( );
+	it( "should be settled after {await}", async ( ) =>
+	{
+		const deferred = deferInspectable< string >( );
 
-	// 	deferred.resolve( "" );
+		deferred.resolve( "" );
 
-	// 	const inspectable = await inspect( deferred.promise );
+		const inspectable = await inspect( deferred.promise );
 
-	// 	expect( inspectable.isPending ).toBe( false );
-	// 	expect( inspectable.isResolved ).toBe( true );
-	// 	expect( inspectable.isRejected ).toBe( false );
+		expect( inspectable.isPending ).toBe( false );
+		expect( inspectable.isResolved ).toBe( true );
+		expect( inspectable.isRejected ).toBe( false );
 
-	// 	return inspectable.promise;
-	// } );
+		return inspectable.promise;
+	} );
 } );
 
 

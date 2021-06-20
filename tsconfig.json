@@ -4,7 +4,8 @@
 		"declaration": true,
 		"lib": [ "ES2019", "dom" ],
 		"types": [
-			"jest"
+			"jest",
+			"node"
 		],
 		"target": "ES2019",
 		"module": "CommonJS",
@@ -16,7 +17,8 @@
 		"sourceMap": true,
 		"strict": true,
 		"alwaysStrict": true,
-		"allowSyntheticDefaultImports": true
+		"allowSyntheticDefaultImports": true,
+		"downlevelIteration": true
 	},
 	"include": [
 		"lib",

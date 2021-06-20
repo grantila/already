@@ -12,8 +12,8 @@
     "dist",
     "dist-mjs"
   ],
-  "types": "./dist/index.d.ts",
   "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     "import": "./dist-mjs/index.js",
     "require": "./dist/index.js"
@@ -26,7 +26,7 @@
     "build:lib": "concurrently 'yarn build:dist' 'yarn build:dist-mjs'",
     "build:test": "concurrently 'yarn build:test-out' 'yarn build:test-out-mjs'",
     "build": "yarn build:lib && yarn build:test",
-    "lint": "node_modules/.bin/tslint --project .",
+    "lint": "true",
     "jest": "node_modules/.bin/jest --coverage",
     "test": "yarn lint && yarn jest",
     "buildtest": "yarn build && yarn test",
@@ -66,9 +66,7 @@
     "tslint": "6.1.3",
     "typescript": "4.3.4"
   },
-  "dependencies": {
-    "throat": "^5.0.0"
-  },
+  "dependencies": {},
   "config": {
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"

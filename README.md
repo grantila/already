@@ -9,11 +9,10 @@
 
 `already` is a set of promise helper functions which many of them are also found in libraries such as Bluebird.
 
-The functions are standalone and depends on no particular Promise implementation and therefore works well for Javascript's built-in Promise.
+The functions are standalone and depends on no particular Promise implementation and therefore works well for JavaScript's built-in Promise.
 
-This library is written in TypeScript but is exposed as ES7 (if imported as `already`) and ES5 (if imported as `already/es5`). Typings are provided too, so any TypeScript project using this library will automatically get full type safety of all the functions.
+The library is written in TypeScript, so typings are provided. Apart from being exported as JavaScript (ES2019), it's also exported as an *ES module*, if imported in platforms (and bundlers) supporting this.
 
-The library is also exported as an *ES module*, if imported in platforms (and bundlers) supporting this.
 
 # Versions
 
@@ -30,6 +29,8 @@ The library is also exported as an *ES module*, if imported in platforms (and bu
 
 # Functions
 
+  * [concurrent](#concurrent)
+      <br>&emsp;Run a function with certain concurrency
   * [delay](#delay)
       <br>&emsp;Create a promise which resolved after a certain time
   * [tap](#tap)
@@ -111,6 +112,42 @@ The library is also exported as an *ES module*, if imported in platforms (and bu
 
 
 # Functions
+
+## concurrent
+
+Since version 2 of this package, the dependency on `throat` was removed. This function works like throat; it wraps a function with concurrency, returning a new function that can be called repeatedly, but will only call the underlying function with the provided concurrency.
+
+The function takes a concurrency option, and optionally the function to be wrapped. If the second argument isn't passed, the returned function takes a function as first argument. This allows you to run separate functions, yet guarantee a maximum concurrency.
+
+```ts
+import { concurrent } from 'already'
+
+// function readSomethingFromDb(): Promise<any>;
+
+const concurrently = concurrent( 3, readSomethingFromDb );
+
+// This will ensure <readSomethingFromDb> isn't called more than 3 times concurrently
+const results = await Promise.all(
+    listOfIds.map( id => concurrently( id ) )
+);
+```
+
+or without specifying the function, so that different functions can share concurrency:
+
+```ts
+import { concurrent } from 'already'
+
+const concurrently = concurrent( 3 );
+
+const results = await Promise.all(
+    listOfThings.map( thing =>
+        typeof thing === 'string'
+        ? concurrently( readSomethingElse, thing )
+        : concurrently( readSomethingFromDb, thing )
+    )
+);
+```
+
 
 ## delay
 
