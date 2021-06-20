@@ -2,7 +2,7 @@
   "name": "already",
   "description": "Promise extensions; finally, map, filter, etc",
   "license": "MIT",
-  "version": "1.12.0-beta.0",
+  "version": "0.0.0-development",
   "author": "Gustaf Räntilä <g.rantila@gmail.com>",
   "repository": {
     "type": "git",
@@ -10,8 +10,7 @@
   },
   "files": [
     "dist",
-    "dist-mjs",
-    "es5"
+    "dist-mjs"
   ],
   "types": "./dist/index.d.ts",
   "main": "./dist/index.js",
@@ -20,14 +19,12 @@
     "require": "./dist/index.js"
   },
   "scripts": {
-    "build:dist": "scripts/build.sh dist ./tsconfig.prod.json --module commonjs -t ES2017",
-    "build:dist-mjs": "scripts/build.sh dist-mjs ./tsconfig.prod.json --module ESNext -t ES2017",
-    "build:es5": "scripts/build.sh es5 ./tsconfig.prod.json -t es5 --downlevelIteration",
+    "build:dist": "scripts/build.sh dist ./tsconfig.prod.json --module CommonJS -t ES2019",
+    "build:dist-mjs": "scripts/build.sh dist-mjs ./tsconfig.prod.json --module ESNext -t ES2019",
     "build:test-out": "scripts/build.sh test-out ./tsconfig.test.json",
-    "build:test-out-mjs": "scripts/build.sh test-out-mjs ./tsconfig.test.json --module commonjs -t esnext && scripts/rewrite-mjs-test.js",
-    "build:test-out-es5": "scripts/build.sh test-out-es5 ./tsconfig.test.json -t es5 && scripts/rewrite-es5-test.js",
-    "build:lib": "concurrently 'yarn build:dist' 'yarn build:dist-mjs' 'yarn build:es5'",
-    "build:test": "concurrently 'yarn build:test-out' 'yarn build:test-out-mjs' 'yarn build:test-out-es5'",
+    "build:test-out-mjs": "scripts/build.sh test-out-mjs ./tsconfig.test.json --module CommonJS -t esnext && scripts/rewrite-mjs-test.js",
+    "build:lib": "concurrently 'yarn build:dist' 'yarn build:dist-mjs'",
+    "build:test": "concurrently 'yarn build:test-out' 'yarn build:test-out-mjs'",
     "build": "yarn build:lib && yarn build:test",
     "lint": "node_modules/.bin/tslint --project .",
     "jest": "node_modules/.bin/jest --coverage",

@@ -15,6 +15,10 @@ This library is written in TypeScript but is exposed as ES7 (if imported as `alr
 
 The library is also exported as an *ES module*, if imported in platforms (and bundlers) supporting this.
 
+# Versions
+
+ * Since version 2, `Finally` and `Try` are removed. They should be replaced with `Promise.prototype.finally` and async functions.
+
 
 # Types
   * [PromiseOf\<P\>](#PromiseOf)
@@ -28,8 +32,6 @@ The library is also exported as an *ES module*, if imported in platforms (and bu
 
   * [delay](#delay)
       <br>&emsp;Create a promise which resolved after a certain time
-  * [Finally](#finally)
-      <br>&emsp;Asynchronous version of try-catch-**finally**
   * [tap](#tap)
       <br>&emsp;_"Listen"_ to a promise version in a `.then`-chain without modifying the value
   * [props](#props)
@@ -56,8 +58,6 @@ The library is also exported as an *ES module*, if imported in platforms (and bu
       <br>&emsp;Get a promise's resolved value or rejected error in a success flow
   * [inspect](#inspect)
       <br>&emsp;Inspect a promise. Is it pending? Is it rejected?
-  * [Try](#try)
-      <br>&emsp;Make a possibly throwing function asynchronous (to not throw, but maybe reject)
   * [specific](#specific)
       <br>&emsp;Catch _specific_ types, like many languages have error type matching in subsequent `catch` statements
   * [rethrow](#rethrow)
@@ -142,21 +142,6 @@ somePromise
 .then( ...finallyDelay( 100 ) )
 ```
 
-## Finally
-
-An alternative for `promise.finally( fn )` (which isn't a standard *yet*) is the `Finally` helper. Note and *don't forget* the triple dots (`...`).
-The callback given to `Finally` will be called regardless of whether the promise is resolved or rejected, and the promise' value/error flow will continue as if the `Finally` wasn't called. Also, the flow will *await* the inner `Finally` callback if it returns a promise.
-
-Note; If the `Finally` callback either throws an error, or returns a promise which is rejected, **the flow will continue with this error** and not the upstream value/error.
-
-If `already` is default-imported (`import already from 'already'`), a lower-case `finally` is provided (`already.finally( )`), but if used standalone, it must be capitalized as `Finally`, due to the free keyword `finally` being reserved in Javascript.
-
-```ts
-import { Finally } from 'already'
-
-somePromise
-.then( ...Finally( ( ) => { /* finally code goes here */ } ) )
-```
 
 ## tap
 
@@ -589,20 +574,6 @@ deferred.isRejected // <boolean>
 For promises of `void` type, in TypeScript create it with `deferInspectable( void 0 )`.
 
 Unlike `inspect`, the values are immediately correct, no `await` is necessary to settle the values. Also, when `resolve()` and `reject()` are called, the `is*` booleans are synchronously set.
-
-
-## Try
-
-The `Try` takes a callback function as argument and calls it. It guarantees to return a promise containing the value returned from the callback. If the function throws an exception, this will be caught and used to reject the promise with. `Try` can therefore never throw itself.
-
-`Try` is often easily replaced with an `async function` in ES7 or newer versions of TypeScript.
-
-```ts
-import { Try } from 'already'
-
-Try( ( ) => "foo" )
-.then( val => console.log( val ) ); // Prints "foo"
-```
 
 
 ## specific

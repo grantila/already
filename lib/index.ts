@@ -1,16 +1,12 @@
 import throat from "throat";
 
 export default {
-	Finally,
-	Try,
 	defer,
 	deferSet,
 	delay,
 	delayChain,
 	each,
 	filter,
-	finally: Finally,
-	finallyDelay,
 	funnel,
 	inspect,
 	map,
@@ -96,33 +92,6 @@ export function delayChain( milliseconds: number )
 : < T >( t: T ) => Promise< T >
 {
 	return tap( ( ) => delay( milliseconds ) );
-}
-
-export function finallyDelay( milliseconds: number )
-: FinallyWrapper
-{
-	return Finally( ( ) => delay( milliseconds ) );
-}
-
-export type FinallyWrapper =
-	[ < T >( t: T ) => Promise< T >, ( err?: any ) => any ];
-
-export function Finally( fn: ( ) => ( void | PromiseLike< void > ) )
-: FinallyWrapper
-{
-	async function _then< T >( t: T ): Promise< T >
-	{
-		await fn( );
-		return t;
-	}
-
-	async function _catch( err: any )
-	{
-		await fn( );
-		throw err;
-	}
-
-	return [ _then, _catch ];
 }
 
 
@@ -974,11 +943,11 @@ export function wrapFunction< T, R extends Promise< void > | void >(
 
 					return cb( );
 				} )
-				.then( ...Finally( ( ) =>
+				.finally( ( ) =>
 				{
 					if ( doCleanup )
 						return doCleanup( );
-				} ) );
+				} );
 		} else {
 			const cleanup = < ( ) => R >anyCleanup;
 			let cbRet: V;
@@ -1010,7 +979,7 @@ export function wrapFunction< T, R extends Promise< void > | void >(
 			)
 			{
 				return < Promise< U > >( < Promise< U > >cbRet )
-					.then( ...Finally( ( ) => callCleanup( cleanup ) ) );
+					.finally( ( ) => callCleanup( cleanup ) );
 			}
 			else
 			{
@@ -1183,7 +1152,7 @@ export function funnel< T >( opts: Partial< FunnelOptions > = { } )
 		const runner = ( ) =>
 		{
 			return ( < U >Try( ( ) => fn( shouldRetry, retry, shortcut ) ) )
-				.then( ...Finally( shortcut ) );
+				.finally( shortcut );
 		};
 
 		return runner( );

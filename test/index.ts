@@ -5,8 +5,6 @@ import {
 	delayChain,
 	each,
 	filter,
-	Finally,
-	finallyDelay,
 	inspect,
 	map,
 	once,
@@ -26,84 +24,6 @@ const fooError = "foo error";
 const testError = new Error( fooError );
 const fooValue = 4711;
 const barValue = 17;
-
-
-describe( "finally", ( ) =>
-{
-	it.concurrent( "should be called on a resolved promise", ( ) =>
-	{
-		let called = false;
-
-		return Promise.resolve( fooValue )
-		.then( ...Finally( ( ) => { called = true; } ) )
-		.then( num =>
-		{
-			if ( !called )
-				throw new Error( "Finally callback not called!" );
-			if ( num !== fooValue )
-				throw new Error( "Finally callback altered dataflow!" );
-		} );
-	} );
-
-	it.concurrent( "should be called on a rejected promise", ( ) =>
-	{
-		let called = false;
-
-		return Promise.reject( new Error( fooError ) )
-		.then( ...Finally( ( ) => { called = true; } ) )
-		.then( ( ) =>
-		{
-			throw new Error( "Finally silently swallowed user error!" );
-		} )
-		.catch( err =>
-		{
-			if ( !called )
-				throw new Error( "Finally callback not called!" );
-			if ( err.message !== fooError )
-				throw new Error( "Finally callback altered error!" );
-		} );
-	} );
-} );
-
-
-describe( "finallyDelay", ( ) =>
-{
-	it.concurrent( "should be called on a resolved promise", ( ) =>
-	{
-		let value = 0;
-
-		setTimeout( ( ) => { value = 1; }, 5 );
-
-		return Promise.resolve( fooValue )
-		.then( ...finallyDelay( 20 ) )
-		.then( ...Finally( ( ) => { value = 2; } ) )
-		.then( async ( ) =>
-		{
-			await delay( 25 );
-			expect( value ).toBe( 2 );
-		} );
-	} );
-
-	it.concurrent( "should be called on a rejected promise", ( ) =>
-	{
-		let value = 0;
-
-		setTimeout( ( ) => { value = 1; }, 5 );
-
-		return Promise.reject( new Error( fooError ) )
-		.then( ...finallyDelay( 20 ) )
-		.then( ...Finally( ( ) => { value = 2; } ) )
-		.then( ( ) =>
-		{
-			throw new Error( "Finally silently swallowed user error!" );
-		} )
-		.catch( async ( ) =>
-		{
-			await delay( 25 );
-			expect( value ).toBe( 2 );
-		} );
-	} );
-} );
 
 
 describe( "tap", ( ) =>
@@ -2035,11 +1955,11 @@ describe( "rethrow", ( ) =>
 
 		await Promise.reject( err )
 		.catch( rethrow( proxy ) )
-		.then( ...Finally( ( ) =>
+		.finally( ( ) =>
 		{
 			expect( spy1.mock.calls.length ).toBe( 1 );
 			expect( spy2.mock.calls.length ).toBe( 0 );
-		} ) )
+		} )
 		.catch( spy2 );
 
 		expect( spy1.mock.calls[ 0 ][ 0 ] ).toBe( err );

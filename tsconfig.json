@@ -2,12 +2,12 @@
 	"compilerOptions": {
 		"allowJs": false,
 		"declaration": true,
-		"lib": [ "es2015", "es2017", "dom" ],
+		"lib": [ "ES2019", "dom" ],
 		"types": [
 			"jest"
 		],
-		"target": "es6",
-		"module": "commonjs",
+		"target": "ES2019",
+		"module": "CommonJS",
 		"moduleResolution": "node",
 		"noImplicitAny": true,
 		"noUnusedLocals": true,
