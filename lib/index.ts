@@ -749,14 +749,6 @@ export function deferInspectable< T = void >( ): DeferredInspectable< T >
 }
 
 
-export async function Try< T, U extends Promise< T > >( cb: ( ) => U ): Promise< T >;
-export async function Try< T >( cb: ( ) => T ): Promise< T >;
-export async function Try< T >( cb: ( ) => T ): Promise< T >
-{
-	return cb( );
-}
-
-
 export type ErrorFilterFunction = ( err: Error ) => boolean;
 export interface ErrorFilterObject
 {
@@ -1151,8 +1143,10 @@ export function funnel< T >( opts: Partial< FunnelOptions > = { } )
 
 		const runner = ( ) =>
 		{
-			return ( < U >Try( ( ) => fn( shouldRetry, retry, shortcut ) ) )
-				.finally( shortcut );
+			return (
+				< U >( async ( ) => fn( shouldRetry, retry, shortcut ) )( )
+			)
+			.finally( shortcut );
 		};
 
 		return runner( );

@@ -16,7 +16,6 @@ import {
 	some,
 	specific,
 	tap,
-	Try,
 	wrapFunction,
 } from "../";
 
@@ -1661,52 +1660,6 @@ describe( "deferInspectable", ( ) =>
 
 	// 	return inspectable.promise;
 	// } );
-} );
-
-
-describe( "try", ( ) =>
-{
-	it( "should work without return value", async ( ) =>
-	{
-		const ret = await (
-			Try( ( ) => { } )
-			.then( val => val )
-		);
-
-		expect( ret ).toBe( void 0 );
-	} );
-
-	it( "should work with return value", async ( ) =>
-	{
-		const ret = await (
-			Try( ( ) => "foo" )
-			.then( val => val )
-		);
-
-		expect( typeof ret ).toBe( "string" );
-		expect( ret ).toBe( "foo" );
-	} );
-
-	it( "should work with a throwing function", async ( ) =>
-	{
-		function fn( ): string
-		{
-			throw new Error( fooError );
-		}
-		try
-		{
-			await (
-				Try( fn )
-				.then( val => val )
-			);
-			expect( false ).toBe( true ); // We shouldn't be here
-		}
-		catch ( err )
-		{
-			if ( err.message !== fooError )
-				throw err;
-		}
-	} );
 } );
 
 
