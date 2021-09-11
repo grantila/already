@@ -11,12 +11,13 @@
 
 The functions are standalone and depends on no particular Promise implementation and therefore works well for JavaScript's built-in Promise.
 
-The library is written in TypeScript, so typings are provided. Apart from being exported as JavaScript (ES2019), it's also exported as an *ES module*, if imported in platforms (and bundlers) supporting this.
+The library is written in TypeScript, so typings are provided. It is exported only as an [ESM package](esm-package)!
 
 
 # Versions
 
  * Since version 2, `Finally` and `Try` are removed. They should be replaced with `Promise.prototype.finally` and async functions.
+ * Since version 3, it's only exported as an [ESM package](esm-package).
 
 
 # Types
@@ -170,13 +171,11 @@ somePromise
 .then( delayChain( 100 ) )
 ```
 
-To always delay a chain, regardless of whether it was resolved or rejected, use `finallyDelay`. **Note the triple dots**, and read more about `Finally` below...
+To always delay a chain, regardless of whether it was resolved or rejected, use:
 
 ```ts
-import { finallyDelay } from 'already'
-
 somePromise
-.then( ...finallyDelay( 100 ) )
+.finally( delayChain( 100 ) )
 ```
 
 
@@ -888,3 +887,4 @@ async function getConnection( )
 [greenkeeper-url]: https://greenkeeper.io/
 [lgtm-image]: https://img.shields.io/lgtm/grade/javascript/g/grantila/already.svg?logo=lgtm&logoWidth=18
 [lgtm-url]: https://lgtm.com/projects/g/grantila/already/context:javascript
+[esm-package]: https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c
