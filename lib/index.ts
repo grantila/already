@@ -631,7 +631,7 @@ function onceDynamic( ): OnceRunner
 export function retry< R >(
 	times: number,
 	fn: ( ) => R,
-	retryable: ( err: Error ) => boolean = ( ) => true
+	retryable: ( err: unknown ) => boolean = ( ) => true
 )
 : R
 {
@@ -647,7 +647,7 @@ export function retry< R >(
 			return retryAsync( < any >fn( ) );
 		} );
 
-	const retrySync = ( _err: Error ): R =>
+	const retrySync = ( _err: unknown ): R =>
 	{
 		while ( --times >= 0 )
 		{

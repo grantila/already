@@ -1,7 +1,24 @@
-const hasModules =
-  parseInt( process.versions.node.split( "." )[ 0 ], 10 ) > 12;
-
-module.exports =
-  hasModules
-  ? require( './jest.config.modules' )
-  : require( './jest.config.common' );
+export default {
+	// preset: "ts-jest",
+	"transform": {
+		"^.+\\.jsx?$": "babel-jest",
+		"^.+\\.tsx?$": "ts-jest"
+	},
+	testEnvironment: "node",
+	testMatch: [
+		"<rootDir>/test-out/**/*.js",
+		"<rootDir>/test/**/*.ts",
+	],
+	moduleFileExtensions: ["js", "ts", "mjs"],
+	modulePathIgnorePatterns: [
+		".*\.d\.ts"
+	],
+	collectCoverageFrom: [
+		"<rootDir>/dist/**/*.js",
+	],
+	coverageReporters: ["lcov", "text", "html"],
+	setupFiles: [
+		"trace-unhandled/register",
+	],
+	maxConcurrency: Infinity,
+}
