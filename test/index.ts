@@ -2323,9 +2323,9 @@ describe( "wrapFunction", ( ) =>
 					( ( ) => Promise.resolve( 42 ) );
 				expect( false ).toBe( true );
 			}
-			catch ( err: any )
+			catch ( err )
 			{
-				expect( err?.message ).toBe(
+				expect( err.message ).toBe(
 					"Invalid invocation, function requires 2 arguments"
 				);
 			}
@@ -2358,9 +2358,9 @@ describe( "wrapFunction", ( ) =>
 					( "foo", ( ) => Promise.resolve( 42 ) );
 				expect( false ).toBe( true );
 			}
-			catch ( err: any )
+			catch ( err )
 			{
-				expect( err?.message ).toBe(
+				expect( err.message ).toBe(
 					"Invalid return value in 'before' handler"
 				);
 			}
@@ -2383,9 +2383,9 @@ describe( "wrapFunction", ( ) =>
 					( "foo", ( ) => Promise.resolve( 42 ) );
 				expect( false ).toBe( true );
 			}
-			catch ( err: any )
+			catch ( err )
 			{
-				expect( err?.message ).toBe( "foobar" );
+				expect( err.message ).toBe( "foobar" );
 			}
 		} )( );
 
