@@ -5,6 +5,7 @@ import {
 	delayChain,
 	each,
 	filter,
+	flatMap,
 	inspect,
 	map,
 	once,
@@ -356,6 +357,182 @@ describe( "map", ( ) =>
 		const arr3 = arr2.map( ( { t } ) => t );
 
 		expect( arr3 ).toEqual( [ 1, 2, 3, 4, 5 ] );
+	} );
+} );
+
+
+describe( "flatMap", ( ) =>
+{
+	function mapConcurrency< T, U >(
+		concurrency: number,
+		values: Array< T >,
+		map_: ( t: T ) => U | ConcatArray< U >
+	)
+	: Promise< { concurrencies: Array< number >; values: Array< U >; } >
+	{
+		let concur = 0;
+		const concurrencies: Array< number > = [ ];
+
+		return Promise.resolve( values )
+		.then( flatMap(
+			{ concurrency },
+			( val: T, index: number ) =>
+				Promise.resolve( val )
+				.then( tap( ( ) =>
+				{
+					concurrencies.push( ++concur );
+					return Promise.resolve( )
+					.then( delayChain( index * 4 ) );
+				} ) )
+				.then( ( ) => map_( val ) )
+				.then( tap( ( ) => { concurrencies.push( --concur ); } ) )
+		) )
+		.then( values => ( { values, concurrencies } ) );
+	}
+
+	it.concurrent( "unspecified concurrency should be correct", async ( ) =>
+	{
+		const { concurrencies, values } = await mapConcurrency(
+			< number >< any >void 0,
+			[ 1, 2, 3, 4, 5 ],
+			( val: number ) =>
+				!( val % 2 )
+				? [ "" + ( val * 2 ), "" + ( val * 2 ) ]
+				: "" + ( val * 2 )
+		);
+
+		expect( typeof values[ 0 ] ).toBe( "string" );
+		expect( values ).toEqual( [ "2", "4", "4", "6", "8", "8", "10" ] );
+		expect( concurrencies ).toEqual( [ 1, 2, 3, 4, 5, 4, 3, 2, 1, 0 ] );
+	} );
+
+	it.concurrent( "concurrency 1 should be correct", async ( ) =>
+	{
+		const { concurrencies, values } = await mapConcurrency(
+			1,
+			[ 1, 2, 3, 4, 5 ],
+			( val: number ) =>
+				!( val % 2 )
+				? [ "" + ( val * 2 ), "" + ( val * 2 ) ]
+				: "" + ( val * 2 )
+		);
+
+		expect( typeof values[ 0 ] ).toBe( "string" );
+		expect( values ).toEqual( [ "2", "4", "4", "6", "8", "8", "10" ] );
+		expect( concurrencies ).toEqual( [ 1, 0, 1, 0, 1, 0, 1, 0, 1, 0 ] );
+	} );
+
+	it.concurrent( "concurrency 2 should be correct", async ( ) =>
+	{
+		const { concurrencies, values } = await mapConcurrency(
+			2,
+			[ 1, 2, 3, 4, 5, 6, 7, 8, 9 ],
+			( val: number ) =>
+				!( val % 2 )
+				? [ "" + ( val * 2 ), "" + ( val * 2 ) ]
+				: "" + ( val * 2 )
+		);
+
+		expect( typeof values[ 0 ] ).toBe( "string" );
+		expect( values ).toEqual( [
+			"2", "4", "4", "6", "8", "8", "10",
+			"12", "12", "14", "16", "16", "18"
+		] );
+		const last = concurrencies.pop( );
+		expect( last ).toBe( 0 );
+		expect( concurrencies ).not.toContain( 0 );
+		expect( concurrencies ).toContain( 2 );
+	} );
+
+	it.concurrent( "concurrency 3 should be correct", async ( ) =>
+	{
+		const { concurrencies, values } = await mapConcurrency(
+			3,
+			[ 1, 2, 3, 4, 5, 6, 7, 8, 9 ],
+			// Opposite logic of the above, to test arrays at the edges
+			( val: number ) =>
+				( val % 2 )
+				? [ "" + ( val * 2 ), "" + ( val * 2 ) ]
+				: "" + ( val * 2 )
+		);
+
+		expect( typeof values[ 0 ] ).toBe( "string" );
+		expect( values ).toEqual( [
+			"2", "2", "4", "6", "6", "8", "10", "10",
+			"12", "14", "14", "16", "18", "18"
+		] );
+		const last = concurrencies.pop( );
+		expect( last ).toBe( 0 );
+		expect( concurrencies ).not.toContain( 0 );
+		expect( concurrencies ).toContain( 3 );
+	} );
+
+	it.concurrent( "should work without options", async ( ) =>
+	{
+		const arr = [ 1, 2, Promise.resolve( 3 ), delayChain( 50 )( 4 ), 5 ];
+		const arr2 = await Promise.all( arr )
+		.then( flatMap(
+			( t: number ) =>
+				t === 2
+				? Promise.resolve(
+					delay( 50 ).then( ( ) => [ { t: 2 }, { t: 2 } ] )
+				)
+				: ( { t } )
+		) );
+		const arr3 = arr2.map( ( { t } ) => t );
+
+		expect( arr3 ).toEqual( [ 1, 2, 2, 3, 4, 5 ] );
+	} );
+
+	it.concurrent( "should work as a free function", async ( ) =>
+	{
+		const arr = [ 1, 2, Promise.resolve( 3 ), delayChain( 50 )( 4 ), 5 ];
+		const arr2 = await flatMap(
+			arr,
+			{ concurrency: 10 },
+			t =>
+				t === 2
+				? delay( 50 ).then( ( ) => ( [ { t: 2 }, { t: 2 } ] ) )
+				: ( { t } )
+		);
+		const arr3 = arr2.map( ( { t } ) => t );
+
+		expect( arr3 ).toEqual( [ 1, 2, 2, 3, 4, 5 ] );
+	} );
+
+	it.concurrent( "should work as a free function without options",
+		async ( ) =>
+	{
+		const arr = [ 1, 2, Promise.resolve( 3 ), delayChain( 50 )( 4 ), 5 ];
+		const arr2 = await flatMap(
+			arr,
+			t =>
+				t === 2
+				? delay( 50 ).then( ( ) => ( [ { t: 2 }, { t: 2 } ] ) )
+				: ( { t } )
+		);
+		const arr3 = arr2.map( ( { t } ) => t );
+
+		expect( arr3 ).toEqual( [ 1, 2, 2, 3, 4, 5 ] );
+	} );
+
+	it.concurrent(
+		"should work as a free function without options on strict sub-arrays",
+		async ( ) =>
+	{
+		const arr = [ 1, 2, Promise.resolve( 3 ), delayChain( 50 )( 4 ), 5 ];
+		const arr2 = await flatMap(
+			arr,
+			t =>
+				delay( 50 ).then( ( ) =>
+					t === 2
+					? ( [ { t: 2 }, Promise.resolve( { t: 2 } ) ] )
+					: { t }
+				)
+		);
+		const arr3 = arr2.map( ( { t } ) => t );
+
+		expect( arr3 ).toEqual( [ 1, 2, 2, 3, 4, 5 ] );
 	} );
 } );
 

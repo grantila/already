@@ -42,6 +42,8 @@ The library is written in TypeScript, so typings are provided. It is exported on
       <br>&emsp;Asynchronuos version of `Array.prototype.filter`
   * [map](#map)
       <br>&emsp;Asynchronuos version of `Array.prototype.map`
+  * [flatMap](#flatmap)
+      <br>&emsp;Asynchronuos version of `Array.prototype.flatMap`
   * [reduce](#reduce)
       <br>&emsp;Asynchronuos version of `Array.prototype.reduce`
   * [each](#each)
@@ -282,6 +284,22 @@ import { map } from 'already'
 const outArray = await map( inArray, mapFun );
 // or with custom concurrency:
 const outArray = await map( inArray, { concurrency: 4 }, mapFun );
+```
+
+
+## flatMap
+
+Same as with `map`, but flattens the first-level potential arrays, and awaits the values if they are async. Can be used within a promise chain, or standalone taking the input array as first argument, an optional options object, and then the mapper function, just like [`map`](#map).
+
+```ts
+import { flatMap } from 'already'
+
+somePromiseToAnArrayOfPromisesAndValues
+.then( flatMap( { concurrency: 8 }, item =>
+    item.hasTwo
+    ? [ asyncJob( item.first ), asyncJob( item.second ) ]
+    : asyncJob( item )
+) )
 ```
 
 

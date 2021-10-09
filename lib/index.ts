@@ -5,6 +5,7 @@ export default {
 	delayChain,
 	each,
 	filter,
+	flatMap,
 	funnel,
 	inspect,
 	map,
@@ -237,6 +238,16 @@ export type MapArray< T > =
 export type MapFn< T, U > =
 	( t: T, index: number, arr: MapArray< T > ) =>
 		U | Promise< U >;
+export type FlatMapFn< T, U > =
+	( t: T, index: number, arr: MapArray< T > ) =>
+		| U
+		| ConcatArray< U | Promise< U > >
+		| Array< U | Promise< U > >
+		| Promise<
+			| U
+			| ConcatArray< U | Promise< U > >
+			| Array< U | Promise< U > >
+		>;
 export type FilterFn< T > = MapFn< T, boolean >;
 
 export function filter< T >( filterFn: FilterFn< T > )
@@ -360,6 +371,61 @@ export function map< T, U >(
 			)
 		)
 		.then( values => Promise.all( values ) );
+	};
+}
+
+
+export function flatMap< T, U >( mapFn: FlatMapFn< T, U > )
+: ( t: ConcatArray< T | PromiseLike< T > > ) => Promise< Array< U > >;
+export function flatMap< T, U >(
+	opts: FilterMapOptions, mapFn: FlatMapFn< T, U >
+): ( t: ConcatArray< T | PromiseLike< T > > ) => Promise< Array< U > >;
+export function flatMap< T, U >(
+	arr: ConcatArray< T | PromiseLike< T > >,
+	mapFn: FlatMapFn< T, U >
+): Promise< Array< U > >;
+export function flatMap< T, U >(
+	arr: ConcatArray< T | PromiseLike< T > >,
+	opts: FilterMapOptions,
+	mapFn: FlatMapFn< T, U >
+): Promise< Array< U > >;
+
+export function flatMap< T, U >(
+	arr:
+		ConcatArray< T | PromiseLike< T > > |
+		FlatMapFn< T, U > |
+		FilterMapOptions,
+	opts?: FlatMapFn< T, U > | FilterMapOptions,
+	mapFn?: FlatMapFn< T, U >
+)
+:
+	( ( t: ConcatArray< T | PromiseLike< T > > ) => Promise< Array< U > > ) |
+	( Promise< Array< U > > )
+{
+	if ( Array.isArray( arr ) )
+	{
+		return map(
+			arr,
+			opts as FilterMapOptions,
+			mapFn as FlatMapFn< T, U >
+		)
+		.then( arr =>
+			Promise.all(
+				arr
+				.map( inner => Array.isArray( inner ) ? inner : [ inner ] )
+				.flat( 1 ) as Array< U | Promise< U > >
+			)
+		);
+	}
+
+	return async ( t: ConcatArray< T | PromiseLike< T > > )
+	: Promise< Array< U > > =>
+	{
+		return flatMap(
+			t,
+			arr as FilterMapOptions,
+			opts as FlatMapFn< T, U >
+		);
 	};
 }
 
