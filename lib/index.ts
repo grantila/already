@@ -109,7 +109,7 @@ export type Callback< R, A extends any[ ] > =
 export function concurrent< R, A extends any[ ] >(
 	size: number,
 	fn: Callback< R, A >
-): ( ...args: Parameters< typeof fn > ) => Promise< ReturnType< typeof fn > >;
+): ( ...a: A ) => Promise< R >;
 
 export function concurrent( size: number )
 : < R, A extends any[ ] >( fn: Callback< R, A >, ...a: A ) => Promise< R >;
