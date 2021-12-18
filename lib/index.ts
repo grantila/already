@@ -802,7 +802,7 @@ export function defer< T = void >( ): Deferred< T >
 
 export interface ResolvedReflection< T >
 {
-	error?: void;
+	error?: undefined;
 	value: T;
 	isResolved: true;
 	isRejected: false;
@@ -810,7 +810,7 @@ export interface ResolvedReflection< T >
 export interface RejectedReflection
 {
 	error: Error;
-	value?: void;
+	value?: undefined;
 	isResolved: false;
 	isRejected: true;
 }
