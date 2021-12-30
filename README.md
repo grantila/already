@@ -252,6 +252,29 @@ const outArray = await filter( inArray, filterFun );
 const outArray = await filter( inArray, { concurrency: 4 }, filterFun );
 ```
 
+### filter operations chunked by idle time
+
+Some filter operations (predicate functions) are heavy on calculations. To not starve the system (e.g. a browser) from CPU resources, the filter can be chopped up in smaller chunks with either a `setTimeout(0)` or by using [`requestIdleCallback`](https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback).
+
+The options used to specify concurrency can instead specify `chunk`. This implies a concurrency of 1, i.e. no concurrency. Chunking is mostly useful in synchronously heavy operations, not asynchronous.
+
+Specify a chunk time explicitly, e.g. 50ms:
+
+```ts
+import { filter } from 'already'
+
+const outArray = await filter( inArray, { chunk: 50 }, filterFun );
+```
+
+or use `requestIdleCallback` to try to maintain a hang-free experience in browsers:
+
+```ts
+import { filter } from 'already'
+
+const outArray = await filter( inArray, { chunk: 'idle' }, filterFun );
+```
+
+
 ## map
 
 Same as with `filter`, `map` acts like awaiting all promises in an array, and then applying `array.map( )` on the result. Also, just like with `filter`, it will await the resulting promises from the map callback (if they actually are promises).
@@ -284,6 +307,26 @@ import { map } from 'already'
 const outArray = await map( inArray, mapFun );
 // or with custom concurrency:
 const outArray = await map( inArray, { concurrency: 4 }, mapFun );
+```
+
+### map operations chunked by idle time
+
+Some map operations (predicate functions) are heavy on calculations, just like `filter`. And for [the same reasons](#filter-operations-chunked-by-idle-time), you can select `chunk` to chunk up a map operation to not starve system from CPU resources in (synchronously) heavy map operations:
+
+Specify a chunk time explicitly, e.g. 50ms:
+
+```ts
+import { map } from 'already'
+
+const outArray = await map( inArray, { chunk: 50 }, mapFun );
+```
+
+or use `requestIdleCallback` to try to maintain a hang-free experience in browsers:
+
+```ts
+import { map } from 'already'
+
+const outArray = await map( inArray, { chunk: 'idle' }, mapFun );
 ```
 
 

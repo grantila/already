@@ -360,6 +360,221 @@ describe( "map", ( ) =>
 	} );
 } );
 
+describe( "time-chunking", ( ) =>
+{
+	const withIdle = ( cb: ( mock: jest.Mock ) => Promise< void > ) =>
+		async ( ) =>
+		{
+			const old = global.requestIdleCallback;
+
+			const mock: jest.Mock< any, any > = jest.fn(
+				( cb: ( idleDeadline: IdleDeadline ) => void ) =>
+					setTimeout(
+						( ) =>
+							cb( {
+								didTimeout: false,
+								timeRemaining: ( ) => 10,
+							} ),
+						1
+					)
+			);
+			global.requestIdleCallback = mock;
+			try
+			{
+				await cb( mock );
+			}
+			finally
+			{
+				global.requestIdleCallback = old;
+			}
+		};
+
+	const withTimeout = ( cb: ( mock: jest.Mock ) => Promise< void > ) =>
+		async ( ) =>
+		{
+			const old = global.setTimeout;
+
+			const mock: jest.Mock< any, any > = jest.fn(
+				( cb: ( ) => void, timeout: number ) =>
+					old( cb, timeout )
+			);
+			global.setTimeout = mock as any;
+			try
+			{
+				await cb( mock );
+			}
+			finally
+			{
+				global.setTimeout = old;
+			}
+		};
+
+	it( "map with idle", withIdle( async ( mock ) =>
+	{
+		const arr = [
+			1,
+			2,
+			Promise.resolve( 3 ),
+			delayChain( 5 )( 4 ),
+			5,
+			6,
+			7,
+			8,
+			9,
+			10,
+		];
+		const arr2 = await map(
+			arr,
+			{
+				chunk: 'idle',
+			},
+			t =>
+				( t % 2 === 0 )
+				? delay( 5 ).then( ( ) => ( { t } ) )
+				: ( { t } )
+		);
+		const arr3 = arr2.map( ( { t } ) => t );
+
+		expect( arr3 ).toEqual( [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ] );
+		expect( mock.mock.calls.length ).toBeGreaterThan( 0 );
+	} ) );
+
+	it( "map with idle (error before scheduling)", withIdle( async ( mock ) =>
+	{
+		const arr = [
+			1,
+			2,
+			Promise.resolve( 3 ),
+			delayChain( 5 )( 4 ),
+			5,
+			6,
+			7,
+			8,
+			9,
+			10,
+		];
+		const reflection = await reflect( map(
+			arr,
+			{
+				chunk: 'idle',
+			},
+			t =>
+				( t % 2 === 0 )
+				? ( ( ) => { throw new Error( 'iteration error' ); } )( )
+				: ( { t } )
+		) );
+
+		expect( mock.mock.calls.length ).toBe( 0 );
+		expect( reflection.isRejected ).toBe( true );
+		expect( reflection.error?.message ).toBe( 'iteration error' );
+	} ) );
+
+	it( "map with idle (error after scheduling)", withIdle( async ( mock ) =>
+	{
+		const arr = [
+			1,
+			2,
+			Promise.resolve( 3 ),
+			delayChain( 5 )( 4 ),
+			5,
+			6,
+			7,
+			8,
+			9,
+			10,
+		];
+		const reflection = await reflect( map(
+			arr,
+			{
+				chunk: 'idle',
+			},
+			t =>
+				( t % 9 === 0 )
+				? ( ( ) => { throw new Error( 'iteration error' ); } )( )
+				: ( t % 2 === 0 )
+				? delay( 5 ).then( ( ) => ( { t } ) )
+				: ( { t } )
+		) );
+
+		expect( mock.mock.calls.length ).toBeGreaterThan( 0 );
+		expect( reflection.isRejected ).toBe( true );
+		expect( reflection.error?.message ).toBe( 'iteration error' );
+	} ) );
+
+	it( "map with timeout", withTimeout( async ( mock ) =>
+	{
+		const arr = [
+			1,
+			2,
+			Promise.resolve( 3 ),
+			delayChain( 5 )( 4 ),
+			5,
+			6,
+			7,
+			8,
+			9,
+			10,
+		];
+		const arr2 = await map(
+			arr,
+			{
+				chunk: 7,
+			},
+			t =>
+				( t % 2 === 0 )
+				? delay( 5 ).then( ( ) => ( { t } ) )
+				: ( { t } )
+		);
+		const arr3 = arr2.map( ( { t } ) => t );
+
+		expect( arr3 ).toEqual( [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ] );
+		expect( mock.mock.calls.length ).toBeGreaterThan( 0 );
+	} ) );
+
+	it( "map invalid chunk", async ( ) =>
+	{
+		expect(
+			( ) =>
+				map(
+					[ ],
+					{
+						chunk: 'invalid value' as 'idle',
+					},
+					t => ( { t } )
+				)
+		)
+		.toThrowError( );
+	} );
+
+	it( "filter with idle", withIdle( async ( mock ) =>
+	{
+		const arr = [
+			1,
+			2,
+			Promise.resolve( 3 ),
+			delayChain( 5 )( 4 ),
+			5,
+			6,
+			7,
+			8,
+			9,
+			10,
+		];
+		const arr2 = await filter(
+			arr,
+			{
+				chunk: 'idle',
+			},
+			t =>
+				( t % 2 === 0 )
+				? delay( 5 ).then( ( ) => t % 3 === 0 )
+				: t % 3 === 0
+		);
+
+		expect( arr2 ).toEqual( [ 3, 6, 9 ] );
+		expect( mock.mock.calls.length ).toBeGreaterThan( 0 );
+	} ) );
+} );
 
 describe( "flatMap", ( ) =>
 {

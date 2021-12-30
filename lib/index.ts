@@ -228,8 +228,14 @@ export interface ConcurrencyOptions
 {
 	concurrency: number;
 }
-export type FilterMapOptions = Partial< ConcurrencyOptions >;
-const defaultFilterMapOptions: FilterMapOptions = { concurrency: Infinity };
+export interface ChunkOptions
+{
+	chunk: number | 'idle';
+}
+export type FilterMapOptions = Partial< ConcurrencyOptions | ChunkOptions >;
+const defaultFilterMapOptions: FilterMapOptions = {
+	concurrency: Infinity
+};
 
 export type MapArray< T > =
 	Array< T | PromiseLike< T > > |
@@ -349,11 +355,90 @@ export function map< T, U >(
 		? defaultFilterMapOptions
 		: < FilterMapOptions >arr;
 
-	const { concurrency = Infinity } = opts;
-
 	const promiseMapFn =
 		( t: T, index: number, arr: ConcatArray< T | PromiseLike< T > > ) =>
 			Promise.resolve( ( < MapFn< T, U > >mapFn )( t, index, arr ) );
+
+	const { concurrency = Infinity } = opts as Partial< ConcurrencyOptions >;
+	const { chunk } = opts as Partial< ChunkOptions >;
+
+	if ( typeof chunk !== 'undefined' )
+	{
+		if ( typeof chunk !== 'number' && chunk !== 'idle' )
+			throw new Error( `Invalid 'chunk' option to 'map': ${chunk}` );
+
+		const useIdle = chunk === 'idle';
+		const timeout =
+			chunk === 'idle'
+			? 15 // 15ms, allow 1.666ms for browser work (to fill up 16.666 ms)
+			: chunk;
+
+		const looper = async ( cb: ( timeout: number ) => Promise< void > ) =>
+			new Promise< void >( ( resolve, reject ) =>
+			{
+				const resolver = async ( timeout: number ) =>
+				{
+					try
+					{
+						await cb( timeout );
+						resolve( );
+					}
+					catch ( err )
+					{
+						reject( err );
+					}
+				}
+
+				( useIdle && typeof requestIdleCallback !== 'undefined' )
+				? requestIdleCallback(
+					idleDeadline =>
+						resolver(
+							// Round down to millisecond, subtract 1.
+							// That gives a little bit of time for the browser
+							// to do whatever it wants, and will to some
+							// degree prevent us to step over the time budget.
+							Math.floor( idleDeadline.timeRemaining( ) ) - 1
+						),
+						{ timeout: 0 }
+				)
+				: setTimeout( ( ) => resolver( timeout ), 0 );
+			} );
+
+		return ( t: ConcatArray< T | PromiseLike< T > > )
+		: Promise< Array< U > > =>
+		{
+			return Promise.resolve( t )
+			.then( async ( values: ConcatArray< T | PromiseLike< T > > ) =>
+			{
+				const arr = toReadonlyArray( values );
+				const ret: Array< U > = [ ];
+				let i = 0;
+
+				const loop = async ( timeout: number ) =>
+				{
+					const start = Date.now( );
+
+					for ( ; i < arr.length; )
+					{
+						const u = await promiseMapFn( await arr[ i ], i, arr );
+						ret.push( u );
+						++i;
+
+						if ( Date.now( ) - start >= timeout )
+						{
+							await looper( loop );
+							break;
+						}
+					}
+				}
+
+				await loop( timeout );
+
+				return ret;
+			} )
+			.then( values => Promise.all( values ) );
+		};
+	}
 
 	const concurrently = concurrent( concurrency );
 
@@ -362,12 +447,12 @@ export function map< T, U >(
 	{
 		return Promise.resolve( t )
 		.then( ( values: ConcatArray< T | PromiseLike< T > > ) =>
-			toReadonlyArray( values ).map(
-				( val, index, arr ) =>
-					( ( ) => Promise.resolve( val ) )( )
-					.then( ( val: T ) =>
-						concurrently( promiseMapFn, val, index, arr )
-					)
+			toReadonlyArray( values )
+			.map( ( val, index, arr ) =>
+				( ( ) => Promise.resolve( val ) )( )
+				.then( ( val: T ) =>
+					concurrently( promiseMapFn, val, index, arr )
+				)
 			)
 		)
 		.then( values => Promise.all( values ) );
