@@ -574,6 +574,43 @@ describe( "time-chunking", ( ) =>
 		expect( arr2 ).toEqual( [ 3, 6, 9 ] );
 		expect( mock.mock.calls.length ).toBeGreaterThan( 0 );
 	} ) );
+
+	it( "each with idle", withIdle( async ( mock ) =>
+	{
+		const handled: Array< number > = [ ];
+
+		const arr = [
+			1,
+			2,
+			Promise.resolve( 3 ),
+			delayChain( 5 )( 4 ),
+			5,
+			6,
+			7,
+			8,
+			9,
+			10,
+		];
+		await each(
+			arr,
+			{
+				chunk: 'idle',
+			},
+			async t =>
+			{
+				const shouldHandle =
+					( t % 2 === 0 )
+					? await delay( 5 ).then( ( ) => t % 3 === 0 )
+					: t % 3 === 0;
+
+				if ( shouldHandle )
+					handled.push( t );
+			}
+		);
+
+		expect( handled ).toStrictEqual( [ 3, 6, 9 ] );
+		expect( mock.mock.calls.length ).toBeGreaterThan( 0 );
+	} ) );
 } );
 
 describe( "flatMap", ( ) =>
@@ -1113,6 +1150,56 @@ describe( "each", ( ) =>
 				[ fooValue, 2, 3 ],
 			] );
 			expect( order ).toEqual( [ 0, 0, 1, 1, 2, 2 ] );
+		} );
+	} );
+
+	describe( "concurrency", ( ) =>
+	{
+		it.concurrent( "should handle concurrency with array", async ( ) =>
+		{
+			const handled: Array< number > = [ ];
+
+			await each(
+				[ 1, 2, 3, 4 ],
+				{
+					concurrency: 2
+				},
+				async x =>
+				{
+					if ( x % 2 === 1 )
+						await delay( x * 5 );
+
+					handled.push( x );
+
+					return;
+				}
+			);
+
+			expect( handled ).toStrictEqual( [ 2, 1, 4, 3 ] );
+		} );
+
+		it.concurrent( "should handle concurrency with currying", async ( ) =>
+		{
+			const handled: Array< number > = [ ];
+
+			const fn = each(
+				{
+					concurrency: 2
+				},
+				async ( x: number ) =>
+				{
+					if ( x % 2 === 1 )
+						await delay( x * 5 );
+
+					handled.push( x );
+
+					return;
+				}
+			);
+
+			await fn( [ 1, 2, 3, 4 ] );
+
+			expect( handled ).toStrictEqual( [ 2, 1, 4, 3 ] );
 		} );
 	} );
 } );

@@ -610,18 +610,30 @@ async function reduceImpl< T, R >(
 }
 
 
+const defaultEachOptions: FilterMapOptions = {
+	concurrency: 1
+};
+
 export type EachFn< T > =
 	( t: T, index: number, length: number ) => void | Promise< void >;
 
 export function each< T >( eachFn: EachFn< T > )
 : ( t: ConcatArray< T | PromiseLike< T > > ) => Promise< Array< T > >;
+export function each< T >( opts: FilterMapOptions, eachFn: EachFn< T > )
+: ( t: ConcatArray< T | PromiseLike< T > > ) => Promise< Array< T > >;
 export function each< T >(
 	arr: ConcatArray< T | PromiseLike< T > >,
 	eachFn: EachFn< T >
 ): Promise< Array< T > >;
+export function each< T >(
+	arr: ConcatArray< T | PromiseLike< T > >,
+	opts: FilterMapOptions,
+	eachFn: EachFn< T >
+): Promise< Array< T > >;
 
 export function each< T >(
-	arr: ConcatArray< T | PromiseLike< T > > | EachFn< T >,
+	arr: ConcatArray< T | PromiseLike< T > > | EachFn< T > | FilterMapOptions,
+	opts?: EachFn< T > | FilterMapOptions,
 	eachFn?: EachFn< T >
 )
 :
@@ -629,11 +641,35 @@ export function each< T >(
 	( Promise< Array< T > > )
 {
 	if ( Array.isArray( arr ) )
-		return eachImpl( < EachFn< T > >eachFn )( arr );
-	return eachImpl( < EachFn< T > >arr );
+	{
+		if ( typeof opts === "function" )
+		{
+			eachFn = opts;
+			opts = defaultEachOptions;
+		}
+
+		const _opts = < FilterMapOptions >opts;
+
+		return eachImpl( _opts, eachFn! )( arr );
+	}
+
+	if ( typeof arr === "function" )
+	{
+		eachFn = arr;
+		opts = defaultEachOptions;
+	}
+	else
+	{
+		eachFn = opts as EachFn< T >;
+		opts = arr as FilterMapOptions;
+	}
+
+	const _opts = < FilterMapOptions >opts;
+
+	return eachImpl( _opts, eachFn! );
 }
 
-export function eachImpl< T >( eachFn: EachFn< T > )
+function eachImpl< T >( opts: FilterMapOptions, eachFn: EachFn< T > )
 : ( t: ConcatArray< T | PromiseLike< T > > ) => Promise< Array< T > >
 {
 	return async ( arr: ConcatArray< T | PromiseLike< T > > )
@@ -646,7 +682,7 @@ export function eachImpl< T >( eachFn: EachFn< T > )
 			await eachFn( t, index, length );
 			return t;
 		}
-		return map( arr, { concurrency: 1 }, iterator );
+		return map( arr, opts, iterator );
 	};
 }
 

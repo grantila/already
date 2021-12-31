@@ -382,7 +382,7 @@ This means that the returned type from `reduce` doesn't need to be the same as t
 
 ## each
 
-`each` iterates an array of promises or values, very much like `map`, although always serially as if `concurrency` was set to `1`.
+`each` iterates an array of promises or values, very much like `map`, although with a default `concurrency` of `1`.
 
 The iterator function cannot return a value (or it will be ignored), but can return an empty promise which will be awaited before the next iteration. It's like `tap` but for elements in an array.
 
@@ -401,6 +401,29 @@ somePromiseToAnArrayOfPromisesAndValues
 
 const outArray = await each( inArray, iteratorFun );
 // outArray ~ inArray, not necessarily the *same* array, but the same content
+```
+
+### Concurrency and time-chunking
+
+Just like `filter` and `map` have [concurrency](#filter-concurrency) and [time-chunking](#filter-operations-chunked-by-idle-time) options, so does `each`. An optional argument before the predicate/iterator function can be used.
+
+For concurrency:
+
+```ts
+import { each } from 'already'
+
+await each( array, { concurrency: 4 }, iteratorFun );
+```
+
+and for time-chunking:
+
+```ts
+import { each } from 'already'
+
+// Time-chunk every 50 milliseconds
+await each( array, { chunk: 50 }, iteratorFun );
+// Time-chunk dynamically based on requestIdleCallback()
+await each( array, { chunk: 'idle' }, iteratorFun );
 ```
 
 
@@ -845,7 +868,7 @@ expect( ret ).to.equal( "yo" );
 
 Ensuring exclusive calls to a function can be implemented in multiple ways. With asynchrony, this gets quite complicated.
 
-Many problems can be generalized to only running one function at a time (awaiting it if necessary). For this, the [`throat`](https://www.npmjs.com/package/throat) package is useful (it is used by `already`). Sometimes a more fine grained control is desired, such as allowing a _test and early return_ as well as signalling that the concurrent logic is complete (to allow the next function call) before the whole function is complete. This results in a more understandable flow.
+Many problems can be generalized to only running one function at a time (awaiting it if necessary). For this, [`concurrent`](#concurrent) is useful. Sometimes a more fine grained control is desired, such as allowing a _test and early return_ as well as signalling that the concurrent logic is complete (to allow the next function call) before the whole function is complete. This results in a more understandable flow.
 
 For this, `funnel()` is extremely handy.
 
@@ -869,7 +892,7 @@ The above is a connection pool, we might only want a certain number of connectio
 
 Is the above code safe? It isn't. Two synchronously immediate calls to `getConnection` will likely get the same answer from `getReusableConnection`, i.e. *falsy*. This means, they'll both call `connect`, although maybe just one should have done so. Only one should have created a connection, then `registerToConnectionPool` while the other should wait until the first is complete, then retry `getConnection` from scratch to see if a connection can be re-used.
 
-The `getConnection` could be wrapped inside a [`throat`](https://www.npmjs.com/package/throat) wrapper, but that wouldn't be as performant as possible. Consider two calls to `getConnection` when there are connections in the pool, but none is free. One of the two calls should create a new connection, but while this takes place (which may take time), another might be freed. This newly freed connection should be re-usable by the second call to `getConnection`.
+The `getConnection` could be wrapped inside a [`concurrent`](#concurrent) wrapper, but that wouldn't be as performant as possible. Consider two calls to `getConnection` when there are connections in the pool, but none is free. One of the two calls should create a new connection, but while this takes place (which may take time), another might be freed. This newly freed connection should be re-usable by the second call to `getConnection`.
 
 `funnel` makes this trivial. Wrap the `getConnection` logic in a funnel. Allow concurrent access to `getReusableConnection` which is concurrency _safe_. Then create a _synchronization barrier_ (using `shouldRetry`/`retry`):
 
