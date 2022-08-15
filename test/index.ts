@@ -17,6 +17,7 @@ import {
 	some,
 	specific,
 	tap,
+	timeout,
 	wrapFunction,
 } from "../";
 
@@ -2439,6 +2440,63 @@ describe( "rethrow", ( ) =>
 
 		expect( spy1.mock.calls[ 0 ][ 0 ] ).toBe( err1 );
 		expect( spy2.mock.calls[ 0 ][ 0 ] ).toBe( err2 );
+	} );
+} );
+
+
+describe( "timeout", ( ) =>
+{
+	it( "should handle resolution before timeout", async ( ) =>
+	{
+		const thePromise = Promise.resolve( 42 );
+
+		const { reflection, timedout } = await timeout( thePromise, 1000 );
+
+		expect( timedout ).toBe( false );
+		expect( reflection?.isResolved ).toBe( true );
+		expect( reflection?.value ).toBe( 42 );
+	} );
+
+	it( "should handle rejection before timeout", async ( ) =>
+	{
+		const err = new Error( "error" );
+
+		const thePromise = Promise.reject( err );
+
+		const { reflection, timedout } = await timeout( thePromise, 1000 );
+
+		expect( timedout ).toBe( false );
+		expect( reflection?.isRejected ).toBe( true );
+		expect( reflection?.error ).toBe( err );
+	} );
+
+	it( "should handle timing out before resolution", async ( ) =>
+	{
+		const deferred = defer< number >( );
+
+		const { promise, reflection, timedout } =
+			await timeout( deferred.promise, 10 );
+
+		expect( timedout ).toBe( true );
+		expect( reflection ).toBe( undefined );
+
+		deferred.resolve( 42 );
+		expect( await promise ).toBe( 42 );
+	} );
+
+	it( "should handle timing out before rejection", async ( ) =>
+	{
+		const deferred = defer< number >( );
+
+		const { promise, reflection, timedout } =
+			await timeout( deferred.promise, 1000 );
+
+		expect( timedout ).toBe( true );
+		expect( reflection ).toBe( undefined );
+
+		const err = new Error( "error" );
+		deferred.reject( err );
+		expect( ( await reflect( promise ) ).error ).toBe( err );
 	} );
 } );
 

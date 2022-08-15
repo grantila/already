@@ -66,6 +66,8 @@ The library is written in TypeScript, so typings are provided. It is exported on
       <br>&emsp;Catch _specific_ types, like many languages have error type matching in subsequent `catch` statements
   * [rethrow](#rethrow)
       <br>&emsp;Ensure a callback re-throws (to not silently swallow errors)
+  * [timeout](#timeout)
+      <br>&emsp;Timeout a promise (race it against a timer)
   * [wrapFunction](#wrapfunction)
       <br>&emsp;Wrap a function with a potentially asynchronous prolog and/or epilog (e.g. init/cleanup)
   * [funnel](#funnel)
@@ -646,6 +648,18 @@ else
     handleError( error );
 ```
 
+The `Reflection` type has the form:
+
+```ts
+interface Reflection< T >
+{
+	error?: Error;
+	value?: T;
+	isResolved: boolean;
+	isRejected: boolean;
+}
+```
+
 
 ## inspect
 
@@ -746,6 +760,52 @@ import { specific, rethrow } from 'already'
 somePromise
 .catch( specific( MyError, rethrow( err => { /* handler */ } ) ) )
 .catch( err => { /* handler */ } ) // will always be called, if somePromise was rejected
+```
+
+
+## timeout
+
+To race a promise against a timer (to run code within a certain timeframe), use `timeout`. It is basically a `Promise.race()` against a [`delay()`](#delay), with a nice API. The first argument is the promise to race, and the second is the number of milliseconds to wait for at most.
+
+The promise returned from `timeout()` will never be rejected. It will be resolved within the timeout period.
+
+The value of the returned promise is an object on the form:
+
+```ts
+interface TimeoutValue< T >
+{
+	timedout: boolean;
+	reflection?: Reflection< T >; // If the promise did NOT timeout
+	promise: Promise< T >;
+}
+```
+
+Code can check if `timedout` is true or false. If it's true, the `promise` property can be used to further wait for the completion (at least a `catch` should be registered to handle errors). If `timedout` is false, the `reflection` property is of type [`Reflection`](#reflect) and contains the value or error.
+
+```ts
+import { timeout } from 'already'
+
+const { timedout, reflection, promise } = await timeout( somePromise, 3000 );
+
+if ( timedout )
+{
+    // The promise timed out
+    promise.catch( err =>
+        console.error( `Timed out promise eventually failed`, err.stack )
+    );
+}
+else
+{
+    // The promise was resolved or rejected
+    if ( reflection.isResolved )
+    {
+        doSomething( reflection.value );
+    }
+    else
+    {
+        handleError( reflection.error );
+    }
+}
 ```
 
 

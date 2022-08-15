@@ -1137,6 +1137,61 @@ export function rethrow< T extends Error = any >(
 	};
 }
 
+export interface NotTimedOutValue< T >
+{
+	timedout: false;
+	reflection: Reflection< T >;
+	promise: Promise< T >;
+}
+
+export interface TimedOutValue< T >
+{
+	timedout: true;
+	reflection: undefined;
+	promise: Promise< T >;
+}
+
+/**
+ * A TimeoutValue contains:
+ *   * A boolean whether the promise timed out
+ *   * The synchronous value or error of a resolved or rejected promise (if
+ *     not timed out)
+ *   * The promise itself to further await if timed out.
+ */
+export type TimeoutValue< T > = NotTimedOutValue< T > | TimedOutValue< T >;
+
+/**
+ * Timeout a promise with a certain number of milliseconds.
+ *
+ * Returns a promise (that will never be rejected) being resolved within _at
+ * least_ the timeout duration. The returned value contains the promise
+ * value or error, unless timeout was reached.
+ *
+ * @param promise The promise to await for at most <timeout> ms
+ * @param timeout Milliseconds to wait at most before timing out
+ * @returns A promise to a {@link TimeoutValue} object
+ */
+export async function timeout< T >( promise: Promise< T >, timeout: number )
+: Promise< TimeoutValue< T > >
+{
+	const sentry = Symbol();
+
+	return Promise.race( [ reflect( promise ), delay( timeout, sentry ) ] )
+	.then( ( value ): TimeoutValue< T > =>
+	{
+		if ( value === sentry )
+		{
+			// Timed out
+			return { timedout: true, promise, reflection: undefined };
+		}
+		else
+		{
+			// Did not time out, the value is the resolved reflection
+			return { timedout: false, promise, reflection: value };
+		}
+	} );
+}
+
 export function wrapFunction< R extends void >(
 	wrap: ( ) => ( ) => R
 ): (
