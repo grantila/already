@@ -909,7 +909,10 @@ export function defer< T = void >( ): Deferred< T >
 	} );
 
 	/* istanbul ignore next */
-	if ( process?.env?.JEST_WORKER_ID !== undefined )
+	if (
+		typeof process !== 'undefined' &&
+		process?.env?.JEST_WORKER_ID !== undefined
+	)
 		try
 		{
 			// Jest has decided for many versions to break async catching,
