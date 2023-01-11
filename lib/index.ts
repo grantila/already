@@ -1318,10 +1318,14 @@ export function wrapFunction< T, R extends Promise< void > | void >(
 			}
 
 			if (
-				cbRet && typeof ( < Promise< U > >cbRet ).then === "function"
+				cbRet &&
+				typeof ( cbRet as Promise< U > | U as Promise< U > ).then
+					=== "function"
 			)
 			{
-				return < Promise< U > >( < Promise< U > >cbRet )
+				return < Promise< U > >(
+					cbRet as Promise< U > | U as Promise< U >
+				)
 					.finally( ( ) => callCleanup( cleanup ) );
 			}
 			else
