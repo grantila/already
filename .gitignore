@@ -9,4 +9,5 @@ dist/
 dist-mjs/
 es5/
 yarn.lock
+.yarn/
 .vscode/

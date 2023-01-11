@@ -25,8 +25,8 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-    - run: npm i
-    - run: npm run build
-    - run: npm run test
+    - run: yarn --no-immutable
+    - run: yarn build
+    - run: yarn test
       env:
         CI: true
