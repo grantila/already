@@ -208,8 +208,8 @@ export function tap<
 	};
 }
 
-
-export function props( obj: any ): Promise< any >
+type PromiseResult<V> = V extends PromiseLike<infer R> ? R : V;
+export function props<O extends Record<string, any>>( obj: O ): Promise< {[key in keyof O]: PromiseResult<O[key]>} >
 {
 	const ret: any = { };
 
